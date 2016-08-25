@@ -1,0 +1,52 @@
+@import url(./normalize.css);
+
+html
+{
+  font: 16px/1 arial,tahoma,microsoft yahei,sans-serif,sans-serif;
+
+  user-select: none;
+
+  background: #ffffff;
+  height: 100%;
+
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+  overflow: hidden;
+}
+
+*
+{
+  outline: none;
+}
+
+input,
+textarea,
+select
+{
+  font-size: .3125rem;
+  line-height: inherit;
+
+  box-sizing: border-box;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled
+{
+  background: inherit;
+}
+
+a
+{
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+
+  color: inherit;
+
+  -webkit-touch-callout: none;
+}
