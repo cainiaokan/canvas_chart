@@ -12,28 +12,31 @@ export default class CrosshairRenderer {
     const ctx = this._ctx
     const model = this._model
     const point = model.point
+    const height = ctx.canvas.height
+    const width = ctx.canvas.width
+    this._ctx.clearRect(0, 0, width, height)
+
     if (!point) {
       return
     }
-    const width = ctx.canvas.width
-    const height = ctx.canvas.height
-    const bar = model.axisX.findBarByX(point.x)
+    const bar = model.axisX.findTimeBarByX(point.x)
 
     ctx.strokeStyle = '#333333'
     ctx.lineWidth = 1
     ctx.beginPath()
 
     if (bar) {
-      const x = bar.x
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, height)
+      ctx.moveTo(bar.x, 0)
+      ctx.lineTo(bar.x, height)
       ctx.stroke()
     }
 
-    ctx.moveTo(0, point.y)
-    ctx.lineTo(width, point.y)
-    ctx.stroke()
-    ctx.closePath()
+    if (model.hover) {
+      ctx.moveTo(0, point.y)
+      ctx.lineTo(width, point.y)
+      ctx.stroke()
+      ctx.closePath()
+    }
   }
 
   set ctx (ctx: CanvasRenderingContext2D) {

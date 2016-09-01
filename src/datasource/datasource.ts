@@ -1,11 +1,13 @@
 import * as Promise from 'es6-promise'
 import * as EventEmitter from 'eventemitter3'
+import { ResolutionType } from '../constant'
 
 /**
  * 基本数据规格，必须包含时间戳序列
  */
 export interface IBar {
   time: number
+  x?: number
 }
 
 export interface ILineBar extends IBar {
@@ -13,11 +15,18 @@ export interface ILineBar extends IBar {
 }
 
 export interface IColumnBar extends ILineBar {
-  positive: boolean
+  down: boolean
 }
 
 export interface IDataAdapter {
-  (bar: IBar): Array<any> | IBar
+  (bar: IBar): Array<any>
+}
+
+export type SymbolInfo = {
+  symbol: string
+  type: 'stock' | 'index',
+  exchange: string
+  description: string
 }
 
 /**
@@ -25,15 +34,26 @@ export interface IDataAdapter {
  * 数据源
  */
 export abstract class Datasource extends EventEmitter {
+  /**
+   * 解析度
+   * @type {ResolutionType}
+   */
+  protected _resolution: ResolutionType
   protected _hasMore: boolean = true
 
-  constructor () {
+  constructor (resolution: ResolutionType) {
     super()
+    this._resolution = resolution
   }
 
-  public abstract getResolution (): string
+  get resolution (): ResolutionType {
+    return this._resolution
+  }
 
-  public abstract setResolution (resolution: string): void
+  set resolution (resolution: ResolutionType) {
+    this._resolution = resolution
+    this.emit('resolutionchange', resolution)
+  }
 
   public abstract barAt (index): IBar
 
@@ -55,10 +75,15 @@ export abstract class Datasource extends EventEmitter {
    * @return {Promise}
    */
   public abstract loadMore(num: number): Promise<any>
+
+  public abstract resolveSymbol(): Promise<SymbolInfo>
+
   /**
    * 清空缓存
    */
-  public abstract clearCache(): void
+  public clearCache(): void {
+    this._hasMore = true
+  }
 
   get hasMore (): boolean {
     return this._hasMore

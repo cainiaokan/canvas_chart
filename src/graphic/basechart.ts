@@ -2,11 +2,10 @@ import PlotModel from '../model/plot'
 import { IYRange } from '../model/axisy'
 
 export interface IChartStyle {
-  lineColor?: string
+  color?: string
+  colorDown?: string
   lineWidth?: number
   fillColor?: string
-  highColor?: string
-  lowColor?: string
 }
 
 abstract class BaseChartRenderer {

@@ -1,5 +1,4 @@
 import './style/common.css'
-import * as _ from 'underscore'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
@@ -19,12 +18,12 @@ class Page extends React.Component<any, IState> {
       height: document.documentElement.clientHeight,
       width: ctn.clientWidth,
     }
-    window.onresize = _.throttle(() => {
+    window.onresize = () => {
       this.setState({
         height: document.documentElement.clientHeight,
         width: ctn.clientWidth,
       })
-    }, 500)
+    }
   }
 
   public render () {
@@ -33,7 +32,7 @@ class Page extends React.Component<any, IState> {
       height={this.state.height}
       width={this.state.width}
       shape={'mountain'}
-      resolution={'D'} />
+      resolution={'1'} />
   }
 }
 

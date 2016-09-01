@@ -12,20 +12,31 @@ const TICK_MARK_MIN_SPACE = 50
 
 export default class XTickMark {
   private _axis: AxisXMoel
+  private _tickmarks: Array<IXTickMark>
+
   constructor (axis: AxisXMoel) {
     this._axis = axis
   }
 
+  public clearTickmarks (): void {
+    this._tickmarks = null
+  }
+
   public getTickMarksByTimeBars (timeBars: Array<ITimeBar>): Array<IXTickMark> {
 
-    if (!timeBars.length) {
-      return []
+    if (this._tickmarks) {
+      return this._tickmarks
     }
 
-    const resolution = this._axis.datasource.getResolution()
+    const tickmarks: Array<IXTickMark> = []
+
+    if (!timeBars.length) {
+      return tickmarks
+    }
+
+    const resolution = this._axis.datasource.resolution
     const barWidth = this._axis.barWidth
     let minTickSpan = '1'
-    const tickmarks: Array<IXTickMark> = []
 
     switch (resolution) {
       case '1':
@@ -58,11 +69,56 @@ export default class XTickMark {
           minTickSpan = '30'
         } else if (barWidth * 12 >= TICK_MARK_MIN_SPACE) {
           minTickSpan = '60'
-        } else if (barWidth * (24 * 60 / 5) >= TICK_MARK_MIN_SPACE) {
+        } else if (barWidth * 24 * 12 >= TICK_MARK_MIN_SPACE) {
           minTickSpan = 'D'
-        } else if (barWidth * (30 * 24 * 60 / 5) >= TICK_MARK_MIN_SPACE) {
+        } else if (barWidth * 30 * 24 * 12 >= TICK_MARK_MIN_SPACE) {
           minTickSpan = 'M'
-        } else if (barWidth * (360 * 24 * 60 / 5) >= TICK_MARK_MIN_SPACE) {
+        } else if (barWidth * 360 * 24 * 12 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'Y'
+        } else {
+          minTickSpan = 'Y'
+        }
+        break
+      case '15':
+        if (barWidth >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = '15'
+        } else if (barWidth * 2 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = '30'
+        } else if (barWidth * 4 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = '60'
+        } else if (barWidth * 24 * 60 / 15 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'D'
+        } else if (barWidth * 30 * 24 * 60 / 15 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'M'
+        } else if (barWidth * 360 * 24 * 60 / 15 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'Y'
+        } else {
+          minTickSpan = 'Y'
+        }
+        break
+      case '30':
+        if (barWidth >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = '30'
+        } else if (barWidth * 2 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = '60'
+        } else if (barWidth * 24 * 2 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'D'
+        } else if (barWidth * 30 * 24 * 2 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'M'
+        } else if (barWidth * 360 * 24 * 2 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'Y'
+        } else {
+          minTickSpan = 'Y'
+        }
+        break
+      case '60':
+        if (barWidth >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = '60'
+        } else if (barWidth * 24 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'D'
+        } else if (barWidth * 30 * 24 >= TICK_MARK_MIN_SPACE) {
+          minTickSpan = 'M'
+        } else if (barWidth * 360 * 24 >= TICK_MARK_MIN_SPACE) {
           minTickSpan = 'Y'
         } else {
           minTickSpan = 'Y'
@@ -104,8 +160,7 @@ export default class XTickMark {
     }
 
     let passedSpan = TICK_MARK_MIN_SPACE
-    const len = timeBars.length
-    for (let i = 1; i < len; i++) {
+    for (let i = 1, len = timeBars.length; i < len; i++) {
       const bar = timeBars[i]
       let [
         prevYear,
@@ -217,6 +272,8 @@ export default class XTickMark {
         }
       }
     }
+
+    this._tickmarks = tickmarks
 
     return tickmarks
   }

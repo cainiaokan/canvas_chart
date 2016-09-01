@@ -19,25 +19,26 @@ export default class AxisXRenderer {
     ctx.beginPath()
     ctx.moveTo(0, 0)
     ctx.lineTo(axis.size.width, 0)
-    ctx.stroke()
     ctx.closePath()
+    ctx.stroke()
     ctx.font = '12px ans-serif'
     ctx.fillStyle = 'black'
     ctx.textAlign = 'center'
 
-    axis.tickmark
-      .getTickMarksByTimeBars(timeBars)
-      .forEach(bar => {
-        ctx.beginPath()
-        ctx.moveTo(bar.x, 0)
-        ctx.lineTo(bar.x, 5)
-        ctx.stroke()
-        ctx.closePath()
-        ctx.fillText(bar.time, bar.x, 20)
-      })
+    const tickmarks = axis.tickmark.getTickMarksByTimeBars(timeBars)
+
+    for (let i = 0, len = tickmarks.length; i < len; i++) {
+      const tickmark = tickmarks[i]
+      ctx.beginPath()
+      ctx.moveTo(tickmark.x, 0)
+      ctx.lineTo(tickmark.x, 5)
+      ctx.stroke()
+      ctx.closePath()
+      ctx.fillText(tickmark.time, tickmark.x, 20)
+    }
 
     if (cursorPoint) {
-      const timeBar = axis.findBarByX(cursorPoint.x)
+      const timeBar = axis.findTimeBarByX(cursorPoint.x)
       if (!timeBar) {
         return
       }
@@ -45,7 +46,7 @@ export default class AxisXRenderer {
       const margin = 8
       let dateStr = ''
       let textMetrics = null
-      if (axis.datasource.getResolution() >= 'D') {
+      if (axis.datasource.resolution >= 'D') {
         dateStr = date.getFullYear() + '-' +
           pad(date.getMonth() + 1 + '', 2) + '-' +
           pad(date.getDate() + '', 2)

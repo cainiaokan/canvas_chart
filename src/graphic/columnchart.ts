@@ -1,6 +1,6 @@
 import BaseChart, { IChartStyle } from './basechart'
 import PlotModel from '../model/plot'
-import { IYRange, MARGIN } from '../model/axisy'
+import { IYRange } from '../model/axisy'
 import { IColumnBar } from '../datasource'
 
 const SCALE_RATIO = 0.25
@@ -15,11 +15,15 @@ export default class ColumnChartRenderer extends BaseChart {
     super.draw()
 
     const ctx = this.ctx
-    const axisY = this.plotModel.axisY
+    const plot = this.plotModel
+    const graph = plot.graph
+    const axisY = graph.axisY
     const height = parseInt(ctx.canvas.style.height)
-    const barWidth = this.plotModel.axisX.barWidth
-    const bars = this.plotModel.getBars()
-    const rangeY = this.plotModel.isPrice ? axisY.range : this.getRangeY()
+    const barWidth = graph.axisX.barWidth
+    const bars = plot.getVisibleBars()
+    const rangeY = plot.isPrice ? axisY.range : this.getRangeY()
+    const style = this.style
+    const margin = axisY.margin
 
     if (!bars.length) {
       return
@@ -28,28 +32,27 @@ export default class ColumnChartRenderer extends BaseChart {
     ctx.save()
     ctx.lineWidth = 1
     ctx.globalAlpha = 0.3
-    bars.forEach(bar => {
-      const timeBar = bar.time
-      const data = bar.bar as IColumnBar
-      const x = timeBar.x - barWidth / 2
-      const y1 = axisY.getYByValue(data.val, rangeY)
-      const y = height - (height - y1 - MARGIN) * SCALE_RATIO
-      ctx.fillStyle = data.positive ? this.style.highColor : this.style.lowColor
+    ctx.strokeStyle = 'black'
+    ctx.beginPath()
+
+    for (let i = 0, bar, len = bars.length, x, y, y1; i < len; i++) {
+      bar = bars[i] as IColumnBar
+      x = ~~(bar.x - barWidth / 2 + 0.5)
+      y1 = axisY.getYByValue(bar.val, rangeY)
+      y = ~~(height - (height - y1 - margin) * SCALE_RATIO + 0.5)
+      ctx.fillStyle = bar.down ? style.colorDown : style.color
       ctx.fillRect(x, y, barWidth, height)
-      ctx.strokeStyle = 'black'
-      ctx.beginPath()
       ctx.moveTo(x, height)
       ctx.lineTo(x, y)
       ctx.lineTo(x + barWidth, y)
       ctx.lineTo(x + barWidth, height)
-      ctx.closePath()
-      ctx.stroke()
-    })
+    }
+    ctx.stroke()
     ctx.restore()
   }
 
   protected calcRangeY (): IYRange {
-    const bars = this.plotModel.getBars()
+    const bars = this.plotModel.getVisibleBars()
 
     if (!bars.length) {
       return
@@ -61,7 +64,7 @@ export default class ColumnChartRenderer extends BaseChart {
     }
 
     return bars.reduce((prev, cur) => {
-      const data = cur.bar as IColumnBar
+      const data = cur as IColumnBar
       if (data.val > prev.max) {
         prev.max = data.val
       }

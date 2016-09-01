@@ -2,9 +2,7 @@
 
 html
 {
-  font: 16px/1 arial,tahoma,microsoft yahei,sans-serif,sans-serif;
-
-  user-select: none;
+  font: 16px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 
   background: #ffffff;
   height: 100%;

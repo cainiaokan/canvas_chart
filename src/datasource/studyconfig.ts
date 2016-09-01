@@ -4,7 +4,7 @@ import { Datasource, IBar, IDataAdapter, ILineBar, IColumnBar } from '../datasou
 
 export interface IDataConverter {
   (
-    data: Array<any> | IBar,
+    data: Array<any>,
     index: number,
     datasource: Datasource,
     adapter: IDataAdapter,
@@ -14,9 +14,9 @@ export interface IDataConverter {
 
 interface IStudyConfig {
   [propName: string]: {
+    isPrice: boolean
     output: IDataConverter
     plots: Array<{
-      isPrice: boolean
       style: IChartStyle
       shape: ShapeType
     }>
@@ -25,6 +25,7 @@ interface IStudyConfig {
 
 export const studyConfig: IStudyConfig = {
   'MA': {
+    isPrice: true,
     output: function (
       data: Array<any>,
       index: number,
@@ -32,7 +33,8 @@ export const studyConfig: IStudyConfig = {
       adapter: IDataAdapter,
       input: any): Array<ILineBar> {
 
-      const start = index - input + 1
+      const length = input.length
+      const start = index - length + 1
       const end = index + 1
 
       if (end - start < input || start < 0) {
@@ -43,21 +45,21 @@ export const studyConfig: IStudyConfig = {
         time: data[0],
         val: datasource
           .slice(start, end)
-          .reduce((prev, cur) => prev + adapter(cur)[1], 0) / input,
+          .reduce((prev, cur) => prev + adapter(cur)[1], 0) / length,
       }]
     },
     plots: [
       {
-        isPrice: true,
         shape: 'line',
         style: {
-          lineColor: '#000000',
+          color: '#000000',
           lineWidth: 1,
         },
       },
     ],
   },
   'VOLUME': {
+    isPrice: false,
     output: function (
       data: Array<any>,
       index: number,
@@ -65,18 +67,17 @@ export const studyConfig: IStudyConfig = {
       adapter: IDataAdapter,
       input: any): Array<IColumnBar> {
       return [{
-        positive: data[2],
+        down: data[2],
         time: data[0],
         val: data[1],
       }]
     },
     plots: [
       {
-        isPrice: false,
         shape: 'column',
         style: {
-          highColor: '#ff524f',
-          lowColor: '#2bbe65',
+          color: '#ff524f',
+          colorDown: '#2bbe65',
         },
       },
     ],

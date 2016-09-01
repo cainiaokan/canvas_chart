@@ -41,7 +41,7 @@ export default class PlotList<T extends IBar> {
    * @return {T}            数据
    */
   public get(index: number): T {
-    return this.cache[index]
+    return this.cache[index] || null
   }
 
   public first(): T {
@@ -136,7 +136,7 @@ export default class PlotList<T extends IBar> {
    * @return {number}           下标索引
    */
   private bsearch(time: number, fromIndex: number, toIndex: number, bias: number = 0): number {
-    while (toIndex > fromIndex) {
+    while (toIndex >= fromIndex) {
       const pivot = ~~((fromIndex + toIndex) / 2)
       const value = this.cache[pivot].time
       if (value === time) {

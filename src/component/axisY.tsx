@@ -1,13 +1,13 @@
 import * as React from 'react'
 import AxisYModel from '../model/axisy'
 
-interface IProp {
+type Prop = {
   axis: AxisYModel
   width: number
   height: number
 }
 
-export default class AxisY extends React.Component<IProp, any> {
+export default class AxisY extends React.Component<Prop, any> {
   private _canvas: HTMLCanvasElement
   private _ctx: CanvasRenderingContext2D
   private _axis: AxisYModel
@@ -31,16 +31,20 @@ export default class AxisY extends React.Component<IProp, any> {
   }
 
   public render () {
+    const width = this.props.width
+    const height = this.props.height
     return (
-      <canvas ref={el => {
-        if (el) {
-          this._canvas = el
-          this._canvas.height = this.props.height
-          this._canvas.width = this.props.width
-          this._ctx = el.getContext('2d')
-          this._axis.graphic.ctx = this._ctx
-        }
-      }} width={this.props.width} height={this.props.height}></canvas>
+      <div className='chart-axisy' style={ {height: height + 'px', width: width + 'px'} }>
+        <canvas ref={el => {
+          if (el) {
+            this._canvas = el
+            this._canvas.height = this.props.height
+            this._canvas.width = this.props.width
+            this._ctx = el.getContext('2d')
+            this._axis.graphic.ctx = this._ctx
+          }
+        }} width={width} height={height}></canvas>
+      </div>
     )
   }
 }

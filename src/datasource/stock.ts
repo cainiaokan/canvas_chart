@@ -1,11 +1,13 @@
 import * as RPC from './rpc'
 import PlotList  from './plotlist'
-import { IBar, Datasource } from './datasource'
+import { ResolutionType } from '../constant'
+import { IBar, Datasource, SymbolInfo } from './datasource'
 
 /**
  * 股票信息的数据规格
  */
 export interface IStockBar extends IBar {
+  amount: number
   open: number
   close: number
   high: number
@@ -27,47 +29,32 @@ export class StockDatasource extends Datasource {
   protected _plotList: PlotList<IStockBar>
 
   /**
-   * 解析度
-   * @type {string}
-   */
-  protected _resolution: string
-
-  /**
    * 股票代码
    * @type {string}
    */
   private _symbol: string
 
   private _requestFromTime: number
+  private _loading: boolean = false
 
   /**
    * @constructor
    * @param {string} symbol     股票代码
    * @param {string} resolution 解析度
    */
-  constructor (symbol: string, resolution: string = '1') {
-    super()
+  constructor (symbol: string, resolution: ResolutionType = '1') {
+    super(resolution)
     this._symbol = symbol
-    this._resolution = resolution
     this._plotList = new PlotList<IStockBar>()
   }
 
-  public getSymbol (): string {
+  get symbol (): string {
     return this._symbol
   }
 
-  public setSymbol (symbol: string) {
+  set symbol (symbol: string) {
     this._symbol = symbol
     this.emit('symbolchange', symbol)
-  }
-
-  public getResolution (): string {
-    return this._resolution
-  }
-
-  public setResolution (resolution: string = '1') {
-    this._resolution = resolution
-    this.emit('resolutionchange', resolution)
   }
 
   public barAt (index: number): IStockBar {
@@ -103,7 +90,11 @@ export class StockDatasource extends Datasource {
    * @param  {number}  num 加载的条数
    * @return {Promise}   
    */
-  public loadMore(loadNum: number): Promise<any> {
+  public loadMore (loadNum: number): Promise<any> {
+    if (!this._hasMore || this._loading) {
+      return Promise.resolve()
+    }
+    this._loading = true
     const toTime = this._requestFromTime ?
       this._requestFromTime : this._plotList.first() ?
         this._plotList.first().time - 1000 : ~~(Date.now() / 1000)
@@ -117,6 +108,18 @@ export class StockDatasource extends Datasource {
       case '5':
         fromTime = toTime - 480 * 5 * 60 - 18 * 3600
         maxTimeSpan = 30 * 24 * 3600
+        break
+      case '15':
+        fromTime = toTime - 480 * 15 * 60 - 5 * 18 * 3600
+        maxTimeSpan = 60 * 24 * 3600
+        break
+      case '30':
+        fromTime = toTime - 480 * 30 * 60 - 10 * 18 * 3600
+        maxTimeSpan = 120 * 24 * 3600
+        break
+      case '60':
+        fromTime = toTime - 480 * 60 * 60 - 20 * 18 * 3600
+        maxTimeSpan = 240 * 24 * 3600
         break
       case 'D':
         fromTime = toTime - 300 * 24 * 3600
@@ -144,6 +147,7 @@ export class StockDatasource extends Datasource {
               const requestToTime = this._plotList.first() ? this._plotList.first().time : ~~(Date.now() / 1000)
               data.t.forEach((time, index) => {
                 const barData: IStockBar = {
+                  amount: data.a[index],
                   close: data.c[index],
                   high: data.h[index],
                   low: data.l[index],
@@ -160,6 +164,7 @@ export class StockDatasource extends Datasource {
                 stockBars.push(barData)
               })
               this._plotList.merge(stockBars)
+              this._loading = false
               if (this._plotList.size() >= loadNum) {
                 this._requestFromTime = 0
                 resolve()
@@ -171,15 +176,60 @@ export class StockDatasource extends Datasource {
                   .then(resolve)
                   .catch(reject)
               }
-            }).catch(reject)
-        )
+            })
+            .catch(reject)
+        ).catch(e => this._loading = false)
     )
+  }
+
+  public resolveSymbol (): Promise<SymbolInfo> {
+    return new Promise((resolve, reject) => {
+      RPC.resolveSymbol(this._symbol)
+        .then(response => {
+          response
+            .json()
+            .then(data => {
+              resolve({
+                description: data.description,
+                exchange: data.exchange,
+                symbol: data.symbol,
+                type: data.type,
+              })
+            })
+            .catch(reject)
+        })
+        .catch(reject)
+    })
+  }
+
+  public searchSymbols (keyword): Promise<Array<SymbolInfo>> {
+    return new Promise((resolve, reject) => {
+      RPC.searchSymbols(keyword)
+        .then(response => {
+          response
+            .json()
+            .then(data => {
+              resolve((data as Array<any>).map(symbol => {
+                return {
+                  description: symbol.description,
+                  exchange: symbol.exchange,
+                  symbol: symbol.symbol,
+                  type: symbol.type,
+                }
+              }))
+            })
+            .catch(reject)
+        })
+        .catch(reject)
+    })
   }
 
   /**
    * 清空缓存
    */
   public clearCache(): void {
+    super.clearCache()
+    this._requestFromTime = null
     this._plotList.clear()
   }
 }

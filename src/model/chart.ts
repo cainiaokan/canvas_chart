@@ -4,6 +4,7 @@ import AxisXModel from './axisx'
 import AxisYModel, { IYRange } from './axisy'
 import CrosshairModel from './crosshair'
 import GraphModel from './graph'
+import GridRenderer from '../graphic/grid'
 
 interface ISize {
   width: number,
@@ -18,18 +19,27 @@ export default class ChartModel extends EventEmitter {
   private _axisY: AxisYModel
   private _crosshair: CrosshairModel
   private _size: ISize
+  private _grid: GridRenderer
+  private _heightProportion: number = 1
 
   constructor (
     datasource: Datasource,
     axisX: AxisXModel, axisY: AxisYModel,
     crosshair: CrosshairModel,
-    graphs: Array<GraphModel>) {
+    graphs: Array<GraphModel>,
+    heightProportion: number) {
     super()
     this._datasource = datasource
     this._axisX = axisX
     this._axisY = axisY
     this._crosshair = crosshair
     this._graphs = graphs
+    this._grid = new GridRenderer(this)
+    this._heightProportion = heightProportion
+  }
+
+  get heightProportion (): number {
+    return this._heightProportion
   }
 
   get graphs (): Array<GraphModel> {
@@ -42,7 +52,6 @@ export default class ChartModel extends EventEmitter {
 
   set size (size: ISize) {
     this._size = size
-    this.emit('sizechange', size)
   }
 
   get datasource (): Datasource {
@@ -59,6 +68,10 @@ export default class ChartModel extends EventEmitter {
 
   get axisY (): AxisYModel {
     return this._axisY
+  }
+
+  get grid (): GridRenderer {
+    return this._grid
   }
 
   public getRangeY (): IYRange {
@@ -89,7 +102,8 @@ export default class ChartModel extends EventEmitter {
     const ctx = this._graphs[0].ctx
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, this.size.width, this.size.height)
+    this._grid.draw()
     this._graphs.forEach(graph => graph.draw())
-    this._crosshair.graphic.draw()
+    this._crosshair.draw()
   }
 }

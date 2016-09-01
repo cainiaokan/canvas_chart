@@ -12,45 +12,44 @@ export default class MountainChartRenderer extends BaseChart {
   public draw (): void {
     super.draw()
 
-    let bars = this.plotModel.getBars()
+    let bars = this.plotModel.getVisibleBars()
 
     if (!bars.length) {
       return
     }
 
     const ctx = this.ctx
-    const axisY = this.plotModel.axisY
+    const axisY = this.plotModel.graph.axisY
     const rangeY = this.plotModel.isPrice ? axisY.range : this.getRangeY()
     const height = parseInt(this.plotModel.graphic.ctx.canvas.style.height)
-    let firstPosX: number = 0
-    let lastPosX: number = 0
-    let first = true
 
-    ctx.beginPath()
-    bars.forEach(bar => {
-      const timeBar = bar.time
-      const data = bar.bar as ILineBar
-      if (first) {
-        ctx.moveTo(timeBar.x, axisY.getYByValue(data.val, rangeY))
-        first = false
-        firstPosX = timeBar.x
-      } else {
-        ctx.lineTo(timeBar.x, axisY.getYByValue(data.val, rangeY))
-        lastPosX = timeBar.x
-      }
-    })
-    ctx.strokeStyle = this.style.lineColor
+    ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
-    ctx.stroke()
-    ctx.lineTo(lastPosX, height)
-    ctx.lineTo(firstPosX, height)
-    ctx.closePath()
     ctx.fillStyle = this.style.fillColor
+    ctx.beginPath()
+
+    const len = bars.length
+    let bar
+
+    if (len) {
+      bar = bars[0] as ILineBar
+      ctx.moveTo(bar.x, axisY.getYByValue(bar.val, rangeY))
+    }
+
+    for (let i = 0; i < len; i++) {
+      bar = bars[i] as ILineBar
+      ctx.lineTo(bar.x, axisY.getYByValue(bar.val, rangeY))
+    }
+
+    ctx.stroke()
+    ctx.lineTo(bars[len - 1].x, height)
+    ctx.lineTo(bars[0].x, height)
+    ctx.closePath()
     ctx.fill()
   }
 
   protected calcRangeY (): IYRange {
-    const bars = this.plotModel.getBars()
+    const bars = this.plotModel.getVisibleBars()
 
     if (!bars.length) {
       return
@@ -62,7 +61,7 @@ export default class MountainChartRenderer extends BaseChart {
     }
 
     return bars.reduce((prev, cur) => {
-      const bar = cur.bar as ILineBar
+      const bar = cur as ILineBar
       if (bar.val < prev.min) {
         prev.min = bar.val
       }

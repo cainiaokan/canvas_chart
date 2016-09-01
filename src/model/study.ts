@@ -10,6 +10,9 @@ import CrosshairModel from './crosshair'
 
 export default class StudyModel extends Graph {
 
+  private _studyType: StudyType
+  private _styles: Array<IChartStyle>
+
   constructor (
     datasource: Datasource,
     axisX: AxisXModel,
@@ -19,24 +22,34 @@ export default class StudyModel extends Graph {
     adapter: IDataAdapter,
     input: any = null,
     style: Array<IChartStyle> = []) {
-    super(datasource)
+
     const config = studyConfig[study]
-    this._plots = []
+    super(datasource, axisX, axisY, crosshair, config.isPrice, adapter, config.output, input)
+    this._studyType = study
+    this._styles = style
+
     config.plots.forEach((plotConfig, index) => {
       this._plots.push(
         new PlotModel(
+          this,
           index,
-          datasource,
-          axisX, axisY,
-          crosshair,
+          this._isPrice,
           plotConfig.shape,
-          plotConfig.isPrice,
-          adapter,
-          config.output,
-          input,
           _.extend({}, plotConfig.style, style[index])
         )
       )
     })
+  }
+
+  get studyType (): StudyType {
+    return this._studyType
+  }
+
+  get styles (): Array<IChartStyle> {
+    return this._styles
+  }
+
+  get input (): any {
+    return this._input
   }
 }

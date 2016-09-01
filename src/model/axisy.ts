@@ -14,7 +14,7 @@ export interface IYRange {
   min: number
 }
 
-export const MARGIN = 20
+export const MARGIN_RATIO = .05
 
 export default class AxisYModel extends EventEmitter {
 
@@ -24,14 +24,14 @@ export default class AxisYModel extends EventEmitter {
   private _crosshair: CrosshairModel
   private _datasource: Datasource
   private _graphic: AxisYRenderer
-  private _tickmarks: YTickMark
+  private _tickmark: YTickMark
 
   constructor (datasource: Datasource, crosshair: CrosshairModel) {
     super()
     this._datasource = datasource
     this._crosshair = crosshair
     this._graphic = new AxisYRenderer(this)
-    this._tickmarks = new YTickMark(this)
+    this._tickmark = new YTickMark(this)
   }
 
   get size (): ISize {
@@ -40,7 +40,6 @@ export default class AxisYModel extends EventEmitter {
 
   set size (size: ISize) {
     this._size = size
-    this.emit('resize', size)
   }
 
   get datasource (): Datasource {
@@ -52,27 +51,36 @@ export default class AxisYModel extends EventEmitter {
   }
 
   get tickmark (): YTickMark {
-    return this._tickmarks
+    return this._tickmark
   }
 
   get crosshair(): CrosshairModel {
     return this._crosshair
   }
 
+  get margin (): number {
+    return this._size.height * MARGIN_RATIO
+  }
+
   public getYByValue (value: number, range: IYRange): number {
-    const height = this._size.height - MARGIN * 2
+    const margin = this.margin
+    const height = this._size.height - margin * 2
     const diff1 = range.max - range.min
     const diff2 = range.max - value
-    return ~~((diff2 / diff1) * height) + MARGIN
+    return ~~((diff2 / diff1) * height + margin)
   }
 
   public getValueByY (value: number, range: IYRange): number {
-    const height = this._size.height - MARGIN * 2
+    const margin = this.margin
+    const height = this._size.height - margin * 2
     const diff1 = range.max - range.min
-    return (this._size.height - MARGIN - value) * diff1 / height + range.min
+    return (this._size.height - margin - value) * diff1 / height + range.min
   }
 
-  public draw (): void {
+  public draw (clearCache = true): void {
+    if (clearCache) {
+      this._tickmark.clearTickmarks()
+    }
     this._graphic.draw()
   }
 

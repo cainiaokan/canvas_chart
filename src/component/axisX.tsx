@@ -1,13 +1,14 @@
 import * as React from 'react'
 import AxisXModel from '../model/axisx'
 
-interface IProp {
+type Prop = {
   axis: AxisXModel
   width: number
   height: number
+  onMouseDown?: (ev: MouseEvent) => void
 }
 
-export default class AxisX extends React.Component<IProp, any> {
+export default class AxisX extends React.Component<Prop, any> {
   private _canvas: HTMLCanvasElement
   private _ctx: CanvasRenderingContext2D
   private _axis: AxisXModel
@@ -30,17 +31,28 @@ export default class AxisX extends React.Component<IProp, any> {
     }
   }
 
+  public mouseenterhandler (ev) {
+    ev.currentTarget.style.cursor = 'ew-resize'
+  }
+
   public render () {
+    const width = this.props.width
+    const height = this.props.height
     return (
-      <canvas ref={el => {
-        if (el) {
-          this._canvas = el
-          this._canvas.height = this.props.height
-          this._canvas.width = this.props.width
-          this._ctx = el.getContext('2d')
-          this._axis.graphic.ctx = this._ctx
-        }
-      }} width={this.props.width} height={this.props.height}></canvas>
+      <div className='chart-axisx'
+        onMouseDown={this.props.onMouseDown}
+        onMouseEnter={this.mouseenterhandler.bind(this)}
+        style={ {height: this.props.height} }>
+        <canvas ref={el => {
+          if (el) {
+            this._canvas = el
+            this._canvas.height = height
+            this._canvas.width = width
+            this._ctx = el.getContext('2d')
+            this._axis.graphic.ctx = this._ctx
+          }
+        }} width={width} height={height}></canvas>
+      </div>
     )
   }
 }

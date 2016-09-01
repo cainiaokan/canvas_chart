@@ -18,6 +18,8 @@ export interface ITimeBar {
 }
 
 const MARGIN = 50
+export const MAX_BAR_WIDTH = 50
+export const MIN_BAR_WIDTH = 3
 
 export default class AxisXModel extends EventEmitter {
 
@@ -115,7 +117,7 @@ export default class AxisXModel extends EventEmitter {
     const bars = datasource.slice(start, end)
     const timeBars = []
 
-    for (let i = bars.length - 1, pos = posX; i >= 0; i--) {
+    for (let i = bars.length - 1, pos = ~~(posX + 0.5); i >= 0; i--) {
       const bar = bars[i]
       timeBars[i] = {
         time: bar.time,
@@ -136,20 +138,27 @@ export default class AxisXModel extends EventEmitter {
     return -MARGIN
   }
 
-  public draw (): void {
-    this._visibleTimeBars = null
+  public draw (clearCache = true): void {
+    if (clearCache) {
+      this._visibleTimeBars = null
+      this._tickmark.clearTickmarks()
+    }
     this._graphic.draw()
   }
 
-  public findBarByX (x: number): ITimeBar {
+  public findTimeBarByX (x: number): ITimeBar {
     const timeBars = this.getVisibleTimeBars()
-    const len = timeBars.length
-    for (let i = 0; i < len; i++) {
+    for (let i = 0, len = timeBars.length; i < len; i++) {
       const bar = timeBars[i]
       if (Math.abs(x - bar.x) <= this._barWidth / 2) {
         return bar
       }
     }
     return null
+  }
+
+  public resetOffset () {
+    this.offset = -MARGIN
+    this.barWidth = 5
   }
 }

@@ -13,36 +13,34 @@ export default class LineChartRenderer extends BaseChart {
     super.draw()
 
     const ctx = this.ctx
-    const axisY = this.plotModel.axisY
-    const bars = this.plotModel.getBars()
+    const axisY = this.plotModel.graph.axisY
+    const bars = this.plotModel.getVisibleBars()
     const rangeY = this.plotModel.isPrice ? axisY.range : this.getRangeY()
 
     if (!bars.length) {
       return
     }
-
-    ctx.beginPath()
-    let first = true
-    bars.forEach(bar => {
-      const timerBar = bar.time
-      const data = bar.bar as ILineBar
-      if (first) {
-        if (bar !== null) {
-          ctx.moveTo(timerBar.x, axisY.getYByValue(data.val, rangeY))
-          first = false
-        }
-      } else {
-        ctx.lineTo(timerBar.x, axisY.getYByValue(data.val, rangeY))
-      }
-    })
-    ctx.strokeStyle = this.style.lineColor
+    ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
+    ctx.beginPath()
+
+    const len = bars.length
+
+    if (len) {
+      const bar = bars[0] as ILineBar
+      ctx.moveTo(bar.x, axisY.getYByValue(bar.val, rangeY))
+    }
+
+    for (let i = 0; i < len; i++) {
+      const bar = bars[i] as ILineBar
+      ctx.lineTo(bar.x, axisY.getYByValue(bar.val, rangeY))
+    }
+
     ctx.stroke()
-    ctx.closePath()
   }
 
   protected calcRangeY (): IYRange {
-    const bars = this.plotModel.getBars()
+    const bars = this.plotModel.getVisibleBars()
 
     if (!bars.length) {
       return null
@@ -54,7 +52,7 @@ export default class LineChartRenderer extends BaseChart {
     }
 
     return bars.reduce((prev, cur) => {
-      const bar = cur.bar as ILineBar
+      const bar = cur as ILineBar
       if (bar.val < prev.min) {
         prev.min = bar.val
       }

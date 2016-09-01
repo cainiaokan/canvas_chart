@@ -19,3 +19,11 @@ export function getStockBars (
   from: number, to: number): Promise<IResponse> {
   return fetch(`${DOMAIN}/chart/history/?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`)
 }
+
+export function resolveSymbol (symbol: string): Promise<IResponse> {
+  return fetch(`${DOMAIN}/chart/symbols/?symbol=${symbol}`)
+}
+
+export function searchSymbols (keyword: string): Promise<IResponse> {
+  return fetch(`${DOMAIN}/chart/search/?query=${keyword}&limit=15&type=&exchange=`)
+}
