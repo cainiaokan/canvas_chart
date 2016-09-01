@@ -1,0 +1,504 @@
+import './index.less'
+import * as React from 'react'
+import Chart from './../chart'
+import AxisX from './../axisX'
+import Navbar from './../navbar'
+import ChartModel from '../../model/chart'
+import CrosshairModel from '../../model/crosshair'
+import { StockDatasource, IStockBar } from '../../datasource'
+import { ShapeType, ResolutionType, StudyType, AXIS_Y_WIDTH, AXIS_X_HEIGHT, NAVBAR_HEIGHT } from '../../constant'
+import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../../model/axisx'
+import AxisYModel from '../../model/axisy'
+import GraphModel from '../../model/graph'
+import StockModel from '../../model/stock'
+import StudyModel from '../../model/study'
+import ChartLayoutModel from '../../model/chartlayout'
+import { clientOffset } from '../../util'
+
+type AxisType = 'left' | 'right' | 'both'
+type ChartType = 'snapshot' | 'realtime'
+
+type Prop  = {
+  symbol: string
+  resolution: ResolutionType
+  height: number
+  width: number
+  axis?: AxisType
+  shape?: ShapeType
+  study?: StudyType
+  type?: ChartType
+  scrollable?: boolean
+  scalable?: boolean
+}
+
+type State = {
+  chartLayoutModel: ChartLayoutModel
+}
+
+export default class ChartLayout extends React.Component<Prop, State> {
+
+  public static propTypes = {
+    axis: React.PropTypes.oneOf(['left', 'right', 'both']),
+    datasources: React.PropTypes.array.isRequired,
+    resolution: React.PropTypes.oneOf(['1', '5', '15', '30', '60', 'D', 'W', 'M']),
+    scalable: React.PropTypes.bool,
+    scrollable: React.PropTypes.bool,
+    shape: React.PropTypes.oneOf(['histogram', 'mountain', 'line', 'bar', 'candle']),
+    study: React.PropTypes.oneOf(['MA', 'MACD', 'BOLL', 'KDJ', 'VOLUME']),
+    to: React.PropTypes.number,
+    type: React.PropTypes.oneOf(['snapshot', 'realtime']),
+    width: React.PropTypes.number.isRequired,
+  }
+
+  public static defaultProps = {
+    axis: 'right',
+    resolution: '1',
+    scalable: true,
+    scrollable: true,
+    shape: 'line',
+    type: 'realtime',
+  }
+
+  private _chartLayoutModel: ChartLayoutModel
+  /**
+   * 用于标记chart正在加载中，避免重复加载
+   * @type {[type]}
+   */
+  private _loading: boolean = false
+  private _dragOffsetStart: boolean
+  private _dragBarWidthStart: boolean
+  private _dragPosX: number
+  private _lastAnimationFrame: number
+
+  constructor () {
+    super()
+    this.state = {
+      chartLayoutModel: null,
+    }
+  }
+
+  public componentWillMount () {
+    if (this.props.type === 'snapshot') {
+      this.props.scrollable = false
+      this.props.scalable = false
+    }
+
+    // if (this.props.resolution === '1') {
+    //   this.props.shape = 'line'
+    // }
+    this._chartLayoutModel = new ChartLayoutModel()
+
+    this.prepareMainChart()
+    this.prepareMinorChart()
+
+    this.setState({
+      chartLayoutModel: this._chartLayoutModel,
+    })
+  }
+
+  public prepareMainChart (): void {
+    const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution)
+    const crosshair = new CrosshairModel()
+    const axisX = new AxisXModel(mainDatasource, crosshair)
+    const axisY = new AxisYModel(mainDatasource, crosshair)
+    crosshair.axisX = axisX
+    crosshair.axisY = axisY
+
+    this._chartLayoutModel.axisx = axisX
+    this._chartLayoutModel.mainDatasource = mainDatasource
+
+    const graphs: Array<GraphModel> = [
+      new StockModel(
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        function (array: any): Array<any> {
+          return [{
+            time: array[0],
+            val: array[2],
+          }]
+        },
+        this.props.shape,
+        [{
+          color: 'rgba( 60, 120, 240, 1)',
+          fillColor: 'rgba( 60, 120, 216, 1)',
+          lineWidth: 2,
+        }]
+      ),
+      new StudyModel(
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        'VOLUME',
+        function (bar: IStockBar) {
+          return [bar.time, bar.volume, bar.close < bar.open]
+        }
+      ),
+      new StudyModel(
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 5,
+        },
+        [{
+          color: 'red',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 10,
+        },
+        [{
+          color: 'blue',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 20,
+        },
+        [{
+          color: 'purple',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 30,
+        },
+        [{
+          color: 'green',
+          lineWidth: 1,
+        }]
+      ),
+    ]
+
+    this._chartLayoutModel.charts.push(
+      new ChartModel(
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        graphs,
+        0.6
+      )
+    )
+  }
+
+  public prepareMinorChart (): void {
+    const datasource = new StockDatasource('SZ399001', this.props.resolution)
+    const crosshair = new CrosshairModel()
+    const axisX = this._chartLayoutModel.axisx
+    const axisY = new AxisYModel(datasource, crosshair)
+    crosshair.axisX = axisX
+    crosshair.axisY = axisY
+
+    const graphs: Array<GraphModel> = [
+      new StockModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        function (array: any): Array<any> {
+          return [{
+            time: array[0],
+            val: array[2],
+          }]
+        },
+        this.props.shape,
+        [{
+          color: 'rgba( 60, 120, 240, 1)',
+          fillColor: 'rgba( 60, 120, 216, 1)',
+          lineWidth: 2,
+        }]
+      ),
+      new StudyModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        'VOLUME',
+        function (bar: IStockBar) {
+          return [bar.time, bar.volume, bar.close < bar.open]
+        }
+      ),
+      new StudyModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 5,
+        },
+        [{
+          color: 'red',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 10,
+        },
+        [{
+          color: 'blue',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 20,
+        },
+        [{
+          color: 'purple',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        'MA',
+        function (bar: IStockBar) {
+          return [bar.time, bar.close]
+        },
+        {
+          length: 30,
+        },
+        [{
+          color: 'green',
+          lineWidth: 1,
+        }]
+      ),
+    ]
+
+    this._chartLayoutModel.charts.push(
+      new ChartModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        graphs,
+        0.4
+      )
+    )
+  }
+
+  public componentDidMount () {
+    this.loadMore().then(() => {
+      setTimeout(() => {
+        this.initEvents()
+      }, 200)
+    })
+  }
+
+  public initEvents () {
+    this._chartLayoutModel.axisx.addListener('resize', () => this.redraw())
+
+    this._chartLayoutModel.axisx.addListener('offsetchange', () => this.redraw())
+
+    this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.redraw())
+  }
+
+  public dragOffsetMouseDownHandler (ev): void {
+    this._dragOffsetStart = true
+    this._dragPosX = ev.pageX
+  }
+
+  public dragBarWidthMouseDown (ev: MouseEvent) {
+    ev.stopPropagation()
+    this._dragPosX = ev.pageX
+    this._dragBarWidthStart = true
+  }
+
+  public mouseMoveHandler (ev: MouseEvent) {
+    // TODO not best approach, but do work at the moment
+    const offset = clientOffset((ev.target as HTMLElement).parentElement.parentElement)
+    const point = {
+      x: ev.clientX - offset.offsetLeft,
+      y: ev.clientY - offset.offsetTop,
+    }
+    this._chartLayoutModel.charts.forEach(ch => ch.crosshair.point = point)
+    if (this._dragOffsetStart) {
+      const axisX = this._chartLayoutModel.axisx
+      const curOffset = axisX.offset
+      const pageX = ev.pageX
+      const newOffset = curOffset + pageX - this._dragPosX
+      if (newOffset < axisX.minOffset) {
+        axisX.offset = axisX.minOffset
+      } else if (newOffset > axisX.maxOffset) {
+        axisX.offset = axisX.maxOffset
+      } else {
+        axisX.offset = newOffset
+      }
+      this._dragPosX = pageX
+    } else if (this._dragBarWidthStart) {
+      const axisX = this._chartLayoutModel.axisx
+      const pageX = ev.pageX
+      const curBarWidth = axisX.barWidth
+      const newBarWidth = curBarWidth - (ev.pageX - this._dragPosX) / 50
+      if (newBarWidth < MIN_BAR_WIDTH) {
+        axisX.barWidth = MIN_BAR_WIDTH
+      } else if (newBarWidth > MAX_BAR_WIDTH) {
+        axisX.barWidth = MAX_BAR_WIDTH
+      } else {
+        axisX.barWidth = newBarWidth
+      }
+      axisX.offset *= axisX.barWidth / curBarWidth
+      this._dragPosX = pageX
+    } else {
+      this.redrawCursorMoveOnly()
+    }
+  }
+
+  public mouseUpHandler (ev: MouseEvent) {
+    this._dragOffsetStart = false
+    this._dragBarWidthStart = false
+  }
+
+  public mouseLeaveHandler (ev) {
+    this._chartLayoutModel.charts.forEach(chart => {
+      chart.crosshair.point = null
+    })
+    this.redrawCursorMoveOnly()
+  }
+
+  /**
+   * 重新绘制chart
+   */
+  public redraw () {
+    const axisX = this._chartLayoutModel.axisx
+    const totalWidth = this._chartLayoutModel.mainDatasource.loaded() * axisX.barWidth
+    const visibleWidth = axisX.size.width
+    // 当预加载的数据只剩余不足半屏时，执行预加载加载更多的数据以备展示
+    if (totalWidth - visibleWidth - axisX.offset < visibleWidth / 2) {
+      this.loadMore()
+    }
+
+    // 取消上一帧动画的调度，避免重复计算
+    if (this._lastAnimationFrame) {
+      cancelAnimationFrame(this._lastAnimationFrame)
+    }
+
+    this._lastAnimationFrame = requestAnimationFrame(() => {
+      axisX.draw()
+      this._chartLayoutModel.charts.forEach(chart => {
+        chart.axisY.range = chart.getRangeY()
+        chart.axisY.draw()
+        chart.draw()
+      })
+      this._lastAnimationFrame = null
+    })
+  }
+
+  public redrawCursorMoveOnly () {
+    // 取消上一帧动画的调度，避免重复计算
+    if (this._lastAnimationFrame) {
+      cancelAnimationFrame(this._lastAnimationFrame)
+    }
+
+    this._lastAnimationFrame = requestAnimationFrame(() => {
+      this._chartLayoutModel.axisx.draw()
+      this._chartLayoutModel.charts.forEach(chart => {
+        chart.crosshair.draw()
+        chart.axisY.draw()
+      })
+      this._lastAnimationFrame = null
+    })
+  }
+
+  /**
+   * 加载更多数据
+   */
+  public loadMore () {
+    // 主数据源若没有更多的话，停止加载更多
+    if (!this._chartLayoutModel.mainDatasource.hasMore || this._loading) {
+      return
+    }
+
+    this._loading = true
+    const axisX = this._chartLayoutModel.axisx
+    const reqs: Array<Promise<any>> = []
+    const required = ~~((axisX.size.width * 2 + axisX.offset) / axisX.barWidth)
+
+    this._chartLayoutModel.charts.forEach(chart => {
+      chart.graphs.forEach(graph => {
+        // 加载一定数量的数据，策略是，《至少》多加载一屏的数据
+        reqs.push(graph.datasource.loadMore(required))
+      })
+    })
+
+    return Promise.all(reqs).then(() => {
+      // 加载完成后立即重绘
+      this.redraw()
+      this._loading = false
+    })
+  }
+
+  public render () {
+    const availWidth = this.props.width - 2 - 10
+    const availHeight = this.props.height - NAVBAR_HEIGHT - AXIS_X_HEIGHT - 5 - 2
+    return (
+      <div className='chart-layout'>
+        <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} />
+        <div className='chart-body'
+            onMouseDown={this.dragOffsetMouseDownHandler.bind(this)}
+            onMouseMove={this.mouseMoveHandler.bind(this)}
+            onMouseUp={this.mouseUpHandler.bind(this)}
+            onMouseLeave={this.mouseLeaveHandler.bind(this)}>
+          {
+            this.state.chartLayoutModel.charts.map(
+              chart => <Chart model={chart}
+                height={~~(availHeight * chart.heightProportion)}
+                width={availWidth} />
+            )
+          }
+          <AxisX
+            axis={this._chartLayoutModel.axisx}
+            height={AXIS_X_HEIGHT}
+            width={availWidth - AXIS_Y_WIDTH}
+            onMouseDown={this.dragBarWidthMouseDown.bind(this)}/>
+        </div>
+      </div>
+    )
+  }
+}

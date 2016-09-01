@@ -1,0 +1,28 @@
+/* 图上方悬浮的信息栏 */
+.chart-legend {
+  font-size: 12px;
+
+  position: absolute;
+  z-index: 9;
+  top: 16px;
+  left: 24px;
+
+  pointer-events: none;
+  .chart-legend-line {
+    overflow: hidden;
+
+    margin-bottom: 8px;
+
+    white-space: nowrap;
+  }
+  .chart-legend-line .main {
+    font-size: 16px;
+
+    color: 'rgb(85, 85, 85)';
+  }
+  .chart-legend-line .chart-legend-item {
+    display: inline-block;
+
+    margin-right: 8px;
+  }
+}

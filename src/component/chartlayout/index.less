@@ -1,0 +1,56 @@
+.chart-layout {
+  padding: 0 5px 5px;
+
+  background: #f1f3f6;
+  input {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    height: 32px;
+    padding: 0 0 0 7px;
+
+    vertical-align: bottom;
+
+    color: #524f4f;
+    border: 1px solid #c9cbcd;
+    background-color: #fff;
+  }
+}
+
+/* 图表区域 */
+.chart-body {
+  -webkit-user-select: none;
+          user-select: none;
+
+  border: 1px solid #c9cbcd;
+}
+.chart-axisx {
+  background: #fff;
+}
+.chart-line {
+  font-size: 0;
+
+  overflow: hidden;
+}
+.chart-line canvas {
+  position: absolute;
+
+  border-top: 1px solid #000;
+}
+.chart-line:nth-child(1) canvas {
+  border-top: none;
+}
+.chart-line .chart-plot {
+  position: relative;
+
+  display: inline-block;
+
+  cursor: crosshair;
+}
+.chart-line .chart-axis {
+  display: inline-block;
+}
+.chart-line .chart-axisy {
+  display: inline-block;
+}

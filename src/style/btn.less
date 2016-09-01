@@ -1,0 +1,35 @@
+.chart-layout {
+  .btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    height: 32px;
+    padding: 7px 12px 7px;
+
+    cursor: default;
+
+    color: #555;
+    border: 1px solid #c9cbcd;
+    background: #fff;
+  }
+  .btn:active {
+    background: #f2f5f8;
+  }
+  .btn:hover {
+    border: 1px solid #b5b7b9!important;
+    + .btn {
+      border-left: none!important;
+    }
+  }
+  .btn.active {
+    color: #58c3e5;
+    background: #f2f5f8;
+  }
+  .chart-btn-group {
+    display: inline-block;
+  }
+  .chart-btn-group .btn:not(:last-child) {
+    border-right: none;
+  }
+}
