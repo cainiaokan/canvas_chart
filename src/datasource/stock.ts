@@ -35,7 +35,6 @@ export class StockDatasource extends Datasource {
   private _symbol: string
 
   private _requestFromTime: number
-  private _loading: boolean = false
 
   /**
    * @constructor
@@ -91,13 +90,12 @@ export class StockDatasource extends Datasource {
    * @return {Promise}   
    */
   public loadMore (loadNum: number): Promise<any> {
-    if (!this._hasMore || this._loading) {
+    if (!this._hasMore) {
       return Promise.resolve()
     }
-    this._loading = true
     const toTime = this._requestFromTime ?
       this._requestFromTime : this._plotList.first() ?
-        this._plotList.first().time - 1000 : ~~(Date.now() / 1000)
+        this._plotList.first().time : ~~(Date.now() / 1000)
     let fromTime = 0
     let maxTimeSpan = 0
     switch (this._resolution) {
@@ -138,48 +136,52 @@ export class StockDatasource extends Datasource {
     }
     this._requestFromTime = fromTime
 
-    return new Promise((resolve, reject) =>
-      RPC.getStockBars(this._symbol, this._resolution, fromTime, toTime)
-        .then(
-          response => response.json()
-            .then(data => {
-              const stockBars: Array<IStockBar> = []
-              const requestToTime = this._plotList.first() ? this._plotList.first().time : ~~(Date.now() / 1000)
-              data.t.forEach((time, index) => {
-                const barData: IStockBar = {
-                  amount: data.a[index],
-                  close: data.c[index],
-                  high: data.h[index],
-                  low: data.l[index],
-                  open: data.o[index],
-                  time: data.t[index],
-                  volume: data.v[index],
-                }
-                if (data.tr) {
-                  barData.turnover = data.tr[index]
-                }
-                if (data.zd) {
-                  barData.changerate = data.zd[index]
-                }
-                stockBars.push(barData)
-              })
-              this._plotList.merge(stockBars)
-              this._loading = false
-              if (this._plotList.size() >= loadNum) {
-                this._requestFromTime = 0
-                resolve()
-              } else if (requestToTime - this._requestFromTime >= maxTimeSpan) {
-                this._hasMore = false
-                resolve()
-              } else {
-                this.loadMore(loadNum)
-                  .then(resolve)
-                  .catch(reject)
+    return new Promise((resolve, reject) => {
+      this.loadTimeRange(fromTime, toTime)
+        .then(() => {
+          const requestToTime = this._plotList.first() ? this._plotList.first().time : ~~(Date.now() / 1000)
+          if (this._plotList.size() >= loadNum) {
+            resolve()
+          } else if (requestToTime - this._requestFromTime >= maxTimeSpan) {
+            this._hasMore = false
+            resolve()
+          } else {
+            this.loadMore(loadNum)
+              .then(resolve)
+              .catch(reject)
+          }
+        })
+    })
+
+  }
+
+  public loadTimeRange (from: number, to: number): Promise<any> {
+    return RPC.getStockBars(this._symbol, this._resolution, from, to)
+      .then(
+        response => response.json()
+          .then(data => {
+            const stockBars: Array<IStockBar> = []
+            data.t.forEach((time, index) => {
+              const barData: IStockBar = {
+                amount: data.a[index],
+                close: data.c[index],
+                high: data.h[index],
+                low: data.l[index],
+                open: data.o[index],
+                time: data.t[index],
+                volume: data.v[index],
               }
+              if (data.tr) {
+                barData.turnover = data.tr[index]
+              }
+              if (data.zd) {
+                barData.changerate = data.zd[index]
+              }
+              stockBars.push(barData)
             })
-            .catch(reject)
-        ).catch(e => this._loading = false)
-    )
+            this._plotList.merge(stockBars)
+          })
+      )
   }
 
   public resolveSymbol (): Promise<SymbolInfo> {

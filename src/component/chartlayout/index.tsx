@@ -1,11 +1,12 @@
 import './index.less'
 import * as React from 'react'
+import * as _ from 'underscore'
 import Chart from './../chart'
 import AxisX from './../axisX'
 import Navbar from './../navbar'
 import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
-import { StockDatasource, IStockBar } from '../../datasource'
+import { Datasource, StockDatasource, IStockBar } from '../../datasource'
 import { ShapeType, ResolutionType, StudyType, AXIS_Y_WIDTH, AXIS_X_HEIGHT, NAVBAR_HEIGHT } from '../../constant'
 import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../../model/axisx'
 import AxisYModel from '../../model/axisy'
@@ -83,9 +84,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.props.scalable = false
     }
 
-    // if (this.props.resolution === '1') {
-    //   this.props.shape = 'line'
-    // }
     this._chartLayoutModel = new ChartLayoutModel()
 
     this.prepareMainChart()
@@ -114,16 +112,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         function (array: any): Array<any> {
           return [{
+            close: array[2],
+            high: array[3],
+            low: array[4],
+            open: array[1],
             time: array[0],
-            val: array[2],
           }]
         },
-        this.props.shape,
-        [{
-          color: 'rgba( 60, 120, 240, 1)',
-          fillColor: 'rgba( 60, 120, 216, 1)',
-          lineWidth: 2,
-        }]
+        this.props.shape
       ),
       new StudyModel(
         mainDatasource,
@@ -230,7 +226,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
             val: array[2],
           }]
         },
-        this.props.shape,
+        'mountain',
         [{
           color: 'rgba( 60, 120, 240, 1)',
           fillColor: 'rgba( 60, 120, 216, 1)',
@@ -396,9 +392,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public mouseLeaveHandler (ev) {
-    this._chartLayoutModel.charts.forEach(chart => {
-      chart.crosshair.point = null
-    })
+    this._chartLayoutModel.charts.forEach(chart => chart.crosshair.point = null)
     this.redrawCursorMoveOnly()
   }
 
@@ -449,28 +443,57 @@ export default class ChartLayout extends React.Component<Prop, State> {
   /**
    * 加载更多数据
    */
-  public loadMore () {
+  public loadMore (): Promise<any> {
+    const mainDatasource = this._chartLayoutModel.mainDatasource
     // 主数据源若没有更多的话，停止加载更多
-    if (!this._chartLayoutModel.mainDatasource.hasMore || this._loading) {
+    if (!mainDatasource.hasMore || this._loading) {
       return
     }
 
     this._loading = true
     const axisX = this._chartLayoutModel.axisx
-    const reqs: Array<Promise<any>> = []
+    const datasources = []
+    const reqs = []
     const required = ~~((axisX.size.width * 2 + axisX.offset) / axisX.barWidth)
 
     this._chartLayoutModel.charts.forEach(chart => {
       chart.graphs.forEach(graph => {
-        // 加载一定数量的数据，策略是，《至少》多加载一屏的数据
-        reqs.push(graph.datasource.loadMore(required))
+        datasources.push(graph.datasource)
       })
     })
 
-    return Promise.all(reqs).then(() => {
-      // 加载完成后立即重绘
-      this.redraw()
-      this._loading = false
+    /*
+     * 首先加载主数据源的数据，主数据源加载完成后，再加载其他数据源。因为其他数据源都要跟主数据源对齐
+     * 例如：主数据源有停牌的情况发生
+     */
+    return new Promise((resolve, reject) => {
+      mainDatasource
+        .loadMore(required)
+        .then(() =>
+          Promise.all(
+            _.chain(datasources)
+              .without(mainDatasource)
+              .unique()
+              .reduce((promises, datasource) => {
+                promises.push(
+                  datasource.loadTimeRange(
+                    mainDatasource.first().time,
+                    mainDatasource.last().time
+                  )
+                )
+                return promises
+              }, reqs)
+              .value()
+          )
+          .then(() => {
+            // 加载完成后立即重绘
+            this.redraw()
+            this._loading = false
+            resolve()
+          })
+          .catch(reject)
+      )
+      .catch(reject)
     })
   }
 

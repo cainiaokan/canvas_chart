@@ -117,13 +117,13 @@ export default class AxisXModel extends EventEmitter {
     const bars = datasource.slice(start, end)
     const timeBars = []
 
-    for (let i = bars.length - 1, pos = ~~(posX + 0.5); i >= 0; i--) {
+    for (let i = bars.length - 1; i >= 0; i--) {
       const bar = bars[i]
       timeBars[i] = {
         time: bar.time,
-        x: pos,
+        x: posX,
       }
-      pos -= barWidth
+      posX -= barWidth
     }
 
     return this._visibleTimeBars = timeBars

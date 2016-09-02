@@ -2,6 +2,10 @@ export function pad (n = '', width, z = '0') {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n
 }
 
+export function padRight (n = '', width, z = '0') {
+  return n.length >= width ? n : n + new Array(width - n.length + 1).join(z)
+}
+
 export function clientOffset (dom: HTMLElement): { offsetTop: number, offsetLeft: number } {
   let offsetTop = 0
   let offsetLeft = 0

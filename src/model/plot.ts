@@ -3,6 +3,7 @@ import { ShapeType } from '../constant'
 import LineChartRenderer from '../graphic/linechart'
 import MountainChartRenderer from '../graphic/mountainchart'
 import ColumnChartRenderer from '../graphic/columnchart'
+import CandleChartRenderer from '../graphic/candle'
 import BaseChartRenderer, { IChartStyle } from '../graphic/basechart'
 import GraphModel from '../model/graph'
 
@@ -32,6 +33,10 @@ export default class PlotModel {
         break
       case 'column':
         this._graphic = new ColumnChartRenderer(this, style)
+        break
+      case 'candle':
+        this._graphic = new CandleChartRenderer(this, style)
+        break
       default:
         // code...
         break

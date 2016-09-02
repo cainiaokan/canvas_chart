@@ -31,7 +31,7 @@ class Page extends React.Component<any, IState> {
       symbol={'SH000001'}
       height={this.state.height}
       width={this.state.width}
-      shape={'mountain'}
+      shape={'candle'}
       resolution={'1'} />
   }
 }

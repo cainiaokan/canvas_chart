@@ -67,7 +67,7 @@ export default class AxisYModel extends EventEmitter {
     const height = this._size.height - margin * 2
     const diff1 = range.max - range.min
     const diff2 = range.max - value
-    return ~~((diff2 / diff1) * height + margin)
+    return (diff2 / diff1) * height + margin
   }
 
   public getValueByY (value: number, range: IYRange): number {

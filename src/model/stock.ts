@@ -30,7 +30,7 @@ export default class StockModel extends GraphModel {
         0,
         true,
         shape,
-        _.extend({}, style[0])
+        _.extend({}, style && style[0] ? style[0] : {})
       )
     )
   }

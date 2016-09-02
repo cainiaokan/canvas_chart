@@ -50,7 +50,12 @@ export default class SearchBox extends React.Component<Prop, State> {
           onFocus={this.inputFocosHandler.bind(this)}
           onBlur={this.inputBlurHandler.bind(this)}
           onInput={this.inputHandler.bind(this)}/>
-        <ul className='chart-searchresults' style={ {display: state.focus ? 'block' : 'none'} }>
+        <ul className='chart-searchresults'
+          style={
+            {
+              display: state.focus && (state.loading || state.results) ? 'block' : 'none',
+            }
+          }>
           {
             state.loading ? <li className='loading'></li> : null
           }
@@ -61,8 +66,7 @@ export default class SearchBox extends React.Component<Prop, State> {
           {
             !state.loading && state.results ?
               state.results.map((symbol, index) =>
-              <li className='symbol-item'
-                onClick={this.selectSymbolHandler.bind(this)} data-index={index}>
+              <li className='symbol-item' onClick={this.selectSymbolHandler.bind(this, index)}>
                 <span className='symbol-code'>{symbol.symbol}</span>
                 <span className='symbol-name'>{symbol.description}</span>
                 <span className='symbol-exchanger'>{symbol.type}-{symbol.exchange}</span>
@@ -74,9 +78,7 @@ export default class SearchBox extends React.Component<Prop, State> {
     )
   }
 
-  private selectSymbolHandler (ev: MouseEvent) {
-    const el = ev.currentTarget as HTMLElement
-    const index = el.dataset.index
+  private selectSymbolHandler (index) {
     const symbolInfo = this.state.results[index]
     this.props.chartLayout.setSymbol(symbolInfo)
     this.refs.input.value = symbolInfo.symbol
@@ -95,7 +97,7 @@ export default class SearchBox extends React.Component<Prop, State> {
     setTimeout(() => {
       this.state.focus = false
       this.setState(this.state)
-    }, 100)
+    }, 300)
   }
 
   private inputHandler () {

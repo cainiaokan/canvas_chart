@@ -89,7 +89,7 @@ export default class Legend extends React.Component<Prop, State> {
                     colorUp : bar.changerate < 0 ?
                       colorDown : 'inherit',
                   display: resolution === '1' ? '' : 'none'} : {display : 'none'} }>
-                  现价&nbsp;{bar ? formatNumber(bar.open) : 'N/A'}
+                  现价&nbsp;{bar ? formatNumber(bar.close) : 'N/A'}
                 </div>
                 <div className='chart-legend-item' style={ bar ? {
                   color: prev ? bar.open > prev.close ?
@@ -124,10 +124,10 @@ export default class Legend extends React.Component<Prop, State> {
                     color: bar.changerate > 0 ?
                       colorUp : bar.changerate < 0 ?
                         colorDown : 'inherit',
-                    display: bar.changerate ? '' : 'none'} : {display: 'none'}}>
+                    display: typeof bar.changerate === 'number' ? '' : 'none'} : {display: 'none'}}>
                   涨跌幅&nbsp;
                   {
-                    bar && bar.changerate ?
+                    bar && typeof bar.changerate === 'number' ?
                       (bar.changerate > 0 ? '+' : '') +
                       (bar.changerate * 100).toFixed(2) + '%'
                       :'N/A'
@@ -140,8 +140,8 @@ export default class Legend extends React.Component<Prop, State> {
                   成交额&nbsp;{bar ? formatNumber(bar.amount) : 'N/A'}
                 </div>
                 <div className='chart-legend-item'
-                style={ {display: bar && bar.turnover ? '' : 'none'} }>
-                  换手率&nbsp;{ bar && bar.turnover ? (bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
+                style={ {display: bar && typeof bar.turnover === 'number' ? '' : 'none'} }>
+                  换手率&nbsp;{ bar && typeof bar.turnover === 'number' ? (bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
                 </div>
               </div>
             } else if (graph instanceof StudyModel) {

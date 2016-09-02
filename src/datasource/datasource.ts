@@ -18,6 +18,13 @@ export interface IColumnBar extends ILineBar {
   down: boolean
 }
 
+export interface ICandleBar extends IBar {
+  high: number,
+  low: number,
+  open: number,
+  close: number,
+}
+
 export interface IDataAdapter {
   (bar: IBar): Array<any>
 }
@@ -75,6 +82,8 @@ export abstract class Datasource extends EventEmitter {
    * @return {Promise}
    */
   public abstract loadMore(num: number): Promise<any>
+
+  public abstract loadTimeRange(from: number, to: number): Promise<any>
 
   public abstract resolveSymbol(): Promise<SymbolInfo>
 
