@@ -2,24 +2,24 @@ import CrosshairModel from '../model/crosshair'
 
 export default class CrosshairRenderer {
   private _model: CrosshairModel
-  private _ctx: CanvasRenderingContext2D
 
   constructor (model: CrosshairModel) {
     this._model = model
   }
 
   public draw () {
-    const ctx = this._ctx
     const model = this._model
+    const chart = model.chart
+    const ctx = chart.topCtx
     const point = model.point
     const height = ctx.canvas.height
     const width = ctx.canvas.width
-    this._ctx.clearRect(0, 0, width, height)
+    ctx.clearRect(0, 0, width, height)
 
     if (!point) {
       return
     }
-    const bar = model.axisX.findTimeBarByX(point.x)
+    const bar = chart.axisX.findTimeBarByX(point.x)
 
     ctx.strokeStyle = '#333333'
     ctx.lineWidth = 1
@@ -31,16 +31,12 @@ export default class CrosshairRenderer {
       ctx.stroke()
     }
 
-    if (model.hover && model.axisY.range) {
+    if (model.hover && chart.axisY.range) {
       ctx.moveTo(0, point.y)
       ctx.lineTo(width, point.y)
       ctx.stroke()
       ctx.closePath()
     }
-  }
-
-  set ctx (ctx: CanvasRenderingContext2D) {
-    this._ctx = ctx
   }
 
 }

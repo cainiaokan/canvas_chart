@@ -12,7 +12,7 @@ interface IYTickMark {
 
 export default class YTickMark {
   private _axisY: AxisYMoel
-  private _tickmarks: Array<IYTickMark>
+  private _tickmarks: IYTickMark[]
 
   constructor (axisY: AxisYMoel) {
     this._axisY = axisY
@@ -22,13 +22,13 @@ export default class YTickMark {
     this._tickmarks = null
   }
 
-  public getTickMarksByTimeBars (): Array<IYTickMark> {
+  public getTickMarksByTimeBars (): IYTickMark[] {
 
     if (this._tickmarks) {
       return this._tickmarks
     }
 
-    const tickmarks: Array<IYTickMark> = []
+    const tickmarks: IYTickMark[] = []
 
     if (!this._axisY.range) {
       return tickmarks

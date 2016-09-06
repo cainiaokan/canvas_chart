@@ -10,7 +10,7 @@ export interface IBar {
 }
 
 export interface IDataAdapter {
-  (bar: IBar): Array<any>
+  (bar: IBar): any[]
 }
 
 export type SymbolInfo = {
@@ -52,9 +52,9 @@ export abstract class Datasource extends EventEmitter {
 
   public abstract last (): IBar
 
-  public abstract slice(start?: number, end?: number): Array<IBar>
+  public abstract slice(start?: number, end?: number): IBar[]
 
-  public abstract range (from: number, to: number): Array<IBar>
+  public abstract range (from: number, to: number): IBar[]
 
   public abstract loaded (): number
 

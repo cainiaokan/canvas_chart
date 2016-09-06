@@ -2,24 +2,20 @@ import * as _ from 'underscore'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar, IDataConverter, SymbolInfo } from '../datasource'
 import { IChartStyle } from '../graphic/basechart'
+import ChartModel from './chart'
 import PlotModel from './plot'
-import AxisXModel from './axisx'
-import AxisYModel from './axisy'
 import GraphModel from './graph'
-import CrosshairModel from './crosshair'
 
 export default class StockModel extends GraphModel {
   private _symbolInfo: SymbolInfo = null
   constructor (
     datasource: Datasource,
-    axisX: AxisXModel,
-    axisY: AxisYModel,
-    crosshair: CrosshairModel,
+    chart: ChartModel,
     converter: IDataConverter,
     shape: ShapeType,
-    style?: Array<IChartStyle>) {
+    style?: IChartStyle[]) {
 
-    super(datasource, axisX, axisY, crosshair, true, bar => {
+    super(datasource, chart, true, bar => {
       const b = bar as IStockBar
       return [0, b.time, b.open, b.close, b.high, b.low, b.volume, b.amount, b.changerate, b.turnover]
     }, converter)
@@ -34,7 +30,7 @@ export default class StockModel extends GraphModel {
     )
   }
 
-  public getPrevBar (): Array<IStockBar> {
+  public getPrevBar (): IStockBar[] {
     const bar = super.getPrevBar()
     if (!bar || !bar.length) {
       return null
@@ -42,7 +38,7 @@ export default class StockModel extends GraphModel {
     return [this._datasource.barAt(this._datasource.search(bar[0][1])) as IStockBar]
   }
 
-  public getCurBar (): Array<IStockBar> {
+  public getCurBar (): IStockBar[] {
     const bar = super.getCurBar()
     if (!bar || !bar.length) {
       return null

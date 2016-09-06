@@ -10,7 +10,6 @@ export interface IChartStyle {
 }
 
 abstract class BaseChartRenderer {
-  public ctx: CanvasRenderingContext2D
   protected plotModel: PlotModel
   protected style: IChartStyle
   protected rangeY: IYRange

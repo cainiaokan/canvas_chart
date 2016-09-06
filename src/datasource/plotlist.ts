@@ -7,9 +7,9 @@ import { IBar } from './datasource'
 export default class PlotList<T extends IBar> {
   /**
    * 缓存的数据集
-   * @type {Array<IBar>}
+   * @type {T[]}
    */
-  private cache: Array<T>
+  private cache: T[]
 
   /**
    * @constructor
@@ -60,7 +60,7 @@ export default class PlotList<T extends IBar> {
     return this.cache.length
   }
 
-  public slice(start?: number, end?: number): Array<T> {
+  public slice(start?: number, end?: number): T[] {
     return this.cache.slice(start, end)
   }
 
@@ -68,9 +68,9 @@ export default class PlotList<T extends IBar> {
    * 返回指定时间范围的数据子集
    * @param  {number}   from 开始时间戳（精确到秒）
    * @param  {number}   to   结束时间戳（精确到秒）
-   * @return {Array<T>}      数据子集
+   * @return {T[]}      数据子集
    */
-  public range(from: number, to: number): Array<T> {
+  public range(from: number, to: number): T[] {
     let fromIndex = this.search(from, 2)
     let toIndex = this.search(to, 1)
     if (fromIndex === -1) {
@@ -90,9 +90,9 @@ export default class PlotList<T extends IBar> {
 
   /**
    * 讲新的数据集合并到当前数据集中
-   * @param {Array<T>} newData 新数据集
+   * @param {T[]} newData 新数据集
    */
-  public merge(newData: Array<T>): void {
+  public merge(newData: T[]): void {
     if (!newData.length) {
       return
     }

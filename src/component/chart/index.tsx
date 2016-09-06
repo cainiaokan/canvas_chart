@@ -15,9 +15,6 @@ type State = {
 }
 
 export default class Chart extends React.Component<Prop, State> {
-  private _canvas: HTMLCanvasElement
-  private _topCanvas: HTMLCanvasElement
-  private _ctx: CanvasRenderingContext2D
   private _model: ChartModel
 
   constructor () {
@@ -60,22 +57,17 @@ export default class Chart extends React.Component<Prop, State> {
         <Legend chartModel={this._model}/>
         <canvas ref={el => {
           if (el) {
-            this._canvas = el
-            this._canvas.height = height
-            this._canvas.width = width
-            this._ctx = el.getContext('2d')
-            this._model.graphs.forEach(graph => graph.setCanvasContext(this._ctx))
-            this._model.crosshair.graphic.ctx = this._ctx
-            this._model.grid.ctx = this._ctx
+            el.height = height
+            el.width = width
+            this._model.ctx = el.getContext('2d')
           }
         }} width={width} height={height}></canvas>
         <canvas ref={
           el => {
             if (el) {
-              this._topCanvas = el
-              this._topCanvas.height = height
-              this._topCanvas.width = width
-              this._model.crosshair.graphic.ctx = el.getContext('2d')
+              el.height = height
+              el.width = width
+              this._model.topCtx = el.getContext('2d')
             }
           }
         } width={width} height={height}></canvas>

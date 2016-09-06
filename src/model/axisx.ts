@@ -30,7 +30,7 @@ export default class AxisXModel extends EventEmitter {
   private _crosshair: CrosshairModel
   private _graphic: AxisXRenderer
   private _tickmark: XTickMark
-  private _visibleTimeBars: Array<ITimeBar>
+  private _visibleTimeBars: ITimeBar[]
 
   constructor (
     datasource: Datasource, crosshair: CrosshairModel) {
@@ -84,7 +84,7 @@ export default class AxisXModel extends EventEmitter {
     return this._crosshair
   }
 
-  public getVisibleTimeBars (): Array<ITimeBar> {
+  public getVisibleTimeBars (): ITimeBar[] {
     if (this._visibleTimeBars) {
       return this._visibleTimeBars
     }

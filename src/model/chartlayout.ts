@@ -5,7 +5,7 @@ import StockModel from '../model/stock'
 import { ResolutionType } from '../constant'
 
 export default class ChartLayoutModel {
-  private _charts: Array<ChartModel>
+  private _charts: ChartModel[]
   private _axisx: AxisXModel
   private _mainDatasource: Datasource
 
@@ -44,11 +44,11 @@ export default class ChartLayoutModel {
     this._axisx.resetOffset()
   }
 
-  set charts (charts: Array<ChartModel>) {
+  set charts (charts: ChartModel[]) {
     this._charts = charts
   }
 
-  get charts (): Array<ChartModel> {
+  get charts (): ChartModel[] {
     return this._charts
   }
 

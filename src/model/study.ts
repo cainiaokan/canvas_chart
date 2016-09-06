@@ -2,29 +2,25 @@ import * as _ from 'underscore'
 import { StudyType } from '../constant'
 import { Datasource, studyConfig, IDataAdapter } from '../datasource'
 import { IChartStyle } from '../graphic/basechart'
+import ChartModel from './chart'
 import PlotModel from './plot'
-import AxisXModel from './axisx'
-import AxisYModel from './axisy'
 import Graph from './graph'
-import CrosshairModel from './crosshair'
 
 export default class StudyModel extends Graph {
 
   private _studyType: StudyType
-  private _styles: Array<IChartStyle>
+  private _styles: IChartStyle[]
 
   constructor (
     datasource: Datasource,
-    axisX: AxisXModel,
-    axisY: AxisYModel,
-    crosshair: CrosshairModel,
+    chart: ChartModel,
     study: StudyType,
     adapter: IDataAdapter,
     input: any = null,
-    style?: Array<IChartStyle>) {
+    style?: IChartStyle[]) {
 
     const config = studyConfig[study]
-    super(datasource, axisX, axisY, crosshair, config.isPrice, adapter, config.output, input)
+    super(datasource, chart, config.isPrice, adapter, config.output, input)
     this._studyType = study
     this._styles = style || _.pluck(config.plots, 'style')
 
@@ -44,7 +40,7 @@ export default class StudyModel extends Graph {
     return this._studyType
   }
 
-  get styles (): Array<IChartStyle> {
+  get styles (): IChartStyle[] {
     return this._styles
   }
 

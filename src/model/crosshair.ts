@@ -1,7 +1,6 @@
 import * as EventEmitter from 'eventemitter3'
 import CrosshairRenderer from '../graphic/crosshair'
-import AxisX from '../model/axisx'
-import AxisY from '../model/axisy'
+import ChartModel from '../model/chart'
 
 interface IPoint {
   x: number
@@ -12,8 +11,7 @@ export default class CrosshairModel extends EventEmitter {
   public hover: boolean = false
   private _point: IPoint
   private _graphic: CrosshairRenderer
-  private _axisX: AxisX
-  private _axisY: AxisY
+  private _chart: ChartModel
 
   constructor () {
     super()
@@ -32,20 +30,12 @@ export default class CrosshairModel extends EventEmitter {
     return this._graphic
   }
 
-  set axisX (axisX: AxisX) {
-    this._axisX = axisX
+  get chart (): ChartModel {
+    return this._chart
   }
 
-  set axisY (axisY: AxisY) {
-    this._axisY = axisY
-  }
-
-  get axisX (): AxisX {
-    return this._axisX
-  }
-
-  get axisY (): AxisY {
-    return this._axisY
+  set chart (chart: ChartModel) {
+    this._chart = chart
   }
 
   public draw () {

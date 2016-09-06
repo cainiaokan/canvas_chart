@@ -11,7 +11,7 @@ export type IDataConverter = {
     adapter: IDataAdapter,
     input: any[],
     cache?: {[propName: string]: any}
-  ): Array<any[]>
+  ): any[][]
   clearCache? (): void
 }
 
@@ -35,7 +35,7 @@ export const studyConfig: IStudyConfig = {
       index: number,
       datasource: Datasource,
       adapter: IDataAdapter,
-      input: any[]): Array<any[]> => {
+      input: any[]): any[][] => {
 
       const length = input[0]
       const start = index - length + 1
@@ -65,7 +65,7 @@ export const studyConfig: IStudyConfig = {
   },
   'VOLUME': {
     isPrice: false,
-    output: (data: any[]): Array<any[]> => {
+    output: (data: any[]): any[][] => {
       return [data.slice(0, 4)]
     },
     plots: [
@@ -86,7 +86,7 @@ export const studyConfig: IStudyConfig = {
       datasource: Datasource,
       adapter: IDataAdapter,
       input: any[],
-      cache: {[propName: string]: any}): Array<any[]> => {
+      cache: {[propName: string]: any}): any[][] => {
       const dif = EMA(input[0], index, datasource, adapter, cache) -
         EMA(input[1], index, datasource, adapter, cache)
       const dea = DEA(input[2], input[1], input[0], index, datasource, adapter, cache)
@@ -128,7 +128,7 @@ export const studyConfig: IStudyConfig = {
       datasource: Datasource,
       adapter: IDataAdapter,
       input: any[],
-      cache: {[propName: string]: any}): Array<any[]> => {
+      cache: {[propName: string]: any}): any[][] => {
       const k = K(input[0], input[1], index, datasource, adapter, cache)
       const d = D(input[0], input[1], input[2], index, datasource, adapter, cache)
       const j = 3 * k - 2 * d

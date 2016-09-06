@@ -20,14 +20,15 @@ export default class ColumnChartRenderer extends BaseChart {
   public draw (): void {
     super.draw()
 
-    const ctx = this.ctx
     const plot = this.plotModel
     const graph = plot.graph
-    const axisY = graph.axisY
+    const chart = graph.chart
+    const ctx = chart.ctx
+    const axisY = chart.axisY
     const height = parseInt(ctx.canvas.style.height)
-    const barWidth = graph.axisX.barWidth
+    const barWidth = chart.axisX.barWidth
     const bars = plot.getVisibleBars()
-    const rangeY = plot.graph.isPrice ? axisY.range : plot.graph.getRangeY()
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const style = this.style
     const margin = axisY.margin
 

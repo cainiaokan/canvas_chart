@@ -17,16 +17,18 @@ export default class MountainChartRenderer extends BaseChart {
   public draw (): void {
     super.draw()
 
-    let bars = this.plotModel.getVisibleBars()
+    const plot = this.plotModel
+    const graph = plot.graph
+    const chart = graph.chart
+    const axisY = chart.axisY
+    const ctx = chart.ctx
+    const height = parseInt(ctx.canvas.style.height)
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const bars = plot.getVisibleBars()
 
     if (!bars.length) {
       return
     }
-
-    const ctx = this.ctx
-    const axisY = this.plotModel.graph.axisY
-    const rangeY = this.plotModel.graph.isPrice ? axisY.range : this.plotModel.graph.getRangeY()
-    const height = parseInt(this.plotModel.graphic.ctx.canvas.style.height)
 
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth

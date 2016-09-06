@@ -55,7 +55,7 @@ export default class PlotModel {
     this._graphic.draw()
   }
 
-  public getVisibleBars (): Array<IBar> {
+  public getVisibleBars (): IBar[] {
     const visibleBars = this._graph.getVisibleBars()
     const results = []
     for (let i = 0, len = visibleBars.length, index = this._index; i < len; i++) {

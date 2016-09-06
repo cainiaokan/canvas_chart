@@ -7,7 +7,7 @@ export function cacheable (output: IDataConverter): IDataConverter {
       index: number,
       datasource: Datasource,
       adapter: IDataAdapter,
-      input: any[]): Array<any[]> {
+      input: any[]): any[][] {
     return output(data, index, datasource, adapter, input, cache)
   }
   cachebaleConverter.clearCache = () => cache = {}

@@ -68,11 +68,11 @@ export class StockDatasource extends Datasource {
     return this._plotList.last()
   }
 
-  public slice (start?: number, end?: number): Array<IStockBar> {
+  public slice (start?: number, end?: number): IStockBar[] {
     return this._plotList.slice(start, end)
   }
 
-  public range (from: number, to: number): Array<IStockBar> {
+  public range (from: number, to: number): IStockBar[] {
     return this._plotList.range(from, to)
   }
 
@@ -160,7 +160,7 @@ export class StockDatasource extends Datasource {
       .then(
         response => response.json()
           .then(data => {
-            const stockBars: Array<IStockBar> = []
+            const stockBars: IStockBar[] = []
             data.t.forEach((time, index) => {
               const barData: IStockBar = {
                 amount: data.a[index],
@@ -204,14 +204,14 @@ export class StockDatasource extends Datasource {
     })
   }
 
-  public searchSymbols (keyword): Promise<Array<SymbolInfo>> {
+  public searchSymbols (keyword): Promise<SymbolInfo[]> {
     return new Promise((resolve, reject) => {
       RPC.searchSymbols(keyword)
         .then(response => {
           response
             .json()
             .then(data => {
-              resolve((data as Array<any>).map(symbol => {
+              resolve(data.map(symbol => {
                 return {
                   description: symbol.description,
                   exchange: symbol.exchange,
