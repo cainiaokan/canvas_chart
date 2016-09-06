@@ -49,7 +49,7 @@ export default class SearchBox extends React.Component<Prop, State> {
         <input className='chart-searchbox-input' type='text' maxLength={100} ref='input'
           onFocus={this.inputFocosHandler.bind(this)}
           onBlur={this.inputBlurHandler.bind(this)}
-          onInput={this.inputHandler.bind(this)}/>
+          onInput={this.keyDownHandler.bind(this)}/>
         <ul className='chart-searchresults'
           style={
             {
@@ -100,10 +100,12 @@ export default class SearchBox extends React.Component<Prop, State> {
     }, 300)
   }
 
-  private inputHandler () {
+  private keyDownHandler () {
     const el = this.refs.input
-    const keyword = this.refs.input.value
-    el.value = el.value.toUpperCase()
+    const keyword = el.value
+    const selectionStart = el.selectionStart
+    el.value = keyword.toUpperCase()
+    el.selectionStart = selectionStart
     if (keyword.length) {
       this.searchSymbols(keyword)
     } else {

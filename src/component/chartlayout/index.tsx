@@ -6,7 +6,7 @@ import AxisX from './../axisX'
 import Navbar from './../navbar'
 import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
-import { Datasource, StockDatasource, IStockBar } from '../../datasource'
+import { StockDatasource, IStockBar } from '../../datasource'
 import { ShapeType, ResolutionType, StudyType, AXIS_Y_WIDTH, AXIS_X_HEIGHT, NAVBAR_HEIGHT } from '../../constant'
 import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../../model/axisx'
 import AxisYModel from '../../model/axisy'
@@ -88,6 +88,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
     this.prepareMainChart()
     this.prepareMinorChart()
+    this.prepareKDJ()
+    this.prepareMACD()
 
     this.setState({
       chartLayoutModel: this._chartLayoutModel,
@@ -111,15 +113,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
         axisX, axisY,
         crosshair,
         function (array: any): Array<any> {
-          return [{
-            close: array[2],
-            high: array[3],
-            low: array[4],
-            open: array[1],
-            time: array[0],
-          }]
+          return [array.slice(0, 6)]
         },
-        this.props.shape
+        this.props.shape,
+        [{
+          color: '#ff524f',
+          colorDown: '#2bbe65',
+        }]
       ),
       new StudyModel(
         mainDatasource,
@@ -127,7 +127,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'VOLUME',
         function (bar: IStockBar) {
-          return [bar.time, bar.volume, bar.close < bar.open]
+          return [0, bar.time, bar.volume, bar.close < bar.open]
         }
       ),
       new StudyModel(
@@ -136,11 +136,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 5,
-        },
+        [5],
         [{
           color: 'red',
           lineWidth: 1,
@@ -152,11 +150,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 10,
-        },
+        [10],
         [{
           color: 'blue',
           lineWidth: 1,
@@ -168,11 +164,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 20,
-        },
+        [20],
         [{
           color: 'purple',
           lineWidth: 1,
@@ -184,11 +178,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 30,
-        },
+        [30],
         [{
           color: 'green',
           lineWidth: 1,
@@ -202,7 +194,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
         axisX, axisY,
         crosshair,
         graphs,
-        0.6
+        true
       )
     )
   }
@@ -221,10 +213,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         axisX, axisY,
         crosshair,
         function (array: any): Array<any> {
-          return [{
-            time: array[0],
-            val: array[2],
-          }]
+          return [
+            [array[0], array[1], array[3]],
+          ]
         },
         'mountain',
         [{
@@ -239,7 +230,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'VOLUME',
         function (bar: IStockBar) {
-          return [bar.time, bar.volume, bar.close < bar.open]
+          return [0, bar.time, bar.volume, bar.close < bar.open]
         }
       ),
       new StudyModel(
@@ -248,11 +239,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 5,
-        },
+        [5],
         [{
           color: 'red',
           lineWidth: 1,
@@ -264,11 +253,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 10,
-        },
+        [10],
         [{
           color: 'blue',
           lineWidth: 1,
@@ -280,11 +267,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 20,
-        },
+        [20],
         [{
           color: 'purple',
           lineWidth: 1,
@@ -296,11 +281,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         crosshair,
         'MA',
         function (bar: IStockBar) {
-          return [bar.time, bar.close]
+          return [0, bar.time, bar.close]
         },
-        {
-          length: 30,
-        },
+        [30],
         [{
           color: 'green',
           lineWidth: 1,
@@ -314,7 +297,71 @@ export default class ChartLayout extends React.Component<Prop, State> {
         axisX, axisY,
         crosshair,
         graphs,
-        0.4
+        true
+      )
+    )
+  }
+
+  public prepareMACD (): void {
+    const datasource = this._chartLayoutModel.mainDatasource
+    const crosshair = new CrosshairModel()
+    const axisX = this._chartLayoutModel.axisx
+    const axisY = new AxisYModel(datasource, crosshair)
+    crosshair.axisX = axisX
+    crosshair.axisY = axisY
+    const graphs: Array<GraphModel> = [
+      new StudyModel(
+        datasource,
+        axisX,
+        axisY,
+        crosshair,
+        'MACD',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.close]
+        },
+        [12, 26, 9]
+      ),
+    ]
+
+    this._chartLayoutModel.charts.push(
+      new ChartModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        graphs,
+        false
+      )
+    )
+  }
+
+  public prepareKDJ (): void {
+    const datasource = this._chartLayoutModel.mainDatasource
+    const crosshair = new CrosshairModel()
+    const axisX = this._chartLayoutModel.axisx
+    const axisY = new AxisYModel(datasource, crosshair)
+    crosshair.axisX = axisX
+    crosshair.axisY = axisY
+    const graphs: Array<GraphModel> = [
+      new StudyModel(
+        datasource,
+        axisX,
+        axisY,
+        crosshair,
+        'KDJ',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.close, bar.high, bar.low]
+        },
+        [9, 3, 3]
+      ),
+    ]
+
+    this._chartLayoutModel.charts.push(
+      new ChartModel(
+        datasource,
+        axisX, axisY,
+        crosshair,
+        graphs,
+        false
       )
     )
   }
@@ -408,7 +455,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.loadMore()
     }
 
-    // 取消上一帧动画的调度，避免重复计算
+    // 取消上一帧动画的调度，避免卡顿
     if (this._lastAnimationFrame) {
       cancelAnimationFrame(this._lastAnimationFrame)
     }
@@ -500,6 +547,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
   public render () {
     const availWidth = this.props.width - 2 - 10
     const availHeight = this.props.height - NAVBAR_HEIGHT - AXIS_X_HEIGHT - 5 - 2
+    const chartLayoutModel = this.state.chartLayoutModel
+    const additionalChartCount = chartLayoutModel.charts.length - 1
+    const mainChartHeight = ~~((1 - additionalChartCount * .3 > .3 ? 1 - additionalChartCount * .3 : .3) * availHeight)
+    const addtionalChartHeight = ~~((availHeight - mainChartHeight) / additionalChartCount)
     return (
       <div className='chart-layout'>
         <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} />
@@ -508,10 +559,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
             onMouseMove={this.mouseMoveHandler.bind(this)}
             onMouseUp={this.mouseUpHandler.bind(this)}
             onMouseLeave={this.mouseLeaveHandler.bind(this)}>
+          <Chart model={chartLayoutModel.charts[0]}
+                height={mainChartHeight}
+                width={availWidth} />
           {
-            this.state.chartLayoutModel.charts.map(
+            chartLayoutModel.charts.slice(1).map(
               chart => <Chart model={chart}
-                height={~~(availHeight * chart.heightProportion)}
+                height={addtionalChartHeight}
                 width={availWidth} />
             )
           }

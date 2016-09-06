@@ -1,7 +1,7 @@
 import { Datasource, IBar, IDataAdapter, IDataConverter } from '../datasource'
 import PlotModel from './plot'
 import AxisXModel from './axisx'
-import AxisYModel from './axisy'
+import AxisYModel, { IYRange } from './axisy'
 import CrosshairModel from './crosshair'
 import { IChartStyle } from '../graphic/basechart'
 
@@ -14,10 +14,10 @@ abstract class GraphModel {
   protected _crosshair: CrosshairModel
   protected _adapter: IDataAdapter
   protected _converter: IDataConverter
-  protected _input: { [propName: string]: any }
+  protected _input: any[]
   protected _isPrice: boolean
-  private _visibleBars: Array<Array<IBar>>
-  private _cache: { [propName: number]: Array<IBar> }
+  private _visibleBars: Array<IBar[]>
+  private _cache: { [propName: number]: IBar[] }
 
   constructor (
     datasource: Datasource,
@@ -50,7 +50,7 @@ abstract class GraphModel {
     this._plots.forEach(plot => plot.graphic.ctx = ctx)
   }
 
-  public getPrevBar (): Array<IBar> {
+  public getPrevBar (): any[] {
     const point = this._crosshair.point
     if (!point) {
       return null
@@ -62,7 +62,7 @@ abstract class GraphModel {
     return this._cache[timeBar.time]
   }
 
-  public getCurBar (): Array<IBar> {
+  public getCurBar (): any[] {
     const point = this._crosshair.point
     if (!point) {
       return null
@@ -74,11 +74,33 @@ abstract class GraphModel {
     return this._cache[timeBar.time]
   }
 
+  public getRangeY (): IYRange {
+    return this._plots.reduce((range: IYRange, plot) => {
+      const r = plot.graphic.getRangeY()
+      if (!r) {
+        return range
+      }
+      if (!range) {
+        return {
+          max: r.max,
+          min: r.min,
+        }
+      }
+      if (r.max > range.max) {
+        range.max = r.max
+      }
+      if (r.min < range.min) {
+        range.min = r.min
+      }
+      return range
+    }, null)
+  }
+
   /**
    * 获取所有可见范围内的bar数据
-   * @return {Array<IBar>}
+   * @return {IBar[]}
    */
-  public getVisibleBars (): Array<Array<IBar>> {
+  public getVisibleBars (): Array<IBar[]> {
     if (this._visibleBars) {
       return this._visibleBars
     }
@@ -122,6 +144,10 @@ abstract class GraphModel {
       data.push(cache)
     }
 
+    if (this._converter.clearCache) {
+      this._converter.clearCache()
+    }
+
     const visibleBars = []
     let i = 0
     let j = 0
@@ -130,6 +156,7 @@ abstract class GraphModel {
     let timeBar
     const len = timeBars.length
     const dataLength = data.length
+    // 对齐时间轴，以主数据源的timebar为准，timebars中不存在的time要忽略掉
     while (i < len && j < dataLength) {
       curData = data[j]
       curBar = curData ? curData[0] : null
@@ -137,14 +164,14 @@ abstract class GraphModel {
       if (!curBar) {
         i++
         j++
-      } else if (curBar.time === timeBar.time) {
-        for (let k = 0, cbar = data[j], klen = cbar.length; k < klen; k++) {
-          cbar[k].x = timeBar.x
+      } else if (curBar[1] === timeBar.time) {
+        for (let k = 0, cbar = curData, klen = cbar.length; k < klen; k++) {
+          cbar[k][0] = timeBar.x
         }
-        visibleBars.push(data[j])
+        visibleBars.push(curData)
         i++
         j++
-      } else if (curBar.time > timeBar.time) {
+      } else if (curBar[1] > timeBar.time) {
         i++
       } else {
         j++
@@ -152,6 +179,10 @@ abstract class GraphModel {
     }
 
     return this._visibleBars = visibleBars
+  }
+
+  get isPrice () {
+    return this._isPrice
   }
 
   get plots (): Array<PlotModel> {

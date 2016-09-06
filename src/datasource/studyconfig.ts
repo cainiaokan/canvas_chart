@@ -1,19 +1,23 @@
 import { IChartStyle } from '../graphic/basechart'
 import { ShapeType } from '../constant'
-import { Datasource, IBar, IDataAdapter, ILineBar, IColumnBar } from '../datasource'
+import { Datasource, IDataAdapter } from '../datasource'
+import { cacheable, EMA, DEA, K, D } from './studyhelper'
 
-export interface IDataConverter {
+export type IDataConverter = {
   (
-    data: Array<any>,
+    data: any[],
     index: number,
     datasource: Datasource,
     adapter: IDataAdapter,
-    input: any
-  ): Array<IBar>
+    input: any[],
+    cache?: {[propName: string]: any}
+  ): Array<any[]>
+  clearCache? (): void
 }
 
-interface IStudyConfig {
+type IStudyConfig = {
   [propName: string]: {
+    [propName: string]: any,
     isPrice: boolean
     output: IDataConverter
     plots: Array<{
@@ -26,27 +30,28 @@ interface IStudyConfig {
 export const studyConfig: IStudyConfig = {
   'MA': {
     isPrice: true,
-    output: function (
-      data: Array<any>,
+    output: (
+      data: any[],
       index: number,
       datasource: Datasource,
       adapter: IDataAdapter,
-      input: any): Array<ILineBar> {
+      input: any[]): Array<any[]> => {
 
-      const length = input.length
+      const length = input[0]
       const start = index - length + 1
       const end = index + 1
 
-      if (end - start < input || start < 0) {
+      if (end - start < length || start < 0) {
         return null
       }
 
-      return [{
-        time: data[0],
-        val: datasource
-          .slice(start, end)
-          .reduce((prev, cur) => prev + adapter(cur)[1], 0) / length,
-      }]
+      return [
+        [
+          data[0],
+          data[1],
+          datasource.slice(start, end).reduce((prev, cur) => prev + adapter(cur)[2], 0) / length,
+        ],
+      ]
     },
     plots: [
       {
@@ -60,17 +65,8 @@ export const studyConfig: IStudyConfig = {
   },
   'VOLUME': {
     isPrice: false,
-    output: function (
-      data: Array<any>,
-      index: number,
-      datasource: Datasource,
-      adapter: IDataAdapter,
-      input: any): Array<IColumnBar> {
-      return [{
-        down: data[2],
-        time: data[0],
-        val: data[1],
-      }]
+    output: (data: any[]): Array<any[]> => {
+      return [data.slice(0, 4)]
     },
     plots: [
       {
@@ -78,6 +74,87 @@ export const studyConfig: IStudyConfig = {
         style: {
           color: '#ff524f',
           colorDown: '#2bbe65',
+        },
+      },
+    ],
+  },
+  'MACD': {
+    isPrice: false,
+    output: cacheable((
+      data: any[],
+      index: number,
+      datasource: Datasource,
+      adapter: IDataAdapter,
+      input: any[],
+      cache: {[propName: string]: any}): Array<any[]> => {
+      const dif = EMA(input[0], index, datasource, adapter, cache) -
+        EMA(input[1], index, datasource, adapter, cache)
+      const dea = DEA(input[2], input[1], input[0], index, datasource, adapter, cache)
+      const bar = (dif - dea) * 2
+      return [
+        [data[0], data[1], bar],
+        [data[0], data[1], dif],
+        [data[0], data[1], dea],
+      ]
+    }),
+    plots: [
+      {
+        shape: 'histogram',
+        style: {
+          color: '#FF0000',
+          colorDown: '#008000',
+          histogramBase: 0,
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#0000FF',
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#FFA600',
+        },
+      },
+    ],
+  },
+  'KDJ': {
+    isPrice: false,
+    output: cacheable((
+      data: any[],
+      index: number,
+      datasource: Datasource,
+      adapter: IDataAdapter,
+      input: any[],
+      cache: {[propName: string]: any}): Array<any[]> => {
+      const k = K(input[0], input[1], index, datasource, adapter, cache)
+      const d = D(input[0], input[1], input[2], index, datasource, adapter, cache)
+      const j = 3 * k - 2 * d
+      return [
+        [data[0], data[1], k],
+        [data[0], data[1], d],
+        [data[0], data[1], j],
+      ]
+    }),
+    plots: [
+      {
+        shape: 'line',
+        style: {
+          color: '#0000FF',
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#FFA600',
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#FF00FF',
         },
       },
     ],

@@ -31,7 +31,7 @@ export default class CrosshairRenderer {
       ctx.stroke()
     }
 
-    if (model.hover) {
+    if (model.hover && model.axisY.range) {
       ctx.moveTo(0, point.y)
       ctx.lineTo(width, point.y)
       ctx.stroke()

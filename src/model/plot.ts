@@ -4,6 +4,7 @@ import LineChartRenderer from '../graphic/linechart'
 import MountainChartRenderer from '../graphic/mountainchart'
 import ColumnChartRenderer from '../graphic/columnchart'
 import CandleChartRenderer from '../graphic/candle'
+import HistogramChartRenderer from '../graphic/histogram'
 import BaseChartRenderer, { IChartStyle } from '../graphic/basechart'
 import GraphModel from '../model/graph'
 
@@ -12,17 +13,14 @@ export default class PlotModel {
   private _index: number
   private _shape: ShapeType
   private _graphic: BaseChartRenderer
-  private _isPrice: boolean
 
   constructor (
     graph: GraphModel,
     index: number,
-    isPrice: boolean,
     shape: ShapeType,
     style: IChartStyle) {
     this._graph = graph
     this._index = index
-    this._isPrice = isPrice
     this._shape = shape
     switch (shape) {
       case 'line':
@@ -37,14 +35,12 @@ export default class PlotModel {
       case 'candle':
         this._graphic = new CandleChartRenderer(this, style)
         break
+      case 'histogram':
+        this._graphic = new HistogramChartRenderer(this, style)
       default:
         // code...
         break
     }
-  }
-
-  get isPrice (): boolean {
-    return this._isPrice
   }
 
   get graphic (): BaseChartRenderer {

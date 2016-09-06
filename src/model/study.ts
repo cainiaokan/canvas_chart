@@ -21,21 +21,20 @@ export default class StudyModel extends Graph {
     study: StudyType,
     adapter: IDataAdapter,
     input: any = null,
-    style: Array<IChartStyle> = []) {
+    style?: Array<IChartStyle>) {
 
     const config = studyConfig[study]
     super(datasource, axisX, axisY, crosshair, config.isPrice, adapter, config.output, input)
     this._studyType = study
-    this._styles = style
+    this._styles = style || _.pluck(config.plots, 'style')
 
     config.plots.forEach((plotConfig, index) => {
       this._plots.push(
         new PlotModel(
           this,
           index,
-          this._isPrice,
           plotConfig.shape,
-          _.extend({}, plotConfig.style, style[index])
+          _.extend({}, plotConfig.style, style ? style[index] : {})
         )
       )
     })

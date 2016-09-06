@@ -1,7 +1,12 @@
 import BaseChart, { IChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { IYRange } from '../model/axisy'
-import { ILineBar } from '../datasource'
+
+enum PLOT_DATA {
+  X = 0,
+  TIME,
+  VALUE
+}
 
 export default class LineChartRenderer extends BaseChart {
 
@@ -15,7 +20,7 @@ export default class LineChartRenderer extends BaseChart {
     const ctx = this.ctx
     const axisY = this.plotModel.graph.axisY
     const bars = this.plotModel.getVisibleBars()
-    const rangeY = this.plotModel.isPrice ? axisY.range : this.getRangeY()
+    const rangeY = this.plotModel.graph.isPrice ? axisY.range : this.plotModel.graph.getRangeY()
 
     if (!bars.length) {
       return
@@ -27,13 +32,13 @@ export default class LineChartRenderer extends BaseChart {
     const len = bars.length
 
     if (len) {
-      const bar = bars[0] as ILineBar
-      ctx.moveTo(bar.x, axisY.getYByValue(bar.val, rangeY))
+      const bar = bars[0]
+      ctx.moveTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
     }
 
     for (let i = 0; i < len; i++) {
-      const bar = bars[i] as ILineBar
-      ctx.lineTo(bar.x, axisY.getYByValue(bar.val, rangeY))
+      const bar = bars[i]
+      ctx.lineTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
     }
 
     ctx.stroke()
@@ -52,12 +57,12 @@ export default class LineChartRenderer extends BaseChart {
     }
 
     return bars.reduce((prev, cur) => {
-      const bar = cur as ILineBar
-      if (bar.val < prev.min) {
-        prev.min = bar.val
+      const bar = cur
+      if (bar[PLOT_DATA.VALUE] < prev.min) {
+        prev.min = bar[PLOT_DATA.VALUE]
       }
-      if (bar.val > prev.max) {
-        prev.max = bar.val
+      if (bar[PLOT_DATA.VALUE] > prev.max) {
+        prev.max = bar[PLOT_DATA.VALUE]
       }
       return prev
     }, range)

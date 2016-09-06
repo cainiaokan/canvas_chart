@@ -6,6 +6,7 @@ export interface IChartStyle {
   colorDown?: string
   lineWidth?: number
   fillColor?: string
+  histogramBase?: number
 }
 
 abstract class BaseChartRenderer {

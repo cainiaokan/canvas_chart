@@ -8,7 +8,7 @@ enum PLOT_DATA {
   VALUE
 }
 
-export default class MountainChartRenderer extends BaseChart {
+export default class HistogramChartRenderer extends BaseChart {
 
   constructor (plotModel: PlotModel, style: IChartStyle) {
     super(plotModel, style)
@@ -25,32 +25,26 @@ export default class MountainChartRenderer extends BaseChart {
 
     const ctx = this.ctx
     const axisY = this.plotModel.graph.axisY
+    const axisX = this.plotModel.graph.axisX
     const rangeY = this.plotModel.graph.isPrice ? axisY.range : this.plotModel.graph.getRangeY()
-    const height = parseInt(this.plotModel.graphic.ctx.canvas.style.height)
+    const style = this.style
+    const histogramBase = style.histogramBase
+    const base = axisY.getYByValue(histogramBase, rangeY)
+    // 宽度为bar宽度的一半
+    const width = axisX.barWidth * 0.5
 
-    ctx.strokeStyle = this.style.color
-    ctx.lineWidth = this.style.lineWidth
-    ctx.fillStyle = this.style.fillColor
-    ctx.beginPath()
-
-    const len = bars.length
-    let bar
-
-    if (len) {
-      bar = bars[0]
-      ctx.moveTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
+    for (let i = 0, len = bars.length, data, x, y; i < len; i++) {
+      data = bars[i]
+      x = data[PLOT_DATA.X]
+      y = axisY.getYByValue(data[PLOT_DATA.VALUE], rangeY)
+      if (data[PLOT_DATA.VALUE] > histogramBase) {
+        ctx.fillStyle = style.color
+        ctx.fillRect(x - width / 2, y, width, base - y)
+      } else {
+        ctx.fillStyle = style.colorDown
+        ctx.fillRect(x - width / 2, base, width, y - base)
+      }
     }
-
-    for (let i = 0; i < len; i++) {
-      bar = bars[i]
-      ctx.lineTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
-    }
-
-    ctx.stroke()
-    ctx.lineTo(bars[len - 1][PLOT_DATA.X], height)
-    ctx.lineTo(bars[0][PLOT_DATA.X], height)
-    ctx.closePath()
-    ctx.fill()
   }
 
   protected calcRangeY (): IYRange {

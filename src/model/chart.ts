@@ -20,26 +20,22 @@ export default class ChartModel extends EventEmitter {
   private _crosshair: CrosshairModel
   private _size: ISize
   private _grid: GridRenderer
-  private _heightProportion: number = 1
+  private _isPrice: boolean
 
   constructor (
     datasource: Datasource,
     axisX: AxisXModel, axisY: AxisYModel,
     crosshair: CrosshairModel,
     graphs: Array<GraphModel>,
-    heightProportion: number) {
+    isPrice: boolean) {
     super()
     this._datasource = datasource
     this._axisX = axisX
     this._axisY = axisY
     this._crosshair = crosshair
     this._graphs = graphs
+    this._isPrice = isPrice
     this._grid = new GridRenderer(this)
-    this._heightProportion = heightProportion
-  }
-
-  get heightProportion (): number {
-    return this._heightProportion
   }
 
   get graphs (): Array<GraphModel> {
@@ -74,16 +70,26 @@ export default class ChartModel extends EventEmitter {
     return this._grid
   }
 
+  get isPrice (): boolean {
+    return this._isPrice
+  }
+
   public getRangeY (): IYRange {
     return this._graphs
-      .reduce((prev, cur) => prev.concat(cur.plots), [])
-      .reduce((range, plot) => {
-        if (!plot.isPrice) {
+      .reduce((range: IYRange, graph) => {
+        // 如果chart是价格相关的，但是某个子图是价格无关的，则忽略它
+        if (this.isPrice && !graph.isPrice) {
           return range
         }
-        const r = plot.graphic.getRangeY()
+        const r = graph.getRangeY()
         if (!r) {
           return range
+        }
+        if (!range) {
+          return {
+            max: r.max,
+            min: r.min,
+          }
         }
         if (r.max > range.max) {
           range.max = r.max
@@ -92,10 +98,7 @@ export default class ChartModel extends EventEmitter {
           range.min = r.min
         }
         return range
-      }, {
-        max: -Number.MAX_VALUE,
-        min: Number.MAX_VALUE,
-      })
+      }, null)
   }
 
   public draw (): void {

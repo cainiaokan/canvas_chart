@@ -7,22 +7,6 @@ import { ResolutionType } from '../constant'
  */
 export interface IBar {
   time: number
-  x?: number
-}
-
-export interface ILineBar extends IBar {
-  val: number
-}
-
-export interface IColumnBar extends ILineBar {
-  down: boolean
-}
-
-export interface ICandleBar extends IBar {
-  high: number,
-  low: number,
-  open: number,
-  close: number,
 }
 
 export interface IDataAdapter {

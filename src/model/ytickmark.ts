@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import AxisYMoel from './axisy'
 import { padRight } from '../util'
 
@@ -38,6 +39,10 @@ export default class YTickMark {
     let max = this._axisY.range.max
 
     if (min === max) {
+      return tickmarks
+    }
+
+    if (!_.isFinite(min) || !_.isFinite(max)) {
       return tickmarks
     }
 
@@ -106,7 +111,6 @@ export default class YTickMark {
       }
     }
     let padLength = 1
-    span = ~~span
     while (span >= 10) {
       padLength ++
       span /= 10

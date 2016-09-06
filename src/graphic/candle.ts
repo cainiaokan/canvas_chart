@@ -1,7 +1,15 @@
 import BaseChart, { IChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { IYRange } from '../model/axisy'
-import { ICandleBar } from '../datasource'
+
+enum PLOT_DATA {
+  X = 0,
+  TIME,
+  OPEN,
+  CLOSE,
+  HIGH,
+  LOW,
+}
 
 export default class CandleChartRenderer extends BaseChart {
 
@@ -18,26 +26,35 @@ export default class CandleChartRenderer extends BaseChart {
     const axisY = graph.axisY
     const barWidth = graph.axisX.barWidth
     const candleWidth = barWidth * 0.8
-    const bars = plot.getVisibleBars() as Array<ICandleBar>
-    const rangeY = plot.isPrice ? axisY.range : this.getRangeY()
+    const bars = plot.getVisibleBars()
+    const rangeY = plot.graph.isPrice ? axisY.range : plot.graph.getRangeY()
 
     if (!bars.length) {
       return
     }
 
+    ctx.lineWidth = 2
+
     for (let i = 0, bar, len = bars.length, x, y, isUp, color; i < len; i++) {
       bar = bars[i]
-      isUp = bar.close > bar.open
-      color = isUp ? 'red' : 'green'
+      isUp = bar[PLOT_DATA.CLOSE] > bar[PLOT_DATA.OPEN]
+      color = isUp ? this.style.color : this.style.colorDown
       ctx.strokeStyle = color
       ctx.fillStyle = color
       ctx.beginPath()
-      ctx.moveTo(bar.x, axisY.getYByValue(bar.high, rangeY))
-      ctx.lineTo(bar.x, axisY.getYByValue(bar.low, rangeY))
+      ctx.moveTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.HIGH], rangeY))
+      ctx.lineTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.LOW], rangeY))
       ctx.stroke()
-      x = bar.x - candleWidth / 2
-      y = axisY.getYByValue(isUp ? bar.close : bar.open, rangeY)
-      ctx.fillRect(x, y, candleWidth, Math.abs(axisY.getYByValue(isUp ? bar.open : bar.close, rangeY) - y))
+      x = bar[PLOT_DATA.X] - candleWidth / 2
+      y = axisY.getYByValue(isUp ? bar[PLOT_DATA.CLOSE] : bar[PLOT_DATA.OPEN], rangeY)
+      ctx.fillRect(
+        x,
+        ~~y,
+        ~~candleWidth,
+        Math.abs(
+          axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY) - y
+        )
+      )
     }
   }
 
@@ -45,7 +62,7 @@ export default class CandleChartRenderer extends BaseChart {
     const bars = this.plotModel.getVisibleBars()
 
     if (!bars.length) {
-      return
+      return null
     }
 
     const range: IYRange = {
@@ -54,12 +71,11 @@ export default class CandleChartRenderer extends BaseChart {
     }
 
     return bars.reduce((prev, cur) => {
-      const data = cur as ICandleBar
-      if (data.high > prev.max) {
-        prev.max = data.high
+      if (cur[PLOT_DATA.HIGH] > prev.max) {
+        prev.max = cur[PLOT_DATA.HIGH]
       }
-      if (data.low < prev.min) {
-        prev.min = data.low
+      if (cur[PLOT_DATA.LOW] < prev.min) {
+        prev.min = cur[PLOT_DATA.LOW]
       }
       return prev
     }, range)

@@ -21,14 +21,13 @@ export default class StockModel extends GraphModel {
 
     super(datasource, axisX, axisY, crosshair, true, bar => {
       const b = bar as IStockBar
-      return [b.time, b.open, b.close, b.high, b.low, b.volume, b.amount, b.changerate, b.turnover]
+      return [0, b.time, b.open, b.close, b.high, b.low, b.volume, b.amount, b.changerate, b.turnover]
     }, converter)
 
     this._plots.push(
       new PlotModel(
         this,
         0,
-        true,
         shape,
         _.extend({}, style && style[0] ? style[0] : {})
       )
@@ -40,7 +39,7 @@ export default class StockModel extends GraphModel {
     if (!bar || !bar.length) {
       return null
     }
-    return [this._datasource.barAt(this._datasource.search(bar[0].time)) as IStockBar]
+    return [this._datasource.barAt(this._datasource.search(bar[0][1])) as IStockBar]
   }
 
   public getCurBar (): Array<IStockBar> {
@@ -48,7 +47,7 @@ export default class StockModel extends GraphModel {
     if (!bar || !bar.length) {
       return null
     }
-    return [this._datasource.barAt(this._datasource.search(bar[0].time)) as IStockBar]
+    return [this._datasource.barAt(this._datasource.search(bar[0][1])) as IStockBar]
   }
 
   public resolveSymbol (): Promise<SymbolInfo> {
