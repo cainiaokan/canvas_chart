@@ -1,25 +1,26 @@
 import * as EventEmitter from 'eventemitter3'
 import { Datasource } from '../datasource'
 import AxisXModel from './axisx'
-import AxisYModel, { IYRange } from './axisy'
+import AxisYModel, { YRange } from './axisy'
 import CrosshairModel from './crosshair'
 import GraphModel from './graph'
 import GridRenderer from '../graphic/grid'
 import WaterMarkRenerer from '../graphic/watermark'
 
-interface ISize {
+type Size = {
   width: number,
   height: number
 }
 
 export default class ChartModel extends EventEmitter {
-  private _graphs: GraphModel[]
+  public hover: boolean
 
+  private _graphs: GraphModel[]
   private _datasource: Datasource
   private _axisX: AxisXModel
   private _axisY: AxisYModel
   private _crosshair: CrosshairModel
-  private _size: ISize
+  private _size: Size
   private _ctx: CanvasRenderingContext2D
   private _topCtx: CanvasRenderingContext2D
   private _grid: GridRenderer
@@ -38,11 +39,12 @@ export default class ChartModel extends EventEmitter {
     this._axisX = axisX
     this._axisY = axisY
     this._crosshair = crosshair
-    // this._graphs = graphs
     this._isPrice = isPrice
     this._isMain = isMain
     this._grid = new GridRenderer(this)
-    this._watermark = new WaterMarkRenerer(this)
+    if (isMain) {
+      this._watermark = new WaterMarkRenerer(this)
+    }
   }
 
   get graphs (): GraphModel[] {
@@ -53,11 +55,11 @@ export default class ChartModel extends EventEmitter {
     this._graphs = graphs
   }
 
-  get size (): ISize {
+  get size (): Size {
     return this._size
   }
 
-  set size (size: ISize) {
+  set size (size: Size) {
     this._size = size
   }
 
@@ -105,9 +107,9 @@ export default class ChartModel extends EventEmitter {
     this._topCtx = ctx
   }
 
-  public getRangeY (): IYRange {
+  public getRangeY (): YRange {
     return this._graphs
-      .reduce((range: IYRange, graph) => {
+      .reduce((range: YRange, graph) => {
         // 如果chart是价格相关的，但是某个子图是价格无关的，则忽略它
         if (this.isPrice && !graph.isPrice) {
           return range
@@ -132,16 +134,26 @@ export default class ChartModel extends EventEmitter {
       }, null)
   }
 
+  public hitTest (): boolean  {
+    return this._graphs.some(graph => graph.hitTest())
+  }
+
+  get isValid (): boolean {
+    return this._graphs.every(graph => graph.isValid)
+  }
+
   public draw () {
     // 首先绘制背景色
     const ctx = this._ctx
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, this.size.width, this.size.height)
+    // 如果是主chart就绘制趣炒股水印
     if (this._isMain) {
       this._watermark.draw()
     }
     this._grid.draw()
-    this._graphs.forEach(graph => graph.draw())
+    this._graphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
+    this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
     this._crosshair.draw()
   }
 }

@@ -1,17 +1,20 @@
-import { Datasource, IBar, IDataAdapter, IDataConverter } from '../datasource'
+import { Datasource, IBar, DataAdapter, DataConverter } from '../datasource'
 import ChartModel from './chart'
 import PlotModel from './plot'
-import { IYRange } from './axisy'
-import { IChartStyle } from '../graphic/basechart'
+import { YRange } from './axisy'
+import { ChartStyle } from '../graphic/basechart'
 
 abstract class GraphModel {
   protected _plots: PlotModel[]
   protected _datasource: Datasource
   protected _chart: ChartModel
-  protected _adapter: IDataAdapter
-  protected _converter: IDataConverter
+  protected _adapter: DataAdapter
+  protected _converter: DataConverter
   protected _input: any[]
   protected _isPrice: boolean
+
+  private _hover: boolean = false
+  private _isValid: boolean = true
   private _visibleBars: IBar[][]
   private _cache: { [propName: number]: IBar[] }
 
@@ -19,10 +22,10 @@ abstract class GraphModel {
     datasource: Datasource,
     chart: ChartModel,
     isPrice: boolean,
-    adapter: IDataAdapter,
-    converter: IDataConverter,
+    adapter: DataAdapter,
+    converter: DataConverter,
     input: any = null,
-    style: Array<IChartStyle> = []) {
+    style: Array<ChartStyle> = []) {
     this._datasource = datasource
     this._chart = chart
     this._isPrice = isPrice
@@ -33,9 +36,41 @@ abstract class GraphModel {
     this._cache = {}
   }
 
+  get isPrice (): boolean {
+    return this._isPrice
+  }
+
+  get hover (): boolean {
+    return this._hover
+  }
+
+  set hover (hover: boolean) {
+    this._hover = hover
+    this._isValid = false
+    this._chart.emit('hover', hover)
+  }
+
+  get isValid (): boolean {
+    return this._isValid
+  }
+
+  get plots (): PlotModel[] {
+    return this._plots
+  }
+
+  get datasource (): Datasource {
+    return this._datasource
+  }
+
+  get chart (): ChartModel {
+    return this._chart
+  }
+
   public draw () {
     this._visibleBars = null
     this._plots.forEach(plot => plot.draw())
+    this._isValid = true
+    this._hover = false
   }
 
   public getPrevBar (): any[] {
@@ -63,8 +98,21 @@ abstract class GraphModel {
     return this._cache[timeBar.time]
   }
 
-  public getRangeY (): IYRange {
-    return this._plots.reduce((range: IYRange, plot) => {
+  public getNextBar (): any[] {
+    const point = this._chart.crosshair.point
+    if (!point) {
+      return null
+    }
+    const axisX = this._chart.axisX
+    const timeBar = axisX.findTimeBarByX(point.x + axisX.barWidth)
+    if (!timeBar) {
+      return null
+    }
+    return this._cache[timeBar.time]
+  }
+
+  public getRangeY (): YRange {
+    return this._plots.reduce((range: YRange, plot) => {
       const r = plot.graphic.getRangeY()
       if (!r) {
         return range
@@ -83,6 +131,10 @@ abstract class GraphModel {
       }
       return range
     }, null)
+  }
+
+  public hitTest (): boolean {
+    return this.hover = this._plots.some(plot => plot.hitTest())
   }
 
   /**
@@ -133,6 +185,7 @@ abstract class GraphModel {
       data.push(cache)
     }
 
+    // 清理缓存转换函数的缓存
     if (this._converter.clearCache) {
       this._converter.clearCache()
     }
@@ -168,22 +221,6 @@ abstract class GraphModel {
     }
 
     return this._visibleBars = visibleBars
-  }
-
-  get isPrice () {
-    return this._isPrice
-  }
-
-  get plots (): PlotModel[] {
-    return this._plots
-  }
-
-  get datasource (): Datasource {
-    return this._datasource
-  }
-
-  get chart (): ChartModel {
-    return this._chart
   }
 
   public clearCache () {

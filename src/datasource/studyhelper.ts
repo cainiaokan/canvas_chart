@@ -1,12 +1,12 @@
-import { Datasource, IDataAdapter, IDataConverter } from './'
+import { Datasource, DataAdapter, DataConverter } from './'
 
-export function cacheable (output: IDataConverter): IDataConverter {
+export function cacheable (output: DataConverter): DataConverter {
   let cache = {}
-  const cachebaleConverter: IDataConverter = function (
+  const cachebaleConverter: DataConverter = function (
       data: any[],
       index: number,
       datasource: Datasource,
-      adapter: IDataAdapter,
+      adapter: DataAdapter,
       input: any[]): any[][] {
     return output(data, index, datasource, adapter, input, cache)
   }
@@ -20,7 +20,7 @@ export function DEA (
   fastLen: number,
   curIndex: number,
   datasource: Datasource,
-  adapter: IDataAdapter,
+  adapter: DataAdapter,
   cache: {[propName: string]: any}): number {
   const cacheKey = 'DEA' + curIndex
   const prevKey = 'DEA' + (curIndex - 1)
@@ -49,7 +49,7 @@ export function EMA (
   length: number,
   curIndex: number,
   datasource: Datasource,
-  adapter: IDataAdapter,
+  adapter: DataAdapter,
   cache: {[propName: string]: any}): number {
   const cacheKey = 'EMA' + length + curIndex
   const prevKey = 'EMA' + length + (curIndex - 1)
@@ -75,7 +75,7 @@ export function RSV (
   length: number,
   curIndex: number,
   datasource: Datasource,
-  adapter: IDataAdapter,
+  adapter: DataAdapter,
   cache: {[propName: string]: any}): number {
   const cacheKey = 'RSV' + curIndex
   if (cache[cacheKey]) {
@@ -96,7 +96,7 @@ export function K (
   fastLength: number,
   curIndex: number,
   datasource: Datasource,
-  adapter: IDataAdapter,
+  adapter: DataAdapter,
   cache: {[propName: string]: any}): number {
   const cacheKey = 'K' + curIndex
   const prevKey = 'K' + (curIndex - 1)
@@ -125,7 +125,7 @@ export function D (
   slowLength: number,
   curIndex: number,
   datasource: Datasource,
-  adapter: IDataAdapter,
+  adapter: DataAdapter,
   cache: {[propName: string]: any}): number {
   const cacheKey = 'D' + curIndex
   const prevKey = 'D' + (curIndex - 1)

@@ -9,7 +9,7 @@ export interface IBar {
   time: number
 }
 
-export interface IDataAdapter {
+export type DataAdapter = {
   (bar: IBar): any[]
 }
 

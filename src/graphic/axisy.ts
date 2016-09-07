@@ -13,7 +13,7 @@ export default class AxisYRenderer {
     const axis = this._axis
     const axisY = axis
     const cursorPoint = axis.crosshair.point
-    const hover = axis.crosshair.hover
+    const hover = axis.crosshair.chart.hover
 
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, axis.size.width, axis.size.height)

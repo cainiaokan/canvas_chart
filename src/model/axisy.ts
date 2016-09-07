@@ -9,7 +9,7 @@ interface ISize {
   height: number
 }
 
-export interface IYRange {
+export type YRange = {
   max: number
   min: number
 }
@@ -18,7 +18,7 @@ export const MARGIN_RATIO = .05
 
 export default class AxisYModel extends EventEmitter {
 
-  public range: IYRange
+  public range: YRange
 
   private _size: ISize
   private _crosshair: CrosshairModel
@@ -62,7 +62,7 @@ export default class AxisYModel extends EventEmitter {
     return this._size.height * MARGIN_RATIO
   }
 
-  public getYByValue (value: number, range: IYRange): number {
+  public getYByValue (value: number, range: YRange): number {
     const margin = this.margin
     const height = this._size.height - margin * 2
     const diff1 = range.max - range.min
@@ -70,7 +70,7 @@ export default class AxisYModel extends EventEmitter {
     return (diff2 / diff1) * height + margin
   }
 
-  public getValueByY (value: number, range: IYRange): number {
+  public getValueByY (value: number, range: YRange): number {
     const margin = this.margin
     const height = this._size.height - margin * 2
     const diff1 = range.max - range.min

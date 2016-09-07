@@ -1,7 +1,7 @@
 import PlotModel from '../model/plot'
-import { IYRange } from '../model/axisy'
+import { YRange } from '../model/axisy'
 
-export interface IChartStyle {
+export type ChartStyle = {
   color?: string
   colorDown?: string
   lineWidth?: number
@@ -11,10 +11,10 @@ export interface IChartStyle {
 
 abstract class BaseChartRenderer {
   protected plotModel: PlotModel
-  protected style: IChartStyle
-  protected rangeY: IYRange
+  protected style: ChartStyle
+  protected rangeY: YRange
 
-  constructor (plotModel: PlotModel, style: IChartStyle) {
+  constructor (plotModel: PlotModel, style: ChartStyle) {
     this.plotModel = plotModel
     this.style = style
   }
@@ -23,7 +23,7 @@ abstract class BaseChartRenderer {
     this.rangeY = null
   }
 
-  public getRangeY (): IYRange {
+  public getRangeY (): YRange {
     if (this.rangeY) {
       return this.rangeY
     } else {
@@ -31,7 +31,9 @@ abstract class BaseChartRenderer {
     }
   }
 
-  protected abstract calcRangeY (): IYRange
+  public abstract hitTest (): boolean
+
+  protected abstract calcRangeY (): YRange
 }
 
 export default BaseChartRenderer

@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { StudyType } from '../constant'
-import { Datasource, studyConfig, IDataAdapter } from '../datasource'
-import { IChartStyle } from '../graphic/basechart'
+import { Datasource, studyConfig, DataAdapter } from '../datasource'
+import { ChartStyle } from '../graphic/basechart'
 import ChartModel from './chart'
 import PlotModel from './plot'
 import Graph from './graph'
@@ -9,15 +9,15 @@ import Graph from './graph'
 export default class StudyModel extends Graph {
 
   private _studyType: StudyType
-  private _styles: IChartStyle[]
+  private _styles: ChartStyle[]
 
   constructor (
     datasource: Datasource,
     chart: ChartModel,
     study: StudyType,
-    adapter: IDataAdapter,
+    adapter: DataAdapter,
     input: any = null,
-    style?: IChartStyle[]) {
+    style?: ChartStyle[]) {
 
     const config = studyConfig[study]
     super(datasource, chart, config.isPrice, adapter, config.output, input)
@@ -40,7 +40,7 @@ export default class StudyModel extends Graph {
     return this._studyType
   }
 
-  get styles (): IChartStyle[] {
+  get styles (): ChartStyle[] {
     return this._styles
   }
 

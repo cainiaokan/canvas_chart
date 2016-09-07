@@ -67,4 +67,8 @@ export default class ChartLayoutModel {
   get mainDatasource (): Datasource {
     return this._mainDatasource
   }
+
+  get hoverChart () {
+    return this._charts.filter(chart => chart.hover)[0] || null
+  }
 }

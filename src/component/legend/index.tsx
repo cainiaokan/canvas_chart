@@ -46,8 +46,10 @@ export default class Legend extends React.Component<Prop, State> {
             if (graph instanceof StockModel) {
               const bars = graph.getCurBar()
               const prevBars = graph.getPrevBar()
-              const bar = bars ? bars[0] as IStockBar : null
-              const prev = prevBars ? prevBars[0] as IStockBar : null
+              const bar = bars ?
+                graph.datasource.barAt(graph.datasource.search(bars[0][1])) as IStockBar : null
+              const prev = prevBars ?
+                graph.datasource.barAt(graph.datasource.search(prevBars[0][1])) as IStockBar : null
               const colorUp = '#FF0000'
               const colorDown = '#008000'
               const resolution = graph.datasource.resolution

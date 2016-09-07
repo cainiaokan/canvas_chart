@@ -32,7 +32,6 @@ type Prop  = {
 }
 
 type State = {
-  chartLayoutModel: ChartLayoutModel
 }
 
 export default class ChartLayout extends React.Component<Prop, State> {
@@ -89,10 +88,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this.prepareMinorChart()
     this.prepareKDJ()
     this.prepareMACD()
-
-    this.setState({
-      chartLayoutModel: this._chartLayoutModel,
-    })
   }
 
   public prepareMainChart (): void {
@@ -114,26 +109,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.mainDatasource = mainDatasource
 
     chart.graphs = [
-      new StockModel(
-        mainDatasource,
-        chart,
-        function (array: any): any[] {
-          return [array.slice(0, 6)]
-        },
-        this.props.shape,
-        [{
-          color: '#ff524f',
-          colorDown: '#2bbe65',
-        }]
-      ),
-      new StudyModel(
-        mainDatasource,
-        chart,
-        'VOLUME',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.volume, bar.close < bar.open]
-        }
-      ),
       new StudyModel(
         mainDatasource,
         chart,
@@ -186,6 +161,26 @@ export default class ChartLayout extends React.Component<Prop, State> {
           lineWidth: 1,
         }]
       ),
+      new StockModel(
+        mainDatasource,
+        chart,
+        function (array: any): any[] {
+          return [array.slice(0, 6)]
+        },
+        this.props.shape,
+        [{
+          color: '#ff524f',
+          colorDown: '#2bbe65',
+        }]
+      ),
+      new StudyModel(
+        mainDatasource,
+        chart,
+        'VOLUME',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.volume, bar.close < bar.open]
+        }
+      ),
     ]
     this._chartLayoutModel.charts.push(chart)
   }
@@ -199,6 +194,58 @@ export default class ChartLayout extends React.Component<Prop, State> {
     crosshair.chart = chart
 
     chart.graphs = [
+      new StudyModel(
+        datasource,
+        chart,
+        'MA',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.close]
+        },
+        [5],
+        [{
+          color: 'red',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        datasource,
+        chart,
+        'MA',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.close]
+        },
+        [10],
+        [{
+          color: 'blue',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        datasource,
+        chart,
+        'MA',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.close]
+        },
+        [20],
+        [{
+          color: 'purple',
+          lineWidth: 1,
+        }]
+      ),
+      new StudyModel(
+        datasource,
+        chart,
+        'MA',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.close]
+        },
+        [30],
+        [{
+          color: 'green',
+          lineWidth: 1,
+        }]
+      ),
       new StockModel(
         datasource,
         chart,
@@ -221,58 +268,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
         function (bar: IStockBar) {
           return [0, bar.time, bar.volume, bar.close < bar.open]
         }
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [5],
-        [{
-          color: 'red',
-          lineWidth: 1,
-        }]
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [10],
-        [{
-          color: 'blue',
-          lineWidth: 1,
-        }]
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [20],
-        [{
-          color: 'purple',
-          lineWidth: 1,
-        }]
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [30],
-        [{
-          color: 'green',
-          lineWidth: 1,
-        }]
       ),
     ]
 
@@ -330,78 +325,20 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public initEvents () {
-    this._chartLayoutModel.axisx.addListener('resize', () => this.redraw())
+    this._chartLayoutModel.axisx.addListener('resize', () => this.fullUpdate())
 
-    this._chartLayoutModel.axisx.addListener('offsetchange', () => this.redraw())
+    this._chartLayoutModel.axisx.addListener('offsetchange', () => this.fullUpdate())
 
-    this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.redraw())
-  }
+    this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.fullUpdate())
 
-  public dragOffsetMouseDownHandler (ev): void {
-    this._dragOffsetStart = true
-    this._dragPosX = ev.pageX
-  }
-
-  public dragBarWidthMouseDown (ev: MouseEvent) {
-    ev.stopPropagation()
-    this._dragPosX = ev.pageX
-    this._dragBarWidthStart = true
-  }
-
-  public mouseMoveHandler (ev: MouseEvent) {
-    // TODO not best approach, but do work at the moment
-    const offset = clientOffset((ev.target as HTMLElement).parentElement.parentElement)
-    const point = {
-      x: ev.clientX - offset.offsetLeft,
-      y: ev.clientY - offset.offsetTop,
-    }
-    this._chartLayoutModel.charts.forEach(ch => ch.crosshair.point = point)
-    if (this._dragOffsetStart) {
-      const axisX = this._chartLayoutModel.axisx
-      const curOffset = axisX.offset
-      const pageX = ev.pageX
-      const newOffset = curOffset + pageX - this._dragPosX
-      if (newOffset < axisX.minOffset) {
-        axisX.offset = axisX.minOffset
-      } else if (newOffset > axisX.maxOffset) {
-        axisX.offset = axisX.maxOffset
-      } else {
-        axisX.offset = newOffset
-      }
-      this._dragPosX = pageX
-    } else if (this._dragBarWidthStart) {
-      const axisX = this._chartLayoutModel.axisx
-      const pageX = ev.pageX
-      const curBarWidth = axisX.barWidth
-      const newBarWidth = curBarWidth - (ev.pageX - this._dragPosX) / 50
-      if (newBarWidth < MIN_BAR_WIDTH) {
-        axisX.barWidth = MIN_BAR_WIDTH
-      } else if (newBarWidth > MAX_BAR_WIDTH) {
-        axisX.barWidth = MAX_BAR_WIDTH
-      } else {
-        axisX.barWidth = newBarWidth
-      }
-      axisX.offset *= axisX.barWidth / curBarWidth
-      this._dragPosX = pageX
-    } else {
-      this.redrawCursorMoveOnly()
-    }
-  }
-
-  public mouseUpHandler (ev: MouseEvent) {
-    this._dragOffsetStart = false
-    this._dragBarWidthStart = false
-  }
-
-  public mouseLeaveHandler (ev) {
-    this._chartLayoutModel.charts.forEach(chart => chart.crosshair.point = null)
-    this.redrawCursorMoveOnly()
+    document.addEventListener('mousemove', this.dragMoveHandler.bind(this))
+    document.addEventListener('mouseup', this.mouseUpHandler.bind(this))
   }
 
   /**
    * 重新绘制chart
    */
-  public redraw () {
+  public fullUpdate () {
     const axisX = this._chartLayoutModel.axisx
     const totalWidth = this._chartLayoutModel.mainDatasource.loaded() * axisX.barWidth
     const visibleWidth = axisX.size.width
@@ -426,7 +363,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     })
   }
 
-  public redrawCursorMoveOnly () {
+  public lightUpdate () {
     // 取消上一帧动画的调度，避免重复计算
     if (this._lastAnimationFrame) {
       cancelAnimationFrame(this._lastAnimationFrame)
@@ -435,6 +372,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._lastAnimationFrame = requestAnimationFrame(() => {
       this._chartLayoutModel.axisx.draw()
       this._chartLayoutModel.charts.forEach(chart => {
+        if (!chart.isValid) {
+          chart.draw()
+        }
         chart.crosshair.draw()
         chart.axisY.draw()
       })
@@ -489,7 +429,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
           )
           .then(() => {
             // 加载完成后立即重绘
-            this.redraw()
+            this.fullUpdate()
             this._loading = false
             resolve()
           })
@@ -502,26 +442,22 @@ export default class ChartLayout extends React.Component<Prop, State> {
   public render () {
     const availWidth = this.props.width - 2 - 10
     const availHeight = this.props.height - NAVBAR_HEIGHT - AXIS_X_HEIGHT - 5 - 2
-    const chartLayoutModel = this.state.chartLayoutModel
+    const chartLayoutModel = this._chartLayoutModel
     const additionalChartCount = chartLayoutModel.charts.length - 1
     const mainChartHeight = ~~((1 - additionalChartCount * .3 > .3 ? 1 - additionalChartCount * .3 : .3) * availHeight)
     const addtionalChartHeight = ~~((availHeight - mainChartHeight) / additionalChartCount)
     return (
       <div className='chart-layout'>
         <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} />
-        <div className='chart-body'
-            onMouseDown={this.dragOffsetMouseDownHandler.bind(this)}
-            onMouseMove={this.mouseMoveHandler.bind(this)}
-            onMouseUp={this.mouseUpHandler.bind(this)}
-            onMouseLeave={this.mouseLeaveHandler.bind(this)}>
-          <Chart model={chartLayoutModel.charts[0]}
-                height={mainChartHeight}
-                width={availWidth} />
+        <div className='chart-body'>
           {
-            chartLayoutModel.charts.slice(1).map(
+            chartLayoutModel.charts.map(
               chart => <Chart model={chart}
-                height={addtionalChartHeight}
-                width={availWidth} />
+                height={chart.isMain ? mainChartHeight : addtionalChartHeight}
+                width={availWidth}
+                onMouseMove={this.mouseMoveHandler.bind(this)}
+                onMouseDown={this.dragOffsetMouseDownHandler.bind(this)}
+                onMouseLeave={this.mouseLeaveHandler.bind(this)}/>
             )
           }
           <AxisX
@@ -532,5 +468,92 @@ export default class ChartLayout extends React.Component<Prop, State> {
         </div>
       </div>
     )
+  }
+
+  /**
+   * 拖拽chart偏移量的鼠标按下事件监听
+   * @param  {MouseEvent} ev: MouseEvent    事件对象
+   */
+  private dragOffsetMouseDownHandler (ev: MouseEvent) {
+    this._dragOffsetStart = true
+    this._dragPosX = ev.pageX
+  }
+
+  /**
+   * 拖拽chart bar宽度的鼠标按下事件监听
+   * @param  {MouseEvent} ev: MouseEvent    事件对象
+   */
+  private dragBarWidthMouseDown (ev: MouseEvent) {
+    this._dragPosX = ev.pageX
+    this._dragBarWidthStart = true
+  }
+
+  /**
+   * 鼠标在chart上移动时的事件监听
+   * @param  {MouseEvent} ev: MouseEvent    事件对象
+   */
+  private mouseMoveHandler (ev: MouseEvent) {
+    const chartLayout = this._chartLayoutModel
+    const offset = clientOffset(ev.target as HTMLElement)
+    const point = {
+      x: ev.clientX - offset.offsetLeft,
+      y: ev.clientY - offset.offsetTop,
+    }
+    chartLayout.charts.forEach(ch => ch.crosshair.point = point)
+    chartLayout.hoverChart.hitTest()
+    this.lightUpdate()
+  }
+
+  /**
+   * 鼠标拖拽的事件监听
+   * @param  {MouseEvent} ev: MouseEvent    事件对象
+   */
+  private dragMoveHandler (ev: MouseEvent) {
+    if (this._dragOffsetStart) {
+      const axisX = this._chartLayoutModel.axisx
+      const curOffset = axisX.offset
+      const pageX = ev.pageX
+      const newOffset = curOffset + pageX - this._dragPosX
+      if (newOffset < axisX.minOffset) {
+        axisX.offset = axisX.minOffset
+      } else if (newOffset > axisX.maxOffset) {
+        axisX.offset = axisX.maxOffset
+      } else {
+        axisX.offset = newOffset
+      }
+      this._dragPosX = pageX
+    } else if (this._dragBarWidthStart) {
+      const axisX = this._chartLayoutModel.axisx
+      const pageX = ev.pageX
+      const curBarWidth = axisX.barWidth
+      const newBarWidth = curBarWidth - (ev.pageX - this._dragPosX) / 50
+      if (newBarWidth < MIN_BAR_WIDTH) {
+        axisX.barWidth = MIN_BAR_WIDTH
+      } else if (newBarWidth > MAX_BAR_WIDTH) {
+        axisX.barWidth = MAX_BAR_WIDTH
+      } else {
+        axisX.barWidth = newBarWidth
+      }
+      axisX.offset *= axisX.barWidth / curBarWidth
+      this._dragPosX = pageX
+    }
+  }
+
+  /**
+   * 鼠标拖拽结束，鼠标按键弹起的事件监听
+   * @param  {MouseEvent} ev: MouseEvent    事件对象
+   */
+  private mouseUpHandler (ev: MouseEvent) {
+    this._dragOffsetStart = false
+    this._dragBarWidthStart = false
+  }
+
+  /**
+   * 鼠标移出chart区域时的事件监听
+   * @param  {MouseEvent} ev: MouseEvent    事件对象
+   */
+  private mouseLeaveHandler (ev) {
+    this._chartLayoutModel.charts.forEach(chart => chart.crosshair.point = null)
+    this.lightUpdate()
   }
 }

@@ -29,3 +29,19 @@ export function formatNumber (num: number, precision = 2): string {
     return num.toFixed(precision)
   }
 }
+
+export function pointToSegDist (
+  x: number, y: number,
+  startx: number, starty: number,
+  endx: number, endy: number): number {
+  // 线段两点距离平方  
+  const se = (startx - endx) * (startx - endx) + (starty - endy) * (starty - endy)
+  // 向量点乘=|a|*|b|*cosA
+  const p = ((x - startx) * (endx - startx) + (y - starty) * (endy - starty))
+  // r即点到线段的投影长度与线段长度比  
+  const r = p / se
+  const outx = startx + r * (endx - startx)
+  const outy = starty + r * (endy - starty)
+  const des  = (x - outx) * (x - outx) + (y - outy) * (y - outy)
+  return Math.sqrt(des)
+}

@@ -1,40 +1,40 @@
-import { IChartStyle } from '../graphic/basechart'
+import { ChartStyle } from '../graphic/basechart'
 import { ShapeType } from '../constant'
-import { Datasource, IDataAdapter } from '../datasource'
+import { Datasource, DataAdapter } from '../datasource'
 import { cacheable, EMA, DEA, K, D } from './studyhelper'
 
-export type IDataConverter = {
+export type DataConverter = {
   (
     data: any[],
     index: number,
     datasource: Datasource,
-    adapter: IDataAdapter,
+    adapter: DataAdapter,
     input: any[],
     cache?: {[propName: string]: any}
   ): any[][]
   clearCache? (): void
 }
 
-type IStudyConfig = {
+type StudyConfig = {
   [propName: string]: {
     [propName: string]: any,
     isPrice: boolean
-    output: IDataConverter
+    output: DataConverter
     plots: Array<{
-      style: IChartStyle
+      style: ChartStyle
       shape: ShapeType
     }>
   }
 }
 
-export const studyConfig: IStudyConfig = {
+export const studyConfig: StudyConfig = {
   'MA': {
     isPrice: true,
     output: (
       data: any[],
       index: number,
       datasource: Datasource,
-      adapter: IDataAdapter,
+      adapter: DataAdapter,
       input: any[]): any[][] => {
 
       const length = input[0]
@@ -84,7 +84,7 @@ export const studyConfig: IStudyConfig = {
       data: any[],
       index: number,
       datasource: Datasource,
-      adapter: IDataAdapter,
+      adapter: DataAdapter,
       input: any[],
       cache: {[propName: string]: any}): any[][] => {
       const dif = EMA(input[0], index, datasource, adapter, cache) -
@@ -126,7 +126,7 @@ export const studyConfig: IStudyConfig = {
       data: any[],
       index: number,
       datasource: Datasource,
-      adapter: IDataAdapter,
+      adapter: DataAdapter,
       input: any[],
       cache: {[propName: string]: any}): any[][] => {
       const k = K(input[0], input[1], index, datasource, adapter, cache)

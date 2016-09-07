@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { ShapeType } from '../constant'
-import { Datasource, IStockBar, IDataConverter, SymbolInfo } from '../datasource'
-import { IChartStyle } from '../graphic/basechart'
+import { Datasource, IStockBar, DataConverter, SymbolInfo } from '../datasource'
+import { ChartStyle } from '../graphic/basechart'
 import ChartModel from './chart'
 import PlotModel from './plot'
 import GraphModel from './graph'
@@ -11,9 +11,9 @@ export default class StockModel extends GraphModel {
   constructor (
     datasource: Datasource,
     chart: ChartModel,
-    converter: IDataConverter,
+    converter: DataConverter,
     shape: ShapeType,
-    style?: IChartStyle[]) {
+    style?: ChartStyle[]) {
 
     super(datasource, chart, true, bar => {
       const b = bar as IStockBar
@@ -28,22 +28,6 @@ export default class StockModel extends GraphModel {
         _.extend({}, style && style[0] ? style[0] : {})
       )
     )
-  }
-
-  public getPrevBar (): IStockBar[] {
-    const bar = super.getPrevBar()
-    if (!bar || !bar.length) {
-      return null
-    }
-    return [this._datasource.barAt(this._datasource.search(bar[0][1])) as IStockBar]
-  }
-
-  public getCurBar (): IStockBar[] {
-    const bar = super.getCurBar()
-    if (!bar || !bar.length) {
-      return null
-    }
-    return [this._datasource.barAt(this._datasource.search(bar[0][1])) as IStockBar]
   }
 
   public resolveSymbol (): Promise<SymbolInfo> {

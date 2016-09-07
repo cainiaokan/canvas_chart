@@ -4,12 +4,12 @@ import * as ReactDOM from 'react-dom'
 
 import ChartLayout from './component/chartlayout'
 
-interface IState {
+type State = {
   height: number
   width: number
 }
 
-class Page extends React.Component<any, IState> {
+class Page extends React.Component<any, State> {
 
   constructor () {
     super()

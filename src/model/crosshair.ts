@@ -8,7 +8,6 @@ interface IPoint {
 }
 
 export default class CrosshairModel extends EventEmitter {
-  public hover: boolean = false
   private _point: IPoint
   private _graphic: CrosshairRenderer
   private _chart: ChartModel

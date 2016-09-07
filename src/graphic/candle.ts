@@ -1,6 +1,6 @@
-import BaseChart, { IChartStyle } from './basechart'
+import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
-import { IYRange } from '../model/axisy'
+import { YRange } from '../model/axisy'
 
 enum PLOT_DATA {
   X = 0,
@@ -13,8 +13,12 @@ enum PLOT_DATA {
 
 export default class CandleChartRenderer extends BaseChart {
 
-  constructor (plotModel: PlotModel, style: IChartStyle) {
+  constructor (plotModel: PlotModel, style: ChartStyle) {
     super(plotModel, style)
+  }
+
+  public hitTest (): boolean {
+    return false
   }
 
   public draw (): void {
@@ -59,14 +63,14 @@ export default class CandleChartRenderer extends BaseChart {
     }
   }
 
-  protected calcRangeY (): IYRange {
+  protected calcRangeY (): YRange {
     const bars = this.plotModel.getVisibleBars()
 
     if (!bars.length) {
       return null
     }
 
-    const range: IYRange = {
+    const range: YRange = {
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
     }

@@ -4,7 +4,7 @@ ES6Promise.polyfill()
 
 import 'isomorphic-fetch'
 
-const DOMAIN = 'http://www.quchaogu.com'
+const QU_CHAO_GU = 'http://www.quchaogu.com'
 
 /**
  * 获取股票数据
@@ -17,13 +17,13 @@ const DOMAIN = 'http://www.quchaogu.com'
 export function getStockBars (
   symbol: string, resolution: string,
   from: number, to: number): Promise<IResponse> {
-  return fetch(`${DOMAIN}/chart/history/?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`)
+  return fetch(`${QU_CHAO_GU}/chart/history/?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`)
 }
 
 export function resolveSymbol (symbol: string): Promise<IResponse> {
-  return fetch(`${DOMAIN}/chart/symbols/?symbol=${symbol}`)
+  return fetch(`${QU_CHAO_GU}/chart/symbols/?symbol=${symbol}`)
 }
 
 export function searchSymbols (keyword: string): Promise<IResponse> {
-  return fetch(`${DOMAIN}/chart/search/?query=${keyword}&limit=15&type=&exchange=`)
+  return fetch(`${QU_CHAO_GU}/chart/search/?query=${keyword}&limit=15&type=&exchange=`)
 }

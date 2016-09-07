@@ -9,42 +9,50 @@ type Prop = {
   model: ChartModel
   width: number
   height: number
+  onMouseMove?: (event: MouseEvent) => void
+  onMouseDown?: (event: MouseEvent) => void
+  onMouseLeave?: (event: MouseEvent) => void
+  onMouseEnter?: (event: MouseEvent) => void
 }
 
-type State = {
-}
-
-export default class Chart extends React.Component<Prop, State> {
-  private _model: ChartModel
+export default class Chart extends React.Component<Prop, any> {
+  public refs: {
+    [propName: string]: any
+    plot: HTMLDivElement
+  }
+  private _chart: ChartModel
 
   constructor () {
     super()
+    this.state = {
+      hover: false,
+    }
   }
 
   public componentWillMount () {
-    this._model = this.props.model
+    this._chart = this.props.model
   }
 
   public componentDidMount () {
-    this._model.size = {
+    this._chart.size = {
       height: this.props.height,
       width: this.props.width,
     }
+    this._chart.addListener('hover', hover => {
+      this.refs.plot.style.cursor = hover ? 'pointer' : 'default'
+    })
   }
 
   public componentDidUpdate () {
-    this._model.size = {
-      height: this.props.height,
-      width: this.props.width,
+    const size = this._chart.size
+    const width = this.props.width
+    const height = this.props.height
+    if (size.width !== width || size.height !== height) {
+      this._chart.size = {
+        height: height,
+        width: width,
+      }
     }
-  }
-
-  public mouseEnterHandler () {
-    this._model.crosshair.hover = true
-  }
-
-  public mouseLeaveHandler () {
-    this._model.crosshair.hover = false
   }
 
   public render () {
@@ -53,26 +61,59 @@ export default class Chart extends React.Component<Prop, State> {
     return <div className='chart-line'
       onMouseEnter={this.mouseEnterHandler.bind(this)}
       onMouseLeave={this.mouseLeaveHandler.bind(this)}>
-      <div className='chart-plot' style={ {height: height + 'px', width: width + 'px'} }>
-        <Legend chartModel={this._model}/>
+      <div className='chart-plot' ref='plot'
+        style={
+          {
+            height: height + 'px',
+            width: width + 'px',
+          }
+        }>
+        <Legend chartModel={this._chart}/>
         <canvas ref={el => {
           if (el) {
             el.height = height
             el.width = width
-            this._model.ctx = el.getContext('2d')
+            this._chart.ctx = el.getContext('2d')
           }
         }} width={width} height={height}></canvas>
         <canvas ref={
-          el => {
-            if (el) {
-              el.height = height
-              el.width = width
-              this._model.topCtx = el.getContext('2d')
+            el => {
+              if (el) {
+                el.height = height
+                el.width = width
+                this._chart.topCtx = el.getContext('2d')
+              }
             }
-          }
-        } width={width} height={height}></canvas>
+          } width={width} height={height}
+          onMouseMove={this.props.onMouseMove ? this.mouseMoveHandler.bind(this) : null}
+          onMouseDown={this.props.onMouseDown ? this.mouseDownHandler.bind(this) : null}
+          onMouseEnter={this.mouseEnterHandler.bind(this)}
+          onMouseLeave={this.mouseLeaveHandler.bind(this)}>
+        </canvas>
       </div>
-      <AxisY axis={this._model.axisY} height={height} width={AXIS_Y_WIDTH} />
+      <AxisY axis={this._chart.axisY} height={height} width={AXIS_Y_WIDTH} />
     </div>
+  }
+
+  public mouseEnterHandler (ev: MouseEvent) {
+    this._chart.hover = true
+    if (this.props.onMouseEnter) {
+      this.props.onMouseEnter(ev)
+    }
+  }
+
+  public mouseLeaveHandler (ev: MouseEvent) {
+    this._chart.hover = false
+    if (this.props.onMouseLeave) {
+      this.props.onMouseLeave(ev)
+    }
+  }
+
+  private mouseDownHandler (ev: MouseEvent) {
+    this.props.onMouseDown(ev)
+  }
+
+  private mouseMoveHandler (ev: MouseEvent) {
+    this.props.onMouseMove(ev)
   }
 }

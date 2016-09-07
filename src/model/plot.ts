@@ -5,7 +5,7 @@ import MountainChartRenderer from '../graphic/mountainchart'
 import ColumnChartRenderer from '../graphic/columnchart'
 import CandleChartRenderer from '../graphic/candle'
 import HistogramChartRenderer from '../graphic/histogram'
-import BaseChartRenderer, { IChartStyle } from '../graphic/basechart'
+import BaseChartRenderer, { ChartStyle } from '../graphic/basechart'
 import GraphModel from '../model/graph'
 
 export default class PlotModel {
@@ -18,7 +18,7 @@ export default class PlotModel {
     graph: GraphModel,
     index: number,
     shape: ShapeType,
-    style: IChartStyle) {
+    style: ChartStyle) {
     this._graph = graph
     this._index = index
     this._shape = shape
@@ -55,6 +55,10 @@ export default class PlotModel {
     this._graphic.draw()
   }
 
+  public hitTest (): boolean {
+    return this._graphic.hitTest()
+  }
+
   public getVisibleBars (): IBar[] {
     const visibleBars = this._graph.getVisibleBars()
     const results = []
@@ -62,6 +66,30 @@ export default class PlotModel {
       results.push(visibleBars[i][index])
     }
     return results
+  }
+
+  public getPrevBar (): any[] {
+    const bar = this._graph.getPrevBar()
+    if (!bar) {
+      return null
+    }
+    return bar[this._index]
+  }
+
+  public getCurBar (): any[] {
+    const bar = this._graph.getCurBar()
+    if (!bar) {
+      return null
+    }
+    return bar[this._index]
+  }
+
+  public getNextBar (): any[] {
+    const bar = this._graph.getNextBar()
+    if (!bar) {
+      return null
+    }
+    return bar[this._index]
   }
 
 }
