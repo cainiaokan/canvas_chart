@@ -82,7 +82,8 @@ export default class Legend extends React.Component<Prop, State> {
                 default:
                   break
               }
-              return <div className='chart-legend-line'>
+              return <div className='chart-legend-line'
+                style={ {fontWeight: graph.hover || graph.selected ? '600' : 'normal'} }>
                 <div className='chart-legend-item main'>
                   {graph.symbolInfo ? graph.symbolInfo.description : 'N/A'},{resolutionText}
                 </div>
@@ -148,7 +149,8 @@ export default class Legend extends React.Component<Prop, State> {
               </div>
             } else if (graph instanceof StudyModel && graph.studyType !== 'MA' && graph.studyType !== 'VOLUME') {
               const bars = graph.getCurBar()
-              return <div className='chart-legend-line'>
+              return <div className='chart-legend-line'
+                style={ {fontWeight: graph.hover || graph.selected ? '600' : 'normal'} }>
                 <div className='chart-legend-item'>
                   {graph.studyType}({graph.input.join(',')})
                 </div>
@@ -173,7 +175,11 @@ export default class Legend extends React.Component<Prop, State> {
                 const bar = bars ? bars[0] : null
                 const styles = ma.styles
                 return <div className='chart-legend-item'
-                  style={ {color: styles[0].color, display: bar ? '' : 'none'} }>
+                  style={ {
+                    color: styles[0].color,
+                    display: bar ? '' : 'none',
+                    fontWeight: ma.hover || ma.selected ? '600' : 'normal',
+                  } }>
                   {ma.studyType}{ma.input.length}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
                 </div>
               })

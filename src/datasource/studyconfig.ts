@@ -74,6 +74,7 @@ export const studyConfig: StudyConfig = {
         style: {
           color: '#ff524f',
           colorDown: '#2bbe65',
+          scale: 0.25,
         },
       },
     ],

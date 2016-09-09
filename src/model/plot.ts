@@ -53,6 +53,10 @@ export default class PlotModel {
 
   public draw (): void {
     this._graphic.draw()
+    this._graphic.clean()
+    if (this._graph.selected) {
+      this._graphic.drawSelection()
+    }
   }
 
   public hitTest (): boolean {

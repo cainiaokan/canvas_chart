@@ -25,6 +25,9 @@ export default class LineChartRenderer extends BaseChart {
     const curBar = plot.getCurBar()
     const prevBar = plot.getPrevBar()
     const nextBar = plot.getNextBar()
+    if (!curBar) {
+      return false
+    }
     const point = chart.crosshair.point
     const x0 = point.x
     const y0 = point.y
@@ -46,8 +49,6 @@ export default class LineChartRenderer extends BaseChart {
   }
 
   public draw (): void {
-    super.draw()
-
     const plot = this.plotModel
     const graph = plot.graph
     const chart = graph.chart
@@ -76,6 +77,15 @@ export default class LineChartRenderer extends BaseChart {
     }
 
     ctx.stroke()
+  }
+
+  protected getSelectionYByBar (bar: any[]): number {
+    const plot = this.plotModel
+    const graph = plot.graph
+    const chart = graph.chart
+    const axisY = chart.axisY
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    return ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
   }
 
   protected calcRangeY (): YRange {

@@ -9,6 +9,7 @@ type Prop = {
   model: ChartModel
   width: number
   height: number
+  onClick?: (event: MouseEvent) => void
   onMouseMove?: (event: MouseEvent) => void
   onMouseDown?: (event: MouseEvent) => void
   onMouseLeave?: (event: MouseEvent) => void
@@ -86,31 +87,39 @@ export default class Chart extends React.Component<Prop, any> {
             }
           } width={width} height={height}
           onMouseMove={this.props.onMouseMove ? this.mouseMoveHandler.bind(this) : null}
-          onMouseDown={this.props.onMouseDown ? this.mouseDownHandler.bind(this) : null}
+          onMouseDown={this.mouseDownHandler.bind(this)}
           onMouseEnter={this.mouseEnterHandler.bind(this)}
-          onMouseLeave={this.mouseLeaveHandler.bind(this)}>
+          onMouseLeave={this.mouseLeaveHandler.bind(this)}
+          onClick={this.props.onClick ? this.mouseClickHandler.bind(this) : null}>
         </canvas>
       </div>
       <AxisY axis={this._chart.axisY} height={height} width={AXIS_Y_WIDTH} />
     </div>
   }
 
-  public mouseEnterHandler (ev: MouseEvent) {
+  private mouseClickHandler (ev: MouseEvent) {
+    this.props.onClick(ev)
+  }
+
+  private mouseEnterHandler (ev: MouseEvent) {
     this._chart.hover = true
     if (this.props.onMouseEnter) {
       this.props.onMouseEnter(ev)
     }
   }
 
-  public mouseLeaveHandler (ev: MouseEvent) {
+  private mouseLeaveHandler (ev: MouseEvent) {
     this._chart.hover = false
+    this._chart.graphs.forEach(graph => graph.hover = false)
     if (this.props.onMouseLeave) {
       this.props.onMouseLeave(ev)
     }
   }
 
   private mouseDownHandler (ev: MouseEvent) {
-    this.props.onMouseDown(ev)
+    if (this.props.onMouseDown) {
+      this.props.onMouseDown(ev)
+    }
   }
 
   private mouseMoveHandler (ev: MouseEvent) {

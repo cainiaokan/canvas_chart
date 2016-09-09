@@ -25,6 +25,9 @@ export default class MountainChartRenderer extends BaseChart {
     const curBar = plot.getCurBar()
     const prevBar = plot.getPrevBar()
     const nextBar = plot.getNextBar()
+    if (!curBar) {
+      return false
+    }
     const point = chart.crosshair.point
     const x0 = point.x
     const y0 = point.y
@@ -46,8 +49,6 @@ export default class MountainChartRenderer extends BaseChart {
   }
 
   public draw (): void {
-    super.draw()
-
     const plot = this.plotModel
     const graph = plot.graph
     const chart = graph.chart
@@ -56,6 +57,8 @@ export default class MountainChartRenderer extends BaseChart {
     const height = parseInt(ctx.canvas.style.height)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const bars = plot.getVisibleBars()
+    const histogramBase = this.style.histogramBase
+    const baseHeight = typeof histogramBase === 'number' ? axisY.getYByValue(histogramBase, rangeY) : -1
 
     if (!bars.length) {
       return
@@ -63,7 +66,7 @@ export default class MountainChartRenderer extends BaseChart {
 
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
-    ctx.fillStyle = this.style.fillColor
+    ctx.fillStyle = this.style.fillColor || this.style.color
     ctx.beginPath()
 
     const len = bars.length
@@ -80,10 +83,25 @@ export default class MountainChartRenderer extends BaseChart {
     }
 
     ctx.stroke()
-    ctx.lineTo(bars[len - 1][PLOT_DATA.X], height)
-    ctx.lineTo(bars[0][PLOT_DATA.X], height)
+    if (typeof histogramBase === 'number') {
+      ctx.lineTo(bars[len - 1][PLOT_DATA.X], baseHeight)
+      ctx.lineTo(bars[0][PLOT_DATA.X], baseHeight)
+    } else {
+      ctx.lineTo(bars[len - 1][PLOT_DATA.X], height)
+      ctx.lineTo(bars[0][PLOT_DATA.X], height)
+    }
+
     ctx.closePath()
     ctx.fill()
+  }
+
+  protected getSelectionYByBar (bar: any[]): number {
+    const plot = this.plotModel
+    const graph = plot.graph
+    const chart = graph.chart
+    const axisY = chart.axisY
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    return ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
   }
 
   protected calcRangeY (): YRange {

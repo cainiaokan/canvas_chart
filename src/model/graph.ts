@@ -14,9 +14,10 @@ abstract class GraphModel {
   protected _isPrice: boolean
 
   private _hover: boolean = false
+  private _selected: boolean = false
   private _isValid: boolean = true
-  private _visibleBars: IBar[][]
-  private _cache: { [propName: number]: IBar[] }
+  private _visibleBars: any[][]
+  private _cache: { [propName: number]: any[] }
 
   constructor (
     datasource: Datasource,
@@ -40,14 +41,26 @@ abstract class GraphModel {
     return this._isPrice
   }
 
+  get selected (): boolean {
+    return this._selected
+  }
+
+  set selected (selected: boolean) {
+    if (this._selected !== selected) {
+      this._selected = selected
+      this._isValid = false
+    }
+  }
+
   get hover (): boolean {
     return this._hover
   }
 
   set hover (hover: boolean) {
-    this._hover = hover
-    this._isValid = false
-    this._chart.emit('hover', hover)
+    if (this._hover !== hover) {
+      this._hover = hover
+      this._isValid = false
+    }
   }
 
   get isValid (): boolean {
@@ -70,7 +83,6 @@ abstract class GraphModel {
     this._visibleBars = null
     this._plots.forEach(plot => plot.draw())
     this._isValid = true
-    this._hover = false
   }
 
   public getPrevBar (): any[] {
@@ -112,7 +124,7 @@ abstract class GraphModel {
   }
 
   public getRangeY (): YRange {
-    return this._plots.reduce((range: YRange, plot) => {
+    return this._plots.reduce((range: YRange, plot: PlotModel) => {
       const r = plot.graphic.getRangeY()
       if (!r) {
         return range
@@ -133,8 +145,19 @@ abstract class GraphModel {
     }, null)
   }
 
-  public hitTest (): boolean {
-    return this.hover = this._plots.some(plot => plot.hitTest())
+  public hitTest (select = false): boolean {
+    for (let i = this._plots.length - 1; i >= 0; i--) {
+      if (this._plots[i].hitTest()) {
+        if (select) {
+          this.selected = true
+        }
+        return this.hover = true
+      }
+    }
+    if (select) {
+      this.selected = false
+    }
+    return this.hover = false
   }
 
   /**

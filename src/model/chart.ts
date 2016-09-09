@@ -109,7 +109,7 @@ export default class ChartModel extends EventEmitter {
 
   public getRangeY (): YRange {
     return this._graphs
-      .reduce((range: YRange, graph) => {
+      .reduce((range: YRange, graph: GraphModel) => {
         // 如果chart是价格相关的，但是某个子图是价格无关的，则忽略它
         if (this.isPrice && !graph.isPrice) {
           return range
@@ -134,8 +134,17 @@ export default class ChartModel extends EventEmitter {
       }, null)
   }
 
-  public hitTest (): boolean  {
-    return this._graphs.some(graph => graph.hitTest())
+  public hitTest (select = false): boolean  {
+    let hit = false
+    for (let i = this._graphs.length - 1; i >= 0; i--) {
+      if (hit) {
+        this._graphs[i].hover = false
+      } else if (this._graphs[i].hitTest(select)) {
+        hit = true
+      }
+    }
+    this.emit('hover', hit)
+    return hit
   }
 
   get isValid (): boolean {
@@ -152,8 +161,8 @@ export default class ChartModel extends EventEmitter {
       this._watermark.draw()
     }
     this._grid.draw()
-    this._graphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
-    this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
+    this._graphs.filter(graph => !graph.hover || !graph.selected).forEach(graph => graph.draw())
+    this._graphs.filter(graph => graph.hover || graph.selected).forEach(graph => graph.draw())
     this._crosshair.draw()
   }
 }

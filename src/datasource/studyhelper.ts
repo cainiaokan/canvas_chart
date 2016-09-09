@@ -25,7 +25,7 @@ export function DEA (
   const cacheKey = 'DEA' + curIndex
   const prevKey = 'DEA' + (curIndex - 1)
 
-  if (cache[cacheKey]) {
+  if (typeof cache[cacheKey] === 'number') {
     return cache[cacheKey]
   } else if (cache[prevKey]) {
     return cache[cacheKey] =
@@ -54,7 +54,7 @@ export function EMA (
   const cacheKey = 'EMA' + length + curIndex
   const prevKey = 'EMA' + length + (curIndex - 1)
 
-  if (cache[cacheKey]) {
+  if (typeof cache[cacheKey] === 'number') {
     return cache[cacheKey]
   } else if (cache[prevKey]) {
     return cache[cacheKey] =
@@ -86,6 +86,9 @@ export function RSV (
   const low = Math.min.apply(Math, bars.map(bar => adapter(bar)[4]))
   const high = Math.max.apply(Math, bars.map(bar => adapter(bar)[3]))
   const cur = adapter(datasource.barAt(curIndex))[2]
+  if (high === low) {
+    return cache[cacheKey] = 0
+  }
   const rsv = (cur - low) / (high - low) * 100
   cache[cacheKey] = rsv
   return rsv
@@ -101,7 +104,7 @@ export function K (
   const cacheKey = 'K' + curIndex
   const prevKey = 'K' + (curIndex - 1)
 
-  if (cache[cacheKey]) {
+  if (typeof cache[cacheKey] === 'number') {
     return cache[cacheKey]
   } else if (cache[prevKey]) {
     return cache[cacheKey] =
@@ -129,7 +132,7 @@ export function D (
   cache: {[propName: string]: any}): number {
   const cacheKey = 'D' + curIndex
   const prevKey = 'D' + (curIndex - 1)
-  if (cache[cacheKey]) {
+  if (typeof cache[cacheKey] === 'number') {
     return cache[cacheKey]
   } else if (cache[prevKey]) {
     return cache[cacheKey] =

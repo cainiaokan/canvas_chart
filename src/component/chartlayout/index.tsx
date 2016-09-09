@@ -320,17 +320,16 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this.loadMore().then(() => {
       setTimeout(() => {
         this.initEvents()
-      }, 200)
+      }, 300)
     })
   }
 
   public initEvents () {
     this._chartLayoutModel.axisx.addListener('resize', () => this.fullUpdate())
-
     this._chartLayoutModel.axisx.addListener('offsetchange', () => this.fullUpdate())
-
     this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.fullUpdate())
-
+    this._chartLayoutModel.mainDatasource.addListener('resolutionchange', () => this.fullUpdate())
+    this._chartLayoutModel.mainDatasource.addListener('symbolchange', () => this.fullUpdate())
     document.addEventListener('mousemove', this.dragMoveHandler.bind(this))
     document.addEventListener('mouseup', this.mouseUpHandler.bind(this))
   }
@@ -372,6 +371,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._lastAnimationFrame = requestAnimationFrame(() => {
       this._chartLayoutModel.axisx.draw()
       this._chartLayoutModel.charts.forEach(chart => {
+        if (!chart.axisY.range) {
+          chart.axisY.range = chart.getRangeY()
+        }
         if (!chart.isValid) {
           chart.draw()
         }
@@ -455,6 +457,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
               chart => <Chart model={chart}
                 height={chart.isMain ? mainChartHeight : addtionalChartHeight}
                 width={availWidth}
+                onClick={this.clickHandler.bind(this)}
                 onMouseMove={this.mouseMoveHandler.bind(this)}
                 onMouseDown={this.dragOffsetMouseDownHandler.bind(this)}
                 onMouseLeave={this.mouseLeaveHandler.bind(this)}/>
@@ -470,11 +473,21 @@ export default class ChartLayout extends React.Component<Prop, State> {
     )
   }
 
+  private clickHandler (ev: MouseEvent) {
+    this._chartLayoutModel.hoverChart.hitTest(true)
+    this.lightUpdate()
+  }
+
   /**
    * 拖拽chart偏移量的鼠标按下事件监听
    * @param  {MouseEvent} ev: MouseEvent    事件对象
    */
   private dragOffsetMouseDownHandler (ev: MouseEvent) {
+    this._chartLayoutModel.charts
+      .forEach(chart =>
+        chart.graphs.filter(graph => graph.selected)
+          .forEach(graph => graph.selected = false)
+      )
     this._dragOffsetStart = true
     this._dragPosX = ev.pageX
   }

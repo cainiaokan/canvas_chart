@@ -32,16 +32,23 @@ export function formatNumber (num: number, precision = 2): string {
 
 export function pointToSegDist (
   x: number, y: number,
-  startx: number, starty: number,
-  endx: number, endy: number): number {
-  // 线段两点距离平方  
-  const se = (startx - endx) * (startx - endx) + (starty - endy) * (starty - endy)
-  // 向量点乘=|a|*|b|*cosA
-  const p = ((x - startx) * (endx - startx) + (y - starty) * (endy - starty))
-  // r即点到线段的投影长度与线段长度比  
-  const r = p / se
-  const outx = startx + r * (endx - startx)
-  const outy = starty + r * (endy - starty)
-  const des  = (x - outx) * (x - outx) + (y - outy) * (y - outy)
-  return Math.sqrt(des)
+  x1: number, y1: number,
+  x2: number, y2: number): number {
+  const cross = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1)
+  if (cross <= 0) {
+    return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1))
+  }
+  const d2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
+  if (cross >= d2) {
+    return Math.sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2))
+  }
+  const r = cross / d2
+  const px = x1 + (x2 - x1) * r
+  const py = y1 + (y2 - y1) * r
+  return Math.sqrt((x - px) * (x - px) + (y - py) * (y - py))
+}
+
+export function isPointInRect (x0, y0, x1, y1, x2, y2) {
+  return (x0 >= Math.min(x1, x2)) && (x0 <= Math.max(x1, x2)) &&
+         (y0 >= Math.min(y1, y2)) && (y0 <= Math.max(y1, y2))
 }

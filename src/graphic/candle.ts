@@ -1,6 +1,7 @@
 import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
+import { isPointInRect } from '../util'
 
 enum PLOT_DATA {
   X = 0,
@@ -18,19 +19,39 @@ export default class CandleChartRenderer extends BaseChart {
   }
 
   public hitTest (): boolean {
-    return false
+    const plot = this.plotModel
+    const graph = plot.graph
+    const chart = graph.chart
+    const axisX = chart.axisX
+    const axisY = chart.axisY
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const curBar = plot.getCurBar()
+    if (!curBar) {
+      return false
+    }
+    const point = chart.crosshair.point
+    const candleWidth = axisX.barWidth * 0.6
+    const x0 = point.x
+    const y0 = point.y
+    const x1 = curBar[PLOT_DATA.X] - candleWidth / 2
+    const y1 = axisY.getYByValue(curBar[PLOT_DATA.HIGH], rangeY)
+    const x2 = x1 + candleWidth
+    const y2 = axisY.getYByValue(curBar[PLOT_DATA.LOW], rangeY)
+    return isPointInRect(
+      x0, y0,
+      x1, y1,
+      x2, y2
+    )
   }
 
-  public draw (): void {
-    super.draw()
-
+  public draw () {
     const plot = this.plotModel
     const graph = plot.graph
     const chart = graph.chart
     const ctx = chart.ctx
     const axisY = chart.axisY
     const barWidth = chart.axisX.barWidth
-    const candleWidth = barWidth * 0.8
+    const candleWidth = barWidth * 0.6
     const bars = plot.getVisibleBars()
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
 
@@ -61,6 +82,17 @@ export default class CandleChartRenderer extends BaseChart {
         )
       )
     }
+  }
+
+  protected getSelectionYByBar (bar: any[]): number {
+    const plot = this.plotModel
+    const graph = plot.graph
+    const chart = graph.chart
+    const axisY = chart.axisY
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const close = bar[PLOT_DATA.CLOSE]
+    const open = bar[PLOT_DATA.OPEN]
+    return ~~axisY.getYByValue(Math.abs(close - (close - open) / 2), rangeY)
   }
 
   protected calcRangeY (): YRange {

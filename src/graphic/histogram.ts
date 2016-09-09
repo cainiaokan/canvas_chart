@@ -1,6 +1,8 @@
 import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
+import { HIT_TEST_TOLERANCE } from '../constant'
+import { isPointInRect } from '../util'
 
 enum PLOT_DATA {
   X = 0,
@@ -15,12 +17,30 @@ export default class HistogramChartRenderer extends BaseChart {
   }
 
   public hitTest (): boolean {
-    return false
+    const plot = this.plotModel
+    const graph = plot.graph
+    const chart = graph.chart
+    const axisX = chart.axisX
+    const axisY = chart.axisY
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const curBar = plot.getCurBar()
+    if (!curBar) {
+      return false
+    }
+    const point = chart.crosshair.point
+    const width = axisX.barWidth * 0.5
+    const style = this.style
+    const histogramBase = style.histogramBase
+    const x0 = point.x
+    const y0 = point.y
+    const x1 = curBar[PLOT_DATA.X] - width / 2 - HIT_TEST_TOLERANCE
+    const y1 = axisY.getYByValue(curBar[PLOT_DATA.VALUE], rangeY)
+    const x2 = x1 + width + 2 * HIT_TEST_TOLERANCE
+    const y2 = axisY.getYByValue(histogramBase, rangeY)
+    return isPointInRect(x0, y0, x1, y1, x2, y2)
   }
 
   public draw (): void {
-    super.draw()
-
     const plot = this.plotModel
     const graph = plot.graph
     const chart = graph.chart
@@ -43,14 +63,19 @@ export default class HistogramChartRenderer extends BaseChart {
       data = bars[i]
       x = data[PLOT_DATA.X]
       y = axisY.getYByValue(data[PLOT_DATA.VALUE], rangeY)
-      if (data[PLOT_DATA.VALUE] > histogramBase) {
-        ctx.fillStyle = style.color
-        ctx.fillRect(x - width / 2, y, width, base - y)
-      } else {
-        ctx.fillStyle = style.colorDown
-        ctx.fillRect(x - width / 2, base, width, y - base)
-      }
+      ctx.fillStyle = data[PLOT_DATA.VALUE] > histogramBase ? style.color : style.colorDown
+      ctx.fillRect(x - width / 2, y, width, base - y)
     }
+  }
+
+  protected getSelectionYByBar (bar: any[]): number {
+    const plot = this.plotModel
+    const graph = plot.graph
+    const chart = graph.chart
+    const axisY = chart.axisY
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+
+    return axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
   }
 
   protected calcRangeY (): YRange {
