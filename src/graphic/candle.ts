@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
@@ -12,10 +13,15 @@ enum PLOT_DATA {
   LOW,
 }
 
+const DEFAULT_STYLE = {
+  color: '#ff524f',
+  colorDown: '#2bbe65',
+}
+
 export default class CandleChartRenderer extends BaseChart {
 
   constructor (plotModel: PlotModel, style: ChartStyle) {
-    super(plotModel, style)
+    super(plotModel, _.defaults(style, DEFAULT_STYLE))
   }
 
   public hitTest (): boolean {

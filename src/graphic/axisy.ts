@@ -15,13 +15,16 @@ export default class AxisYRenderer {
     const cursorPoint = axis.crosshair.point
     const hover = axis.crosshair.chart.hover
 
+    ctx.save()
     ctx.fillStyle = '#ffffff'
+    ctx.strokeStyle = '#000000'
+    ctx.lineWidth = 2
     ctx.fillRect(0, 0, axis.size.width, axis.size.height)
+    ctx.translate(-0.5, 0)
     ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(0, axis.size.height)
-    ctx.closePath()
-    ctx.stroke()
+    ctx.moveTo(1, 0)
+    ctx.lineTo(1, axis.size.height)
+
     ctx.font = '12px ans-serif'
     ctx.fillStyle = 'black'
     ctx.textAlign = 'left'
@@ -30,13 +33,12 @@ export default class AxisYRenderer {
 
     for (let i = 0, len = tickmarks.length; i < len; i++) {
       const tickmark = tickmarks[i]
-      ctx.beginPath()
       ctx.moveTo(0, tickmark.y)
       ctx.lineTo(5, tickmark.y)
-      ctx.closePath()
-      ctx.stroke()
       ctx.fillText(tickmark.value.toFixed(2).toString(), 10, tickmark.y + 5)
     }
+    ctx.closePath()
+    ctx.stroke()
 
     if (cursorPoint && hover && axis.range) {
       const rangeY = axis.range
@@ -47,6 +49,7 @@ export default class AxisYRenderer {
       ctx.fillStyle = '#fff'
       ctx.fillText(axis.getValueByY(y, rangeY).toFixed(2).toString(), 10, y + 5)
     }
+    ctx.restore()
   }
 
   set ctx (ctx: CanvasRenderingContext2D) {

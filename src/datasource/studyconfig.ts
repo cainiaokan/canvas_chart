@@ -82,6 +82,7 @@ export const studyConfig: StudyConfig = {
   'MACD': {
     isPrice: false,
     output: cacheable((
+      // 0: posX, 1: time, 2: value
       data: any[],
       index: number,
       datasource: Datasource,

@@ -1,7 +1,7 @@
 import AxisXMoel, { ITimeBar } from './axisx'
 import { pad } from '../util'
 
-interface IXTickMark {
+type TickMark = {
   bold: boolean
   time: string
   type: string
@@ -12,7 +12,7 @@ const TICK_MARK_MIN_SPACE = 50
 
 export default class XTickMark {
   private _axis: AxisXMoel
-  private _tickmarks: IXTickMark[]
+  private _tickmarks: TickMark[]
 
   constructor (axis: AxisXMoel) {
     this._axis = axis
@@ -22,13 +22,13 @@ export default class XTickMark {
     this._tickmarks = null
   }
 
-  public getTickMarksByTimeBars (timeBars: ITimeBar[]): IXTickMark[] {
+  public getTickMarksByTimeBars (timeBars: ITimeBar[]): TickMark[] {
 
     if (this._tickmarks) {
       return this._tickmarks
     }
 
-    const tickmarks: IXTickMark[] = []
+    const tickmarks: TickMark[] = []
 
     if (!timeBars.length) {
       return tickmarks

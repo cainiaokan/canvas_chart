@@ -5,14 +5,14 @@ import { padRight } from '../util'
 const TICK_SPAN = 30
 const precision = 2
 
-interface IYTickMark {
+type TickMark = {
   value: number
   y: number
 }
 
 export default class YTickMark {
   private _axisY: AxisYMoel
-  private _tickmarks: IYTickMark[]
+  private _tickmarks: TickMark[]
 
   constructor (axisY: AxisYMoel) {
     this._axisY = axisY
@@ -22,21 +22,21 @@ export default class YTickMark {
     this._tickmarks = null
   }
 
-  public getTickMarksByTimeBars (): IYTickMark[] {
+  public getTickMarksByTimeBars (): TickMark[] {
 
     if (this._tickmarks) {
       return this._tickmarks
     }
 
-    const tickmarks: IYTickMark[] = []
+    const tickmarks: TickMark[] = []
+    const axisY = this._axisY
 
-    if (!this._axisY.range) {
+    if (!axisY.range) {
       return tickmarks
     }
 
-    const axisY = this._axisY
-    let min = this._axisY.range.min
-    let max = this._axisY.range.max
+    let min = axisY.range.min
+    let max = axisY.range.max
 
     if (min === max) {
       return tickmarks
@@ -46,9 +46,9 @@ export default class YTickMark {
       return tickmarks
     }
 
-    const height = this._axisY.size.height
+    const height = axisY.size.height
     const diff1 = max - min
-    const diff2 = diff1 * height / (height - 2 * this._axisY.margin)
+    const diff2 = diff1 * height / (height - 2 * axisY.margin)
     const margin = (diff2 - diff1) / 2
     min -= margin
     max += margin

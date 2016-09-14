@@ -53,7 +53,6 @@ export class StockDatasource extends Datasource {
 
   set symbol (symbol: string) {
     this._symbol = symbol
-    this.emit('symbolchange', symbol)
   }
 
   public barAt (index: number): IStockBar {
@@ -89,7 +88,7 @@ export class StockDatasource extends Datasource {
    * @param  {number}  num 加载的条数
    * @return {Promise}   
    */
-  public loadMore (loadNum: number): Promise<any> {
+  public loadHistory (loadNum: number): Promise<any> {
     if (!this._hasMore) {
       return Promise.resolve()
     }
@@ -146,7 +145,7 @@ export class StockDatasource extends Datasource {
             this._hasMore = false
             resolve()
           } else {
-            this.loadMore(loadNum)
+            this.loadHistory(loadNum)
               .then(resolve)
               .catch(reject)
           }
@@ -156,6 +155,19 @@ export class StockDatasource extends Datasource {
   }
 
   public loadTimeRange (from: number, to: number): Promise<any> {
+    const firstBar = this._plotList.first()
+    const lastBar = this._plotList.last()
+    if (from >= to) {
+      throw TypeError('from must less than to.')
+    }
+    if (firstBar) {
+      if (lastBar.time < to && lastBar.time <= from) {
+        from = lastBar.time
+      } else if (firstBar.time > from && firstBar.time <= to) {
+        to = firstBar.time
+      }
+    }
+
     return RPC.getStockBars(this._symbol, this._resolution, from, to)
       .then(
         response => response.json()
@@ -171,6 +183,7 @@ export class StockDatasource extends Datasource {
                 time: data.t[index],
                 volume: data.v[index],
               }
+              this._pulseInterval = data.interval
               if (data.tr) {
                 barData.turnover = data.tr[index]
               }

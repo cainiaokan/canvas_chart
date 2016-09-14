@@ -1,5 +1,6 @@
 import * as EventEmitter from 'eventemitter3'
 import { Datasource } from '../datasource'
+import ChartLayout from './chartlayout'
 import AxisXModel from './axisx'
 import AxisYModel, { YRange } from './axisy'
 import CrosshairModel from './crosshair'
@@ -15,6 +16,7 @@ type Size = {
 export default class ChartModel extends EventEmitter {
   public hover: boolean
 
+  private _chartLayout: ChartLayout
   private _graphs: GraphModel[]
   private _datasource: Datasource
   private _axisX: AxisXModel
@@ -29,12 +31,14 @@ export default class ChartModel extends EventEmitter {
   private _isMain: boolean
 
   constructor (
+    chartLayout: ChartLayout,
     datasource: Datasource,
     axisX: AxisXModel, axisY: AxisYModel,
     crosshair: CrosshairModel,
     isPrice: boolean,
     isMain: boolean = false) {
     super()
+    this._chartLayout = chartLayout
     this._datasource = datasource
     this._axisX = axisX
     this._axisY = axisY
@@ -45,6 +49,10 @@ export default class ChartModel extends EventEmitter {
     if (isMain) {
       this._watermark = new WaterMarkRenerer(this)
     }
+  }
+
+  get chartLayout (): ChartLayout {
+    return this._chartLayout
   }
 
   get graphs (): GraphModel[] {
@@ -143,12 +151,12 @@ export default class ChartModel extends EventEmitter {
         hit = true
       }
     }
-    this.emit('hover', hit)
+    this._chartLayout.emit('hit', hit)
     return hit
   }
 
   get isValid (): boolean {
-    return this._graphs.every(graph => graph.isValid)
+    return this._graphs.every(graph => graph.isValid) && this.axisY.isValid
   }
 
   public draw () {
@@ -161,8 +169,10 @@ export default class ChartModel extends EventEmitter {
       this._watermark.draw()
     }
     this._grid.draw()
+
     this._graphs.filter(graph => !graph.hover || !graph.selected).forEach(graph => graph.draw())
-    this._graphs.filter(graph => graph.hover || graph.selected).forEach(graph => graph.draw())
+    this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
+
     this._crosshair.draw()
   }
 }

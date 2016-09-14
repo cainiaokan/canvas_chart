@@ -11,6 +11,7 @@ module.exports = {
       './src/vendor/hidpi-canvas-polyfill.js'
     ],
     chart: './src/index.tsx',
+    chart_grid: './src/index_grid.tsx',
   },
   output: {
     path: path.join(__dirname, 'dist'),
@@ -50,7 +51,8 @@ module.exports = {
     // 配置公共chunk
     new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
-      filename: '[name]-[hash:8].js'
+      filename: '[name]-[hash:8].js',
+      minChunks: Infinity
     }),
 
     // 配置生产环境变量
@@ -68,6 +70,13 @@ module.exports = {
       filename: 'index.html',
       chunks: ['vendor', 'chart'],
       template: './src/index.ejs'
+    }),
+
+    new HtmlWebpackPlugin({
+      title: '趣炒股-专业看盘工具',
+      filename: 'index-grid.html',
+      chunks: ['vendor', 'chart_grid'],
+      template: './src/index_grid.ejs'
     })
   ],
   resolve: {

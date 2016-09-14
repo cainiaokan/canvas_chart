@@ -8,12 +8,11 @@ import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
 import { StockDatasource, IStockBar } from '../../datasource'
 import { ShapeType, ResolutionType, StudyType, AXIS_Y_WIDTH, AXIS_X_HEIGHT, NAVBAR_HEIGHT } from '../../constant'
-import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../../model/axisx'
+import AxisXModel from '../../model/axisx'
 import AxisYModel from '../../model/axisy'
 import StockModel from '../../model/stock'
 import StudyModel from '../../model/study'
 import ChartLayoutModel from '../../model/chartlayout'
-import { clientOffset } from '../../util'
 
 type AxisType = 'left' | 'right' | 'both'
 type ChartType = 'snapshot' | 'realtime'
@@ -29,6 +28,7 @@ type Prop  = {
   type?: ChartType
   scrollable?: boolean
   scalable?: boolean
+  shownavbar?: boolean
 }
 
 type State = {
@@ -43,6 +43,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scalable: React.PropTypes.bool,
     scrollable: React.PropTypes.bool,
     shape: React.PropTypes.oneOf(['histogram', 'mountain', 'line', 'bar', 'candle']),
+    shownavbar: React.PropTypes.bool,
     study: React.PropTypes.oneOf(['MA', 'MACD', 'BOLL', 'KDJ', 'VOLUME']),
     to: React.PropTypes.number,
     type: React.PropTypes.oneOf(['snapshot', 'realtime']),
@@ -55,6 +56,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scalable: true,
     scrollable: true,
     shape: 'line',
+    shownavbar: true,
     type: 'realtime',
   }
 
@@ -64,9 +66,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
    * @type {[type]}
    */
   private _loading: boolean = false
-  private _dragOffsetStart: boolean
-  private _dragBarWidthStart: boolean
-  private _dragPosX: number
   private _lastAnimationFrame: number
 
   constructor () {
@@ -85,17 +84,18 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel = new ChartLayoutModel()
 
     this.prepareMainChart()
-    this.prepareMinorChart()
-    this.prepareKDJ()
+    // this.prepareMinorChart()
+    // this.prepareKDJ()
     this.prepareMACD()
   }
 
   public prepareMainChart (): void {
     const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution)
-    const crosshair = new CrosshairModel()
+    const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = new AxisXModel(mainDatasource, crosshair)
     const axisY = new AxisYModel(mainDatasource, crosshair)
     const chart = new ChartModel(
+      this._chartLayoutModel,
       mainDatasource,
       axisX, axisY,
       crosshair,
@@ -103,6 +103,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       true
     )
 
+    axisY.chart = chart
     crosshair.chart = chart
 
     this._chartLayoutModel.axisx = axisX
@@ -167,11 +168,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
         function (array: any): any[] {
           return [array.slice(0, 6)]
         },
-        this.props.shape,
-        [{
-          color: '#ff524f',
-          colorDown: '#2bbe65',
-        }]
+        this.props.shape
       ),
       new StudyModel(
         mainDatasource,
@@ -187,10 +184,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public prepareMinorChart (): void {
     const datasource = new StockDatasource('SZ399001', this.props.resolution)
-    const crosshair = new CrosshairModel()
+    const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = this._chartLayoutModel.axisx
     const axisY = new AxisYModel(datasource, crosshair)
-    const chart = new ChartModel(datasource, axisX, axisY, crosshair, true)
+    const chart = new ChartModel(this._chartLayoutModel, datasource, axisX, axisY, crosshair, true)
+
+    axisY.chart = chart
     crosshair.chart = chart
 
     chart.graphs = [
@@ -254,12 +253,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
             [array[0], array[1], array[3]],
           ]
         },
-        'mountain',
-        [{
-          color: 'rgba( 60, 120, 240, 1)',
-          fillColor: 'rgba( 60, 120, 216, 1)',
-          lineWidth: 2,
-        }]
+        'mountain'
       ),
       new StudyModel(
         datasource,
@@ -276,11 +270,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public prepareMACD (): void {
     const datasource = this._chartLayoutModel.mainDatasource
-    const crosshair = new CrosshairModel()
+    const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = this._chartLayoutModel.axisx
     const axisY = new AxisYModel(datasource, crosshair)
-    const chart = new ChartModel(datasource, axisX, axisY, crosshair, false)
+    const chart = new ChartModel(this._chartLayoutModel, datasource, axisX, axisY, crosshair, false)
+
+    axisY.chart = chart
     crosshair.chart = chart
+
     chart.graphs = [
       new StudyModel(
         datasource,
@@ -297,11 +294,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public prepareKDJ (): void {
     const datasource = this._chartLayoutModel.mainDatasource
-    const crosshair = new CrosshairModel()
+    const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = this._chartLayoutModel.axisx
     const axisY = new AxisYModel(datasource, crosshair)
-    const chart = new ChartModel(datasource, axisX, axisY, crosshair, false)
+    const chart = new ChartModel(this._chartLayoutModel, datasource, axisX, axisY, crosshair, false)
+
+    axisY.chart = chart
     crosshair.chart = chart
+
     chart.graphs = [
       new StudyModel(
         datasource,
@@ -317,9 +317,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this.loadMore().then(() => {
+    this.loadHistory().then(() => {
       setTimeout(() => {
         this.initEvents()
+        this.pulseUpdate()
       }, 300)
     })
   }
@@ -328,10 +329,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.axisx.addListener('resize', () => this.fullUpdate())
     this._chartLayoutModel.axisx.addListener('offsetchange', () => this.fullUpdate())
     this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.fullUpdate())
-    this._chartLayoutModel.mainDatasource.addListener('resolutionchange', () => this.fullUpdate())
-    this._chartLayoutModel.mainDatasource.addListener('symbolchange', () => this.fullUpdate())
-    document.addEventListener('mousemove', this.dragMoveHandler.bind(this))
-    document.addEventListener('mouseup', this.mouseUpHandler.bind(this))
+    this._chartLayoutModel.addListener('resolutionchange', () => this.fullUpdate())
+    this._chartLayoutModel.addListener('symbolchange', () => this.fullUpdate())
+    this._chartLayoutModel.addListener('hit', () => this.lightUpdate())
+    this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
+    this._chartLayoutModel.addListener('marginchange', () => this.lightUpdate())
   }
 
   /**
@@ -343,7 +345,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     const visibleWidth = axisX.size.width
     // 当预加载的数据只剩余不足半屏时，执行预加载加载更多的数据以备展示
     if (totalWidth - visibleWidth - axisX.offset < visibleWidth / 2) {
-      this.loadMore()
+      this.loadHistory()
     }
 
     // 取消上一帧动画的调度，避免卡顿
@@ -387,7 +389,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   /**
    * 加载更多数据
    */
-  public loadMore (): Promise<any> {
+  public loadHistory (): Promise<any> {
     const mainDatasource = this._chartLayoutModel.mainDatasource
     // 主数据源若没有更多的话，停止加载更多
     if (!mainDatasource.hasMore || this._loading) {
@@ -412,7 +414,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
      */
     return new Promise((resolve, reject) => {
       mainDatasource
-        .loadMore(required)
+        .loadHistory(required)
         .then(() =>
           Promise.all(
             _.chain(datasources)
@@ -441,132 +443,82 @@ export default class ChartLayout extends React.Component<Prop, State> {
     })
   }
 
+  public pulseUpdate () {
+    const mainDatasource = this._chartLayoutModel.mainDatasource
+    const datasources = []
+    const reqs = []
+
+    this._chartLayoutModel.charts.forEach(chart => {
+      chart.graphs.forEach(graph => {
+        datasources.push(graph.datasource)
+      })
+    })
+    Promise.all(
+      _.chain(datasources)
+        .unique()
+        .reduce((promises, datasource) => {
+          promises.push(
+            datasource.loadTimeRange(
+              mainDatasource.last().time,
+              Date.now() / 1000
+            )
+          )
+          return promises
+        }, reqs)
+        .value()
+    )
+    .then(() => {
+      // 加载完成后立即重绘
+      this.fullUpdate()
+      if (mainDatasource.pulseInterval) {
+        setTimeout(
+          () => this.pulseUpdate(),
+          (mainDatasource.pulseInterval < 10 ? 10 : mainDatasource.pulseInterval) * 1000
+        )
+      }
+    })
+  }
+
   public render () {
-    const availWidth = this.props.width - 2 - 10
-    const availHeight = this.props.height - NAVBAR_HEIGHT - AXIS_X_HEIGHT - 5 - 2
     const chartLayoutModel = this._chartLayoutModel
+    let availWidth = this.props.width - 2
+    let availHeight = this.props.height - AXIS_X_HEIGHT - 2
+    if (this.props.shownavbar) {
+      availHeight -= NAVBAR_HEIGHT
+    }
+    if (chartLayoutModel.charts.length > 1) {
+      availHeight -= chartLayoutModel.charts.length - 1
+    }
     const additionalChartCount = chartLayoutModel.charts.length - 1
     const mainChartHeight = ~~((1 - additionalChartCount * .3 > .3 ? 1 - additionalChartCount * .3 : .3) * availHeight)
     const addtionalChartHeight = ~~((availHeight - mainChartHeight) / additionalChartCount)
+    const chartLines = []
+    for (let i = 0, len = chartLayoutModel.charts.length, chart; i < len; i++) {
+      chart = chartLayoutModel.charts[i]
+      chartLines.push(
+        <Chart chart={chart} chartLayout={this._chartLayoutModel}
+          height={chart.isMain ? mainChartHeight : addtionalChartHeight}
+          width={availWidth} />
+      )
+      if (i < len - 1) {
+        chartLines.push(<div className='chart-separator'></div>)
+      }
+    }
     return (
       <div className='chart-layout'>
-        <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} />
+        {
+          this.props.shownavbar ?
+            <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} /> : null
+        }
         <div className='chart-body'>
-          {
-            chartLayoutModel.charts.map(
-              chart => <Chart model={chart}
-                height={chart.isMain ? mainChartHeight : addtionalChartHeight}
-                width={availWidth}
-                onClick={this.clickHandler.bind(this)}
-                onMouseMove={this.mouseMoveHandler.bind(this)}
-                onMouseDown={this.dragOffsetMouseDownHandler.bind(this)}
-                onMouseLeave={this.mouseLeaveHandler.bind(this)}/>
-            )
-          }
+          {chartLines}
           <AxisX
+            chartLayout={this._chartLayoutModel}
             axis={this._chartLayoutModel.axisx}
             height={AXIS_X_HEIGHT}
-            width={availWidth - AXIS_Y_WIDTH}
-            onMouseDown={this.dragBarWidthMouseDown.bind(this)}/>
+            width={availWidth - AXIS_Y_WIDTH} />
         </div>
       </div>
     )
-  }
-
-  private clickHandler (ev: MouseEvent) {
-    this._chartLayoutModel.hoverChart.hitTest(true)
-    this.lightUpdate()
-  }
-
-  /**
-   * 拖拽chart偏移量的鼠标按下事件监听
-   * @param  {MouseEvent} ev: MouseEvent    事件对象
-   */
-  private dragOffsetMouseDownHandler (ev: MouseEvent) {
-    this._chartLayoutModel.charts
-      .forEach(chart =>
-        chart.graphs.filter(graph => graph.selected)
-          .forEach(graph => graph.selected = false)
-      )
-    this._dragOffsetStart = true
-    this._dragPosX = ev.pageX
-  }
-
-  /**
-   * 拖拽chart bar宽度的鼠标按下事件监听
-   * @param  {MouseEvent} ev: MouseEvent    事件对象
-   */
-  private dragBarWidthMouseDown (ev: MouseEvent) {
-    this._dragPosX = ev.pageX
-    this._dragBarWidthStart = true
-  }
-
-  /**
-   * 鼠标在chart上移动时的事件监听
-   * @param  {MouseEvent} ev: MouseEvent    事件对象
-   */
-  private mouseMoveHandler (ev: MouseEvent) {
-    const chartLayout = this._chartLayoutModel
-    const offset = clientOffset(ev.target as HTMLElement)
-    const point = {
-      x: ev.clientX - offset.offsetLeft,
-      y: ev.clientY - offset.offsetTop,
-    }
-    chartLayout.charts.forEach(ch => ch.crosshair.point = point)
-    chartLayout.hoverChart.hitTest()
-    this.lightUpdate()
-  }
-
-  /**
-   * 鼠标拖拽的事件监听
-   * @param  {MouseEvent} ev: MouseEvent    事件对象
-   */
-  private dragMoveHandler (ev: MouseEvent) {
-    if (this._dragOffsetStart) {
-      const axisX = this._chartLayoutModel.axisx
-      const curOffset = axisX.offset
-      const pageX = ev.pageX
-      const newOffset = curOffset + pageX - this._dragPosX
-      if (newOffset < axisX.minOffset) {
-        axisX.offset = axisX.minOffset
-      } else if (newOffset > axisX.maxOffset) {
-        axisX.offset = axisX.maxOffset
-      } else {
-        axisX.offset = newOffset
-      }
-      this._dragPosX = pageX
-    } else if (this._dragBarWidthStart) {
-      const axisX = this._chartLayoutModel.axisx
-      const pageX = ev.pageX
-      const curBarWidth = axisX.barWidth
-      const newBarWidth = curBarWidth - (ev.pageX - this._dragPosX) / 50
-      if (newBarWidth < MIN_BAR_WIDTH) {
-        axisX.barWidth = MIN_BAR_WIDTH
-      } else if (newBarWidth > MAX_BAR_WIDTH) {
-        axisX.barWidth = MAX_BAR_WIDTH
-      } else {
-        axisX.barWidth = newBarWidth
-      }
-      axisX.offset *= axisX.barWidth / curBarWidth
-      this._dragPosX = pageX
-    }
-  }
-
-  /**
-   * 鼠标拖拽结束，鼠标按键弹起的事件监听
-   * @param  {MouseEvent} ev: MouseEvent    事件对象
-   */
-  private mouseUpHandler (ev: MouseEvent) {
-    this._dragOffsetStart = false
-    this._dragBarWidthStart = false
-  }
-
-  /**
-   * 鼠标移出chart区域时的事件监听
-   * @param  {MouseEvent} ev: MouseEvent    事件对象
-   */
-  private mouseLeaveHandler (ev) {
-    this._chartLayoutModel.charts.forEach(chart => chart.crosshair.point = null)
-    this.lightUpdate()
   }
 }

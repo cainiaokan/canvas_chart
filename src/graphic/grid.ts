@@ -17,7 +17,8 @@ export default class GridRenderer {
 
     let tickmarks
     let tickmark
-
+    ctx.save()
+    ctx.translate(0.5, 0)
     ctx.strokeStyle = '#E6E6E6'
     ctx.beginPath()
     tickmarks = axisX.tickmark.getTickMarksByTimeBars(axisX.getVisibleTimeBars())
@@ -37,6 +38,7 @@ export default class GridRenderer {
     }
 
     ctx.stroke()
+    ctx.restore()
   }
 
 }

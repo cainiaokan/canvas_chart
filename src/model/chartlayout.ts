@@ -1,16 +1,19 @@
+import * as EventEmitter from 'eventemitter3'
 import * as _ from 'underscore'
 import ChartModel from './chart'
 import AxisXModel from './axisx'
 import { Datasource, StockDatasource, SymbolInfo } from '../datasource'
+import { Point } from '../model/crosshair'
 import StockModel from '../model/stock'
 import { ResolutionType } from '../constant'
 
-export default class ChartLayoutModel {
+export default class ChartLayoutModel extends EventEmitter {
   private _charts: ChartModel[]
   private _axisx: AxisXModel
   private _mainDatasource: Datasource
 
   constructor () {
+    super()
     this._charts = []
   }
 
@@ -26,6 +29,7 @@ export default class ChartLayoutModel {
     // 批量设置数据源的解析度
     _.unique(datasources).forEach(datasource => datasource.resolution = resolution)
     this._axisx.resetOffset()
+    this.emit('resolutionchange', resolution)
   }
 
   public setSymbol (symbolInfo: SymbolInfo) {
@@ -46,6 +50,12 @@ export default class ChartLayoutModel {
       throw 'mainDatasource required to be an instance of StockDatasource.'
     }
     this._axisx.resetOffset()
+    this.emit('symbolchange', symbolInfo)
+  }
+
+  public setCursorPoint (point: Point) {
+    this.charts.forEach(ch => ch.crosshair.point = point)
+    this.emit('cursormove')
   }
 
   set charts (charts: ChartModel[]) {

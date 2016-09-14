@@ -2,7 +2,6 @@ import { Datasource, IBar, DataAdapter, DataConverter } from '../datasource'
 import ChartModel from './chart'
 import PlotModel from './plot'
 import { YRange } from './axisy'
-import { ChartStyle } from '../graphic/basechart'
 
 abstract class GraphModel {
   protected _plots: PlotModel[]
@@ -25,8 +24,7 @@ abstract class GraphModel {
     isPrice: boolean,
     adapter: DataAdapter,
     converter: DataConverter,
-    input: any = null,
-    style: Array<ChartStyle> = []) {
+    input: any = null) {
     this._datasource = datasource
     this._chart = chart
     this._isPrice = isPrice
@@ -192,13 +190,13 @@ abstract class GraphModel {
           len = bars.length,
           bar,
           start = this._datasource.search(bars[0].time),
-          cache; i < len; i++) {
+          cache; i < len; i++, start++) {
       bar = bars[i]
       cache = this._cache[bar.time]
       if (!cache) {
         cache = this._converter(
           this._adapter(bar),
-          start++,
+          start,
           this._datasource,
           this._adapter,
           this._input

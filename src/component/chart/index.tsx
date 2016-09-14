@@ -2,18 +2,16 @@ import * as React from 'react'
 
 import { AXIS_Y_WIDTH } from '../../constant'
 import Legend from './../legend'
+import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import AxisY from './../axisY'
+import { clientOffset } from '../../util'
 
 type Prop = {
-  model: ChartModel
+  chart: ChartModel
+  chartLayout: ChartLayout
   width: number
   height: number
-  onClick?: (event: MouseEvent) => void
-  onMouseMove?: (event: MouseEvent) => void
-  onMouseDown?: (event: MouseEvent) => void
-  onMouseLeave?: (event: MouseEvent) => void
-  onMouseEnter?: (event: MouseEvent) => void
 }
 
 export default class Chart extends React.Component<Prop, any> {
@@ -22,16 +20,22 @@ export default class Chart extends React.Component<Prop, any> {
     plot: HTMLDivElement
   }
   private _chart: ChartModel
+  private _chartLayout: ChartLayout
+  private _dragOffsetStart: boolean
+  private _dragPosX: number
 
   constructor () {
     super()
     this.state = {
       hover: false,
     }
+    this.dragMoveHandler = this.dragMoveHandler.bind(this)
+    this.mouseUpHandler = this.mouseUpHandler.bind(this)
   }
 
   public componentWillMount () {
-    this._chart = this.props.model
+    this._chart = this.props.chart
+    this._chartLayout = this.props.chartLayout
   }
 
   public componentDidMount () {
@@ -39,9 +43,18 @@ export default class Chart extends React.Component<Prop, any> {
       height: this.props.height,
       width: this.props.width,
     }
-    this._chart.addListener('hover', hover => {
-      this.refs.plot.style.cursor = hover ? 'pointer' : 'default'
+    this._chartLayout.addListener('hit', hover => {
+      if (this._chartLayout.hoverChart === this._chart) {
+        this.refs.plot.style.cursor = hover ? 'pointer' : 'default'
+      }
     })
+    document.addEventListener('mousemove', this.dragMoveHandler)
+    document.addEventListener('mouseup', this.mouseUpHandler)
+  }
+
+  public componentWillUnmount () {
+    document.removeEventListener('mousemove', this.dragMoveHandler)
+    document.removeEventListener('mouseup', this.mouseUpHandler)
   }
 
   public componentDidUpdate () {
@@ -57,8 +70,8 @@ export default class Chart extends React.Component<Prop, any> {
   }
 
   public render () {
-    const width = this.props.width - AXIS_Y_WIDTH
-    const height = this.props.height
+    const width = ~~this.props.width - AXIS_Y_WIDTH
+    const height = ~~this.props.height
     return <div className='chart-line'
       onMouseEnter={this.mouseEnterHandler.bind(this)}
       onMouseLeave={this.mouseLeaveHandler.bind(this)}>
@@ -86,43 +99,69 @@ export default class Chart extends React.Component<Prop, any> {
               }
             }
           } width={width} height={height}
-          onMouseMove={this.props.onMouseMove ? this.mouseMoveHandler.bind(this) : null}
+          onMouseMove={this.mouseMoveHandler.bind(this)}
           onMouseDown={this.mouseDownHandler.bind(this)}
           onMouseEnter={this.mouseEnterHandler.bind(this)}
           onMouseLeave={this.mouseLeaveHandler.bind(this)}
-          onClick={this.props.onClick ? this.mouseClickHandler.bind(this) : null}>
+          onClick={this.mouseClickHandler.bind(this)}>
         </canvas>
       </div>
-      <AxisY axis={this._chart.axisY} height={height} width={AXIS_Y_WIDTH} />
+      <AxisY axis={this._chart.axisY} chartLayout={this._chartLayout} height={height} width={AXIS_Y_WIDTH} />
     </div>
   }
 
   private mouseClickHandler (ev: MouseEvent) {
-    this.props.onClick(ev)
+    this._chart.hitTest(true)
   }
 
   private mouseEnterHandler (ev: MouseEvent) {
     this._chart.hover = true
-    if (this.props.onMouseEnter) {
-      this.props.onMouseEnter(ev)
-    }
   }
 
   private mouseLeaveHandler (ev: MouseEvent) {
     this._chart.hover = false
     this._chart.graphs.forEach(graph => graph.hover = false)
-    if (this.props.onMouseLeave) {
-      this.props.onMouseLeave(ev)
-    }
+    this._chartLayout.setCursorPoint(null)
   }
 
   private mouseDownHandler (ev: MouseEvent) {
-    if (this.props.onMouseDown) {
-      this.props.onMouseDown(ev)
-    }
+    this._chartLayout.charts
+      .forEach(chart =>
+        chart.graphs.filter(graph => graph.selected)
+          .forEach(graph => graph.selected = false)
+      )
+    this._dragOffsetStart = true
+    this._dragPosX = ev.pageX
+  }
+
+  private mouseUpHandler (ev: MouseEvent) {
+    this._dragOffsetStart = false
   }
 
   private mouseMoveHandler (ev: MouseEvent) {
-    this.props.onMouseMove(ev)
+    const offset = clientOffset(ev.target as HTMLElement)
+    const point = {
+      x: ev.clientX - offset.offsetLeft,
+      y: ev.clientY - offset.offsetTop,
+    }
+    this._chartLayout.setCursorPoint(point)
+    this._chart.hitTest()
+  }
+
+  private dragMoveHandler (ev: MouseEvent) {
+    if (this._dragOffsetStart) {
+      const pageX = ev.pageX
+      const axisX = this._chartLayout.axisx
+      const curOffset = axisX.offset
+      const newOffset = curOffset + pageX - this._dragPosX
+      if (newOffset < axisX.minOffset) {
+        axisX.offset = axisX.minOffset
+      } else if (newOffset > axisX.maxOffset) {
+        axisX.offset = axisX.maxOffset
+      } else {
+        axisX.offset = newOffset
+      }
+      this._dragPosX = pageX
+    }
   }
 }

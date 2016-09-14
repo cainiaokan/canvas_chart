@@ -1,7 +1,7 @@
 .chart-layout {
-  padding: 0 5px 5px;
+  -webkit-user-select: none;
+          user-select: none;
 
-  background: #f1f3f6;
   input {
     font-family: inherit;
     font-size: 13px;
@@ -26,11 +26,7 @@
   border: 1px solid #c9cbcd;
   background: #fff;
 }
-.chart-axisx {
-  cursor: ew-resize;
 
-  background: #fff;
-}
 .chart-line {
   font-size: 0;
 
@@ -38,11 +34,6 @@
 }
 .chart-line canvas {
   position: absolute;
-
-  border-top: 1px solid #000;
-}
-.chart-line:nth-child(1) canvas {
-  border-top: none;
 }
 .chart-line .chart-plot {
   position: relative;
@@ -51,9 +42,17 @@
 
   cursor: crosshair;
 }
-.chart-line .chart-axis {
+.chart-line .chart-axisx {
   display: inline-block;
+
+  cursor: ew-resize;
 }
 .chart-line .chart-axisy {
   display: inline-block;
+
+  cursor: ns-resize;
+}
+.chart-separator {
+  height: 1px;
+  background: #000;
 }

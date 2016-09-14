@@ -13,7 +13,7 @@ export default class StockModel extends GraphModel {
     chart: ChartModel,
     converter: DataConverter,
     shape: ShapeType,
-    style?: ChartStyle[]) {
+    style?: ChartStyle) {
 
     super(datasource, chart, true, bar => {
       const b = bar as IStockBar
@@ -25,7 +25,7 @@ export default class StockModel extends GraphModel {
         this,
         0,
         shape,
-        _.extend({}, style && style[0] ? style[0] : {})
+        _.extend({}, style ? style : {})
       )
     )
   }

@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
@@ -10,10 +11,15 @@ enum PLOT_DATA {
   VALUE
 }
 
+const DEFAULT_STYLE = {
+  color: 'rgba( 60, 120, 216, 1)',
+  lineWidth: 1,
+}
+
 export default class LineChartRenderer extends BaseChart {
 
   constructor (plotModel: PlotModel, style: ChartStyle) {
-    super(plotModel, style)
+    super(plotModel, _.defaults(style, DEFAULT_STYLE))
   }
 
   public hitTest (): boolean {

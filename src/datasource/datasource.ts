@@ -31,10 +31,15 @@ export abstract class Datasource extends EventEmitter {
    */
   protected _resolution: ResolutionType
   protected _hasMore: boolean = true
+  protected _pulseInterval = 60
 
   constructor (resolution: ResolutionType) {
     super()
     this._resolution = resolution
+  }
+
+  get pulseInterval () {
+    return this._pulseInterval
   }
 
   get resolution (): ResolutionType {
@@ -43,7 +48,6 @@ export abstract class Datasource extends EventEmitter {
 
   set resolution (resolution: ResolutionType) {
     this._resolution = resolution
-    this.emit('resolutionchange', resolution)
   }
 
   public abstract barAt (index): IBar
@@ -65,7 +69,7 @@ export abstract class Datasource extends EventEmitter {
    * @param  {number}  num 加载的条数
    * @return {Promise}
    */
-  public abstract loadMore(num: number): Promise<any>
+  public abstract loadHistory(num: number): Promise<any>
 
   public abstract loadTimeRange(from: number, to: number): Promise<any>
 

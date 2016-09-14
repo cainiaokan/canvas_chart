@@ -105,7 +105,7 @@ export default class ColumnChartRenderer extends BaseChart {
       } else {
         ctx.fillStyle = bar[PLOT_DATA.IS_DOWN] ? style.colorDown : style.color
         y = ~~(height - (height - y1 - margin) * scale)
-        ctx.fillRect(x, y, barWidth, height)
+        ctx.fillRect(x, y, barWidth, height - y)
         ctx.moveTo(x, height)
         ctx.lineTo(x, y)
         ctx.lineTo(x + barWidth, y)

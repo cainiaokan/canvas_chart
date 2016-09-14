@@ -12,6 +12,7 @@ type Prop = {
 
 type State = {
   cursorMoved: boolean
+  hit: boolean
 }
 
 export default class Legend extends React.Component<Prop, State> {
@@ -20,19 +21,31 @@ export default class Legend extends React.Component<Prop, State> {
     super()
     this.state = {
       cursorMoved: false,
+      hit: false,
     }
   }
 
   public componentDidMount () {
-    this.props.chartModel.crosshair.on('cursormove', () => this.setState({ cursorMoved: true }))
+    this.props.chartModel.chartLayout.addListener('cursormove', () => {
+      this.state.cursorMoved = true
+      this.setState(this.state)
+    })
+    this.props.chartModel.chartLayout.addListener('hit', hit => {
+      this.state.hit = hit
+      this.setState(this.state)
+    })
     this.props.chartModel.graphs.forEach(graph => {
       if (graph instanceof StockModel) {
         graph.resolveSymbol()
-          .then(() => this.setState({ cursorMoved: true }))
+          .then(() => {
+            this.state.cursorMoved = true
+            this.setState(this.state)
+          })
       }
     })
-    this.props.chartModel.datasource.on('resolutionchange', () => {
-      this.setState({ cursorMoved: true })
+    this.props.chartModel.chartLayout.on('resolutionchange', () => {
+      this.state.cursorMoved = true
+      this.setState(this.state)
     })
   }
 
