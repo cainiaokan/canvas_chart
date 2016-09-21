@@ -14,6 +14,8 @@ export type ChartStyle = {
   fillColor?: string
   histogramBase?: number
   scale?: number
+  transparency?: number
+  noLegend?: boolean
 }
 
 abstract class BaseChartRenderer {
@@ -53,10 +55,14 @@ abstract class BaseChartRenderer {
       return
     }
 
-    for (let i = span, len = bars.length, bar; i < len; i += span) {
+    for (let i = span, len = bars.length, bar, y; i < len; i += span) {
       bar = bars[i]
+      y = this.getSelectionYByBar(bar)
+      if (!y) {
+        return
+      }
       ctx.beginPath()
-      ctx.arc(bar[PLOT_DATA.X], this.getSelectionYByBar(bar), 3, 0, 2 * Math.PI)
+      ctx.arc(bar[PLOT_DATA.X], y, 3, 0, 2 * Math.PI)
       ctx.closePath()
       ctx.fillStyle = '#D6D6D6'
       ctx.strokeStyle = '#6B6B6B'

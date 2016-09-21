@@ -37,11 +37,11 @@ export const studyConfig: StudyConfig = {
       adapter: DataAdapter,
       input: any[]): any[][] => {
 
-      const length = input[0]
-      const start = index - length + 1
+      const n = input[0]
+      const start = index - n + 1
       const end = index + 1
 
-      if (end - start < length || start < 0) {
+      if (end - start < n || start < 0) {
         return null
       }
 
@@ -49,7 +49,7 @@ export const studyConfig: StudyConfig = {
         [
           data[0],
           data[1],
-          datasource.slice(start, end).reduce((prev, cur) => prev + adapter(cur)[2], 0) / length,
+          datasource.slice(start, end).reduce((prev, cur) => prev + adapter(cur)[2], 0) / n,
         ],
       ]
     },
@@ -79,6 +79,85 @@ export const studyConfig: StudyConfig = {
       },
     ],
   },
+  'BOLL': {
+    isPrice: true,
+    output: (
+      data: any[],
+      index: number,
+      datasource: Datasource,
+      adapter: DataAdapter,
+      input: any[]): any[][] => {
+      // 0: posX, 1: time, 2: value
+      const n = input[0]
+      const dateBack = index - n + 1 < 0 ? 0 : index - n + 1
+      const ma = datasource
+        .slice(dateBack, index + 1)
+        .reduce((prev, cur) => prev + adapter(cur)[2], 0) / (index + 1 - dateBack)
+      let md = 0
+      for (let i = dateBack; i <= index; i++) {
+        md += Math.pow(adapter(datasource.barAt(i))[2] - ma, 2)
+      }
+      md = Math.sqrt(md / n)
+      const posX = data[0]
+      const time = data[1]
+      const upper = ma + input[1] * md
+      const lower = ma - input[1] * md
+      return [
+        [
+          posX,
+          time,
+          ma,
+        ],
+        [
+          posX,
+          time,
+          upper,
+        ],
+        [
+          posX,
+          time,
+          lower,
+        ],
+        [
+          posX,
+          time,
+          upper,
+          lower,
+        ],
+      ]
+    },
+    plots: [
+      {
+        shape: 'line',
+        style: {
+          color: '#FF0000',
+          lineWidth: 1,
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#0000FF',
+          lineWidth: 1,
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#0000FF',
+          lineWidth: 1,
+        },
+      },
+      {
+        shape: 'band',
+        style: {
+          color: '#000080',
+          noLegend: true,
+          transparency: .1,
+        },
+      },
+    ],
+  },
   'MACD': {
     isPrice: false,
     output: cacheable((
@@ -89,14 +168,16 @@ export const studyConfig: StudyConfig = {
       adapter: DataAdapter,
       input: any[],
       cache: {[propName: string]: any}): any[][] => {
+      const posX = data[0]
+      const time = data[1]
       const dif = EMA(input[0], index, datasource, adapter, cache) -
         EMA(input[1], index, datasource, adapter, cache)
       const dea = DEA(input[2], input[1], input[0], index, datasource, adapter, cache)
       const bar = (dif - dea) * 2
       return [
-        [data[0], data[1], bar],
-        [data[0], data[1], dif],
-        [data[0], data[1], dea],
+        [posX, time, bar],
+        [posX, time, dif],
+        [posX, time, dea],
       ]
     }),
     plots: [
@@ -134,10 +215,12 @@ export const studyConfig: StudyConfig = {
       const k = K(input[0], input[1], index, datasource, adapter, cache)
       const d = D(input[0], input[1], input[2], index, datasource, adapter, cache)
       const j = 3 * k - 2 * d
+      const x = data[0]
+      const time = data[1]
       return [
-        [data[0], data[1], k],
-        [data[0], data[1], d],
-        [data[0], data[1], j],
+        [x, time, k],
+        [x, time, d],
+        [x, time, j],
       ]
     }),
     plots: [

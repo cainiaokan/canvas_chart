@@ -74,12 +74,12 @@ export default class LineChartRenderer extends BaseChart {
 
     if (len) {
       const bar = bars[0]
-      ctx.moveTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
+      ctx.moveTo(bar[PLOT_DATA.X], axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
     }
 
-    for (let i = 0; i < len; i++) {
+    for (let i = 1; i < len; i++) {
       const bar = bars[i]
-      ctx.lineTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
+      ctx.lineTo(bar[PLOT_DATA.X], axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
     }
 
     ctx.stroke()

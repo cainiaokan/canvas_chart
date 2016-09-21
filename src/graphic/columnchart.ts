@@ -82,7 +82,6 @@ export default class ColumnChartRenderer extends BaseChart {
       return
     }
 
-    ctx.save()
     ctx.lineWidth = 1
     ctx.globalAlpha = 0.3
     ctx.strokeStyle = 'black'
@@ -114,7 +113,7 @@ export default class ColumnChartRenderer extends BaseChart {
     }
 
     ctx.stroke()
-    ctx.restore()
+    ctx.globalAlpha = 1
   }
 
   protected getSelectionYByBar (bar: any[]): number {

@@ -5,6 +5,7 @@ import MountainChartRenderer from '../graphic/mountainchart'
 import ColumnChartRenderer from '../graphic/columnchart'
 import CandleChartRenderer from '../graphic/candle'
 import HistogramChartRenderer from '../graphic/histogram'
+import BandRenderer from '../graphic/band'
 import BaseChartRenderer, { ChartStyle } from '../graphic/basechart'
 import GraphModel from '../model/graph'
 
@@ -37,6 +38,10 @@ export default class PlotModel {
         break
       case 'histogram':
         this._graphic = new HistogramChartRenderer(this, style)
+        break
+      case 'band':
+        this._graphic = new BandRenderer(this, style)
+        break
       default:
         // code...
         break

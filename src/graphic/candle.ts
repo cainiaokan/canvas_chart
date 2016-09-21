@@ -81,8 +81,8 @@ export default class CandleChartRenderer extends BaseChart {
       y = axisY.getYByValue(isUp ? bar[PLOT_DATA.CLOSE] : bar[PLOT_DATA.OPEN], rangeY)
       ctx.fillRect(
         x,
-        ~~y,
-        ~~candleWidth,
+        y,
+        candleWidth,
         Math.abs(
           axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY) - y
         )

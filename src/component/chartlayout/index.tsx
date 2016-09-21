@@ -162,13 +162,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
           lineWidth: 1,
         }]
       ),
-      new StockModel(
+      new StudyModel(
         mainDatasource,
         chart,
-        function (array: any): any[] {
-          return [array.slice(0, 6)]
+        'BOLL',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.close]
         },
-        this.props.shape
+        [20, 2]
       ),
       new StudyModel(
         mainDatasource,
@@ -177,6 +178,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
         function (bar: IStockBar) {
           return [0, bar.time, bar.volume, bar.close < bar.open]
         }
+      ),
+      new StockModel(
+        mainDatasource,
+        chart,
+        function (array: any): any[] {
+          return [array.slice(0, 6)]
+        },
+        this.props.shape
       ),
     ]
     this._chartLayoutModel.charts.push(chart)
@@ -245,6 +254,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
           lineWidth: 1,
         }]
       ),
+      new StudyModel(
+        datasource,
+        chart,
+        'VOLUME',
+        function (bar: IStockBar) {
+          return [0, bar.time, bar.volume, bar.close < bar.open]
+        }
+      ),
       new StockModel(
         datasource,
         chart,
@@ -254,14 +271,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
           ]
         },
         'mountain'
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'VOLUME',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.volume, bar.close < bar.open]
-        }
       ),
     ]
 

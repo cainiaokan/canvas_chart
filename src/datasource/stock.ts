@@ -26,15 +26,13 @@ export class StockDatasource extends Datasource {
    * 数据集
    * @type {PlotList<T>}
    */
-  protected _plotList: PlotList<IStockBar>
+  private _plotList: PlotList<IStockBar>
 
   /**
    * 股票代码
    * @type {string}
    */
   private _symbol: string
-
-  private _requestFromTime: number
 
   /**
    * @constructor
@@ -218,12 +216,12 @@ export class StockDatasource extends Datasource {
   }
 
   public searchSymbols (keyword): Promise<SymbolInfo[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve =>
       RPC.searchSymbols(keyword)
-        .then(response => {
+        .then(response =>
           response
             .json()
-            .then(data => {
+            .then(data =>
               resolve(data.map(symbol => {
                 return {
                   description: symbol.description,
@@ -232,11 +230,9 @@ export class StockDatasource extends Datasource {
                   type: symbol.type,
                 }
               }))
-            })
-            .catch(reject)
-        })
-        .catch(reject)
-    })
+            )
+        )
+    )
   }
 
   /**
@@ -244,7 +240,6 @@ export class StockDatasource extends Datasource {
    */
   public clearCache(): void {
     super.clearCache()
-    this._requestFromTime = null
     this._plotList.clear()
   }
 }

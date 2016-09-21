@@ -55,7 +55,7 @@ export default class Legend extends React.Component<Prop, State> {
     return (
       <div className='chart-legend'>
         {
-          this.props.chartModel.graphs.map(graph => {
+          this.props.chartModel.graphs.filter(graph => !(graph instanceof StudyModel)).map(graph => {
             if (graph instanceof StockModel) {
               const bars = graph.getCurBar()
               const prevBars = graph.getPrevBar()
@@ -160,22 +160,6 @@ export default class Legend extends React.Component<Prop, State> {
                   换手率&nbsp;{ bar && typeof bar.turnover === 'string' ? (bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
                 </div>
               </div>
-            } else if (graph instanceof StudyModel && graph.studyType !== 'MA' && graph.studyType !== 'VOLUME') {
-              const bars = graph.getCurBar()
-              return <div className='chart-legend-line'
-                style={ {fontWeight: graph.hover || graph.selected ? '600' : 'normal'} }>
-                <div className='chart-legend-item'>
-                  {graph.studyType}({graph.input.join(',')})
-                </div>
-                {
-                  bars && bars.map((bar, index) => {
-                    return <div className='chart-legend-item'
-                    style={ {color: graph.styles[index].color ,display:bar ? '' : 'none'} }>
-                      {bar[2].toFixed(4)}
-                    </div>
-                  })
-                }
-              </div>
             }
           })
         }
@@ -190,14 +174,34 @@ export default class Legend extends React.Component<Prop, State> {
                 return <div className='chart-legend-item'
                   style={ {
                     color: styles[0].color,
-                    display: bar ? '' : 'none',
                     fontWeight: ma.hover || ma.selected ? '600' : 'normal',
                   } }>
-                  {ma.studyType}{ma.input.length}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
+                  {ma.studyType}{ma.input[0]}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
                 </div>
               })
             }
           </div> : null
+        }
+        {
+          this.props.chartModel.graphs.filter(graph => (graph instanceof StudyModel)).map(graph => {
+             if (graph instanceof StudyModel && graph.studyType !== 'MA' && graph.studyType !== 'VOLUME') {
+              const bars = graph.getCurBar()
+              return <div className='chart-legend-line'
+                style={ {fontWeight: graph.hover || graph.selected ? '600' : 'normal'} }>
+                <div className='chart-legend-item'>
+                  {graph.studyType}({graph.input.join(',')})
+                </div>
+                {
+                  bars && bars.map((bar, index) => !graph.styles[index].noLegend ?
+                    <div className='chart-legend-item'
+                    style={ {color: graph.styles[index].color} }>
+                      {bar[2].toFixed(4)}
+                    </div> : null
+                  )
+                }
+              </div>
+            }
+          })
         }
       </div>
     )

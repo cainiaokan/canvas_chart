@@ -170,7 +170,7 @@ export default class ChartModel extends EventEmitter {
     }
     this._grid.draw()
 
-    this._graphs.filter(graph => !graph.hover || !graph.selected).forEach(graph => graph.draw())
+    this._graphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
     this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
 
     this._crosshair.draw()
