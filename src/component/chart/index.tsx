@@ -33,19 +33,28 @@ export default class Chart extends React.Component<Prop, any> {
     this.mouseUpHandler = this.mouseUpHandler.bind(this)
   }
 
-  public componentWillMount () {
+  public componentWillMount() {
     this._chart = this.props.chart
     this._chartLayout = this.props.chartLayout
-  }
-
-  public componentDidMount () {
     this._chart.size = {
       height: this.props.height,
       width: this.props.width,
     }
+  }
+
+  public componentWillReceiveProps(nextProps: Prop) {
+    this._chart = nextProps.chart
+    this._chartLayout = nextProps.chartLayout
+    this._chart.size = {
+      height: nextProps.height,
+      width: nextProps.width,
+    }
+  }
+
+  public componentDidMount () {
     this._chartLayout.addListener('hit', hover => {
       if (this._chartLayout.hoverChart === this._chart) {
-        this.refs.plot.style.cursor = hover ? 'pointer' : 'default'
+        this.refs.plot.style.cursor = hover ? 'pointer' : 'crosshair'
       }
     })
     document.addEventListener('mousemove', this.dragMoveHandler)
@@ -82,7 +91,7 @@ export default class Chart extends React.Component<Prop, any> {
             width: width + 'px',
           }
         }>
-        <Legend chartModel={this._chart}/>
+        <Legend chartModel={this._chart} />
         <canvas ref={el => {
           if (el) {
             el.height = height

@@ -1,6 +1,6 @@
 import { ChartStyle } from '../graphic/basechart'
 import { ShapeType } from '../constant'
-import { Datasource, DataAdapter } from '../datasource'
+import { Datasource, IStockBar, DataAdapter } from '../datasource'
 import { cacheable, EMA, DEA, K, D } from './studyhelper'
 
 export type DataConverter = {
@@ -17,7 +17,9 @@ export type DataConverter = {
 
 type StudyConfig = {
   [propName: string]: {
-    [propName: string]: any,
+    [propName: string]: any
+    stockAdapter: DataAdapter
+    input: any[]
     isPrice: boolean
     output: DataConverter
     plots: Array<{
@@ -29,6 +31,10 @@ type StudyConfig = {
 
 export const studyConfig: StudyConfig = {
   'MA': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.close]
+    },
+    input: [5],
     isPrice: true,
     output: (
       data: any[],
@@ -64,6 +70,10 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'VOLUME': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.volume, bar.close < bar.open]
+    },
+    input: [],
     isPrice: false,
     output: (data: any[]): any[][] => {
       return [data.slice(0, 4)]
@@ -80,6 +90,10 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'BOLL': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.close]
+    },
+    input: [20, 2],
     isPrice: true,
     output: (
       data: any[],
@@ -159,6 +173,10 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'MACD': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.close]
+    },
+    input: [12, 26, 9],
     isPrice: false,
     output: cacheable((
       // 0: posX, 1: time, 2: value
@@ -204,6 +222,10 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'KDJ': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.close, bar.high, bar.low]
+    },
+    input: [9, 3, 3],
     isPrice: false,
     output: cacheable((
       data: any[],

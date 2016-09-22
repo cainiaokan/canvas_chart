@@ -3,14 +3,13 @@ import { pad } from '../util'
 
 export default class AxisXRenderer {
   private _axis: AxisXModel
-  private _ctx: CanvasRenderingContext2D
 
   constructor (axis: AxisXModel) {
     this._axis = axis
   }
   public draw () {
-    const ctx = this._ctx
     const axis = this._axis
+    const ctx = axis.ctx
     const timeBars = axis.getVisibleTimeBars()
     const cursorPoint = axis.crosshair.point
 

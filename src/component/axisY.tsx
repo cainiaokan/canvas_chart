@@ -10,8 +10,6 @@ type Prop = {
 }
 
 export default class AxisY extends React.Component<Prop, any> {
-  private _canvas: HTMLCanvasElement
-  private _ctx: CanvasRenderingContext2D
   private _chartLayout: ChartLayout
   private _axis: AxisYModel
   private _dragMarginStart: boolean
@@ -27,13 +25,22 @@ export default class AxisY extends React.Component<Prop, any> {
   public componentWillMount () {
     this._axis = this.props.axis
     this._chartLayout = this.props.chartLayout
-  }
-
-  public componentDidMount () {
     this._axis.size = {
       height: this.props.height,
       width: this.props.width,
     }
+  }
+
+  public componentWillReceiveProps (nextProps: Prop) {
+    this._axis = nextProps.axis
+    this._chartLayout = nextProps.chartLayout
+    this._axis.size = {
+      height: nextProps.height,
+      width: nextProps.width,
+    }
+  }
+
+  public componentDidMount () {
     document.addEventListener('mousemove', this.onMouseMoveHandler)
     document.addEventListener('mouseup', this.onMouseUpHandler)
   }
@@ -57,11 +64,9 @@ export default class AxisY extends React.Component<Prop, any> {
       <div className='chart-axisy' style={ {height: height + 'px', width: width + 'px'} }>
         <canvas ref={el => {
           if (el) {
-            this._canvas = el
-            this._canvas.height = this.props.height
-            this._canvas.width = this.props.width
-            this._ctx = el.getContext('2d')
-            this._axis.graphic.ctx = this._ctx
+            el.height = this.props.height
+            el.width = this.props.width
+            this._axis.ctx = el.getContext('2d')
           }
         }} width={width} height={height}
         onMouseDown={this.onMouseDownHandler.bind(this)}></canvas>

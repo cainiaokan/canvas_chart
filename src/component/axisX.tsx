@@ -15,11 +15,20 @@ export default class AxisX extends React.Component<Prop, any> {
   private _dragBarWidthStart: boolean
   private _dragPosX: number
 
+  constructor () {
+    super()
+    this.mouseMoveHandler = this.mouseMoveHandler.bind(this)
+    this.mouseUpHandler = this.mouseUpHandler.bind(this)
+  }
+
   public componentWillMount () {
     this._chartLayout = this.props.chartLayout
     this._axis = this.props.axis
-    this.mouseMoveHandler = this.mouseMoveHandler.bind(this)
-    this.mouseUpHandler = this.mouseUpHandler.bind(this)
+  }
+
+  public componentWillReceiveProps (nextProps: Prop) {
+    this._chartLayout = nextProps.chartLayout
+    this._axis = nextProps.axis
   }
 
   public componentDidMount () {
@@ -55,7 +64,7 @@ export default class AxisX extends React.Component<Prop, any> {
             if (el) {
               el.height = height
               el.width = width
-              this._axis.graphic.ctx = el.getContext('2d')
+              this._axis.ctx = el.getContext('2d')
             }
           }} width={width} height={height}></canvas>
         </div>

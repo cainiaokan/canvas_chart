@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { StudyType } from '../constant'
-import { Datasource, studyConfig, DataAdapter } from '../datasource'
+import { Datasource, studyConfig } from '../datasource'
 import { ChartStyle } from '../graphic/basechart'
 import ChartModel from './chart'
 import PlotModel from './plot'
@@ -15,12 +15,11 @@ export default class StudyModel extends Graph {
     datasource: Datasource,
     chart: ChartModel,
     study: StudyType,
-    adapter: DataAdapter,
-    input: any = null,
+    input?: any,
     style?: ChartStyle[]) {
 
     const config = studyConfig[study]
-    super(datasource, chart, config.isPrice, adapter, config.output, input)
+    super(datasource, chart, config.isPrice, config.stockAdapter, config.output, input || config.input)
     this._studyType = study
     this._styles = style || _.pluck(config.plots, 'style')
 

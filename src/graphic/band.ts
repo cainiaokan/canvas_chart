@@ -12,7 +12,7 @@ enum PLOT_DATA {
 
 const DEFAULT_STYLE = {
   color: '#000080',
-  transparency: .9,
+  transparency: .3,
 }
 
 export default class BandRenderer extends BaseChart {

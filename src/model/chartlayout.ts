@@ -5,9 +5,11 @@ import AxisXModel from './axisx'
 import { Datasource, StockDatasource, SymbolInfo } from '../datasource'
 import { Point } from '../model/crosshair'
 import StockModel from '../model/stock'
-import { ResolutionType } from '../constant'
+import { ResolutionType, StudyType } from '../constant'
 
 export default class ChartLayoutModel extends EventEmitter {
+  public study: StudyType
+
   private _charts: ChartModel[]
   private _axisx: AxisXModel
   private _mainDatasource: Datasource
@@ -15,6 +17,7 @@ export default class ChartLayoutModel extends EventEmitter {
   constructor () {
     super()
     this._charts = []
+    this.study = null
   }
 
   public setResolution (resolution: ResolutionType) {

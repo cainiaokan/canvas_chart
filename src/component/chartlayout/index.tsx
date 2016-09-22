@@ -4,10 +4,19 @@ import * as _ from 'underscore'
 import Chart from './../chart'
 import AxisX from './../axisX'
 import Navbar from './../navbar'
+import FooterBar from './../footerbar'
 import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
 import { StockDatasource, IStockBar } from '../../datasource'
-import { ShapeType, ResolutionType, StudyType, AXIS_Y_WIDTH, AXIS_X_HEIGHT, NAVBAR_HEIGHT } from '../../constant'
+import {
+  ShapeType,
+  ResolutionType,
+  StudyType,
+  AXIS_Y_WIDTH,
+  AXIS_X_HEIGHT,
+  NAVBAR_HEIGHT,
+  FOOTERBAR_HEIGHT,
+} from '../../constant'
 import AxisXModel from '../../model/axisx'
 import AxisYModel from '../../model/axisy'
 import StockModel from '../../model/stock'
@@ -29,9 +38,11 @@ type Prop  = {
   scrollable?: boolean
   scalable?: boolean
   shownavbar?: boolean
+  showfooterbar?: boolean
 }
 
 type State = {
+  studyChange: boolean
 }
 
 export default class ChartLayout extends React.Component<Prop, State> {
@@ -43,6 +54,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scalable: React.PropTypes.bool,
     scrollable: React.PropTypes.bool,
     shape: React.PropTypes.oneOf(['histogram', 'mountain', 'line', 'bar', 'candle']),
+    showfooterbar: React.PropTypes.bool,
     shownavbar: React.PropTypes.bool,
     study: React.PropTypes.oneOf(['MA', 'MACD', 'BOLL', 'KDJ', 'VOLUME']),
     to: React.PropTypes.number,
@@ -56,6 +68,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scalable: true,
     scrollable: true,
     shape: 'line',
+    showfooterbar: true,
     shownavbar: true,
     type: 'realtime',
   }
@@ -71,7 +84,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   constructor () {
     super()
     this.state = {
-      chartLayoutModel: null,
+      studyChange: false,
     }
   }
 
@@ -84,12 +97,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel = new ChartLayoutModel()
 
     this.prepareMainChart()
-    // this.prepareMinorChart()
-    // this.prepareKDJ()
-    this.prepareMACD()
   }
 
-  public prepareMainChart (): void {
+  public prepareMainChart () {
     const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution)
     const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = new AxisXModel(mainDatasource, crosshair)
@@ -114,9 +124,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
         mainDatasource,
         chart,
         'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
         [5],
         [{
           color: 'red',
@@ -127,9 +134,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
         mainDatasource,
         chart,
         'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
         [10],
         [{
           color: 'blue',
@@ -140,9 +144,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
         mainDatasource,
         chart,
         'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
         [20],
         [{
           color: 'purple',
@@ -153,23 +154,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
         mainDatasource,
         chart,
         'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
         [30],
         [{
           color: 'green',
           lineWidth: 1,
         }]
-      ),
-      new StudyModel(
-        mainDatasource,
-        chart,
-        'BOLL',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [20, 2]
       ),
       new StudyModel(
         mainDatasource,
@@ -185,141 +174,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
         function (array: any): any[] {
           return [array.slice(0, 6)]
         },
-        this.props.shape
-      ),
-    ]
-    this._chartLayoutModel.charts.push(chart)
-  }
-
-  public prepareMinorChart (): void {
-    const datasource = new StockDatasource('SZ399001', this.props.resolution)
-    const crosshair = new CrosshairModel(this._chartLayoutModel)
-    const axisX = this._chartLayoutModel.axisx
-    const axisY = new AxisYModel(datasource, crosshair)
-    const chart = new ChartModel(this._chartLayoutModel, datasource, axisX, axisY, crosshair, true)
-
-    axisY.chart = chart
-    crosshair.chart = chart
-
-    chart.graphs = [
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [5],
-        [{
-          color: 'red',
-          lineWidth: 1,
-        }]
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [10],
-        [{
-          color: 'blue',
-          lineWidth: 1,
-        }]
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [20],
-        [{
-          color: 'purple',
-          lineWidth: 1,
-        }]
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'MA',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [30],
-        [{
-          color: 'green',
-          lineWidth: 1,
-        }]
-      ),
-      new StudyModel(
-        datasource,
-        chart,
-        'VOLUME',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.volume, bar.close < bar.open]
-        }
-      ),
-      new StockModel(
-        datasource,
-        chart,
-        function (array: any): any[] {
-          return [
-            [array[0], array[1], array[3]],
-          ]
-        },
-        'mountain'
-      ),
-    ]
-
-    this._chartLayoutModel.charts.push(chart)
-  }
-
-  public prepareMACD (): void {
-    const datasource = this._chartLayoutModel.mainDatasource
-    const crosshair = new CrosshairModel(this._chartLayoutModel)
-    const axisX = this._chartLayoutModel.axisx
-    const axisY = new AxisYModel(datasource, crosshair)
-    const chart = new ChartModel(this._chartLayoutModel, datasource, axisX, axisY, crosshair, false)
-
-    axisY.chart = chart
-    crosshair.chart = chart
-
-    chart.graphs = [
-      new StudyModel(
-        datasource,
-        chart,
-        'MACD',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close]
-        },
-        [12, 26, 9]
-      ),
-    ]
-    this._chartLayoutModel.charts.push(chart)
-  }
-
-  public prepareKDJ (): void {
-    const datasource = this._chartLayoutModel.mainDatasource
-    const crosshair = new CrosshairModel(this._chartLayoutModel)
-    const axisX = this._chartLayoutModel.axisx
-    const axisY = new AxisYModel(datasource, crosshair)
-    const chart = new ChartModel(this._chartLayoutModel, datasource, axisX, axisY, crosshair, false)
-
-    axisY.chart = chart
-    crosshair.chart = chart
-
-    chart.graphs = [
-      new StudyModel(
-        datasource,
-        chart,
-        'KDJ',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.close, bar.high, bar.low]
-        },
-        [9, 3, 3]
+        this.props.resolution === '1' && this.props.shape === 'candle' ? 'line' : this.props.shape,
+        { lineWidth: 2 }
       ),
     ]
     this._chartLayoutModel.charts.push(chart)
@@ -338,11 +194,27 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.axisx.addListener('resize', () => this.fullUpdate())
     this._chartLayoutModel.axisx.addListener('offsetchange', () => this.fullUpdate())
     this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.fullUpdate())
-    this._chartLayoutModel.addListener('resolutionchange', () => this.fullUpdate())
+    this._chartLayoutModel.addListener('resolutionchange', resolution => {
+      if (resolution === '1' && this._chartLayoutModel.mainDatasource instanceof StockDatasource) {
+        this._chartLayoutModel.mainChart.graphs
+          .filter(graph => graph instanceof StockModel)
+          .forEach(graph => graph.plots[0].shape = 'line')
+      } else {
+        this._chartLayoutModel.mainChart.graphs
+          .filter(graph => graph instanceof StockModel)
+          .forEach(graph => graph.plots[0].shape = 'candle')
+      }
+      this.fullUpdate()
+    })
     this._chartLayoutModel.addListener('symbolchange', () => this.fullUpdate())
     this._chartLayoutModel.addListener('hit', () => this.lightUpdate())
     this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
     this._chartLayoutModel.addListener('marginchange', () => this.lightUpdate())
+    this._chartLayoutModel.addListener('studychange', () => {
+      this.state.studyChange = true
+      this.setState(this.state)
+      this.fullUpdate()
+    })
   }
 
   /**
@@ -495,6 +367,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     if (this.props.shownavbar) {
       availHeight -= NAVBAR_HEIGHT
     }
+    if (this.props.showfooterbar) {
+      availHeight -= FOOTERBAR_HEIGHT
+    }
     if (chartLayoutModel.charts.length > 1) {
       availHeight -= chartLayoutModel.charts.length - 1
     }
@@ -527,6 +402,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
             height={AXIS_X_HEIGHT}
             width={availWidth - AXIS_Y_WIDTH} />
         </div>
+        {
+          this.props.showfooterbar ?
+            <FooterBar chartLayout={this._chartLayoutModel} /> : null
+        }
       </div>
     )
   }

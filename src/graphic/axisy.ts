@@ -2,15 +2,14 @@ import AxisYModel from '../model/axisy'
 
 export default class AxisYRenderer {
   private _axis: AxisYModel
-  private _ctx: CanvasRenderingContext2D
 
   constructor (axis: AxisYModel) {
     this._axis = axis
   }
 
   public draw () {
-    const ctx = this._ctx
     const axis = this._axis
+    const ctx = axis.ctx
     const axisY = axis
     const cursorPoint = axis.crosshair.point
     const hover = axis.crosshair.chart.hover
@@ -50,9 +49,5 @@ export default class AxisYRenderer {
       ctx.fillText(axis.getValueByY(y, rangeY).toFixed(2).toString(), 10, y + 5)
     }
     ctx.restore()
-  }
-
-  set ctx (ctx: CanvasRenderingContext2D) {
-    this._ctx = ctx
   }
 }

@@ -19,7 +19,9 @@ export const MARGIN_RATIO = .05
 
 export default class AxisYModel extends EventEmitter {
 
+  public ctx: CanvasRenderingContext2D
   public range: YRange
+
   private _margin: number
   private _size: Size
   private _chart: ChartModel

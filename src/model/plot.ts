@@ -13,7 +13,9 @@ export default class PlotModel {
   private _graph: GraphModel
   private _index: number
   private _shape: ShapeType
+  private _originalShape: ShapeType
   private _graphic: BaseChartRenderer
+  private _style: ChartStyle
 
   constructor (
     graph: GraphModel,
@@ -22,6 +24,13 @@ export default class PlotModel {
     style: ChartStyle) {
     this._graph = graph
     this._index = index
+    this._style = style
+    this._originalShape = shape
+    this.shape = shape
+  }
+
+  set shape (shape: ShapeType) {
+    const style = shape === this._originalShape ? this._style : {}
     this._shape = shape
     switch (shape) {
       case 'line':
@@ -46,6 +55,10 @@ export default class PlotModel {
         // code...
         break
     }
+  }
+
+  get shape (): ShapeType {
+    return this._shape
   }
 
   get graphic (): BaseChartRenderer {
