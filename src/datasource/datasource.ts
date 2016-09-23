@@ -30,13 +30,15 @@ export abstract class Datasource extends EventEmitter {
    * @type {ResolutionType}
    */
   protected _resolution: ResolutionType
+  protected _timeDiff: number
   protected _hasMore: boolean = true
   protected _requestFromTime: number
   protected _pulseInterval = 60
 
-  constructor (resolution: ResolutionType) {
+  constructor (resolution: ResolutionType, timeDiff: number) {
     super()
     this._resolution = resolution
+    this._timeDiff = timeDiff
   }
 
   get pulseInterval () {
@@ -82,6 +84,10 @@ export abstract class Datasource extends EventEmitter {
   public clearCache(): void {
     this._hasMore = true
     this._requestFromTime = null
+  }
+
+  public now(): number {
+    return ~~(Date.now() / 1000) - this._timeDiff
   }
 
   get hasMore (): boolean {

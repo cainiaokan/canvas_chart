@@ -27,3 +27,7 @@ export function resolveSymbol (symbol: string): Promise<IResponse> {
 export function searchSymbols (keyword: string): Promise<IResponse> {
   return fetch(`${QU_CHAO_GU}/chart/search/?query=${keyword}&limit=15&type=&exchange=`)
 }
+
+export function getServerTime (): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/time/`)
+}

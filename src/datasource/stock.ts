@@ -39,8 +39,8 @@ export class StockDatasource extends Datasource {
    * @param {string} symbol     股票代码
    * @param {string} resolution 解析度
    */
-  constructor (symbol: string, resolution: ResolutionType = '1') {
-    super(resolution)
+  constructor (symbol: string, resolution: ResolutionType, timeDiff: number) {
+    super(resolution, timeDiff)
     this._symbol = symbol
     this._plotList = new PlotList<IStockBar>()
   }
@@ -92,7 +92,7 @@ export class StockDatasource extends Datasource {
     }
     const toTime = this._requestFromTime ?
       this._requestFromTime : this._plotList.first() ?
-        this._plotList.first().time : ~~(Date.now() / 1000)
+        this._plotList.first().time : this.now()
     let fromTime = 0
     let maxTimeSpan = 0
     switch (this._resolution) {
@@ -136,7 +136,7 @@ export class StockDatasource extends Datasource {
     return new Promise((resolve, reject) => {
       this.loadTimeRange(fromTime, toTime)
         .then(() => {
-          const requestToTime = this._plotList.first() ? this._plotList.first().time : ~~(Date.now() / 1000)
+          const requestToTime = this._plotList.first() ? this._plotList.first().time : this.now()
           if (this._plotList.size() >= loadNum) {
             resolve()
           } else if (requestToTime - this._requestFromTime >= maxTimeSpan) {

@@ -8,7 +8,8 @@ module.exports = {
     vendor: [
       'react',
       'react-dom',
-      './src/vendor/hidpi-canvas-polyfill.js'
+      './src/vendor/hidpi-canvas-polyfill.js',
+      './src/vendor/spin.js'
     ],
     chart: './src/index.tsx',
     chart_grid: './src/index_grid.tsx',
@@ -81,7 +82,7 @@ module.exports = {
   ],
   resolve: {
     root: [
-      // path.resolve('./src/common')
+      path.resolve('./src/vendor')
     ],
     alias: {
     },

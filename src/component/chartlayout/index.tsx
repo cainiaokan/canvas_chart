@@ -1,13 +1,14 @@
 import './index.less'
+import Spinner = require('spin.js')
 import * as React from 'react'
 import * as _ from 'underscore'
-import Chart from './../chart'
-import AxisX from './../axisX'
-import Navbar from './../navbar'
-import FooterBar from './../footerbar'
+import Chart from '../chart'
+import AxisX from '../axisX'
+import Navbar from '../navbar'
+import FooterBar from '../footerbar'
 import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
-import { StockDatasource, IStockBar } from '../../datasource'
+import { StockDatasource, IStockBar, getServerTime } from '../../datasource'
 import {
   ShapeType,
   ResolutionType,
@@ -42,7 +43,7 @@ type Prop  = {
 }
 
 type State = {
-  studyChange: boolean
+  update: boolean
 }
 
 export default class ChartLayout extends React.Component<Prop, State> {
@@ -73,6 +74,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
     type: 'realtime',
   }
 
+  public refs: {
+    [propName: string]: Element
+    root: HTMLDivElement
+  }
+
   private _chartLayoutModel: ChartLayoutModel
   /**
    * 用于标记chart正在加载中，避免重复加载
@@ -80,11 +86,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
    */
   private _loading: boolean = false
   private _lastAnimationFrame: number
+  private _timeDiff: number
 
   constructor () {
     super()
     this.state = {
-      studyChange: false,
+      update: false,
     }
   }
 
@@ -93,14 +100,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.props.scrollable = false
       this.props.scalable = false
     }
-
-    this._chartLayoutModel = new ChartLayoutModel()
-
-    this.prepareMainChart()
   }
 
   public prepareMainChart () {
-    const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution)
+    const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution, this._timeDiff)
     const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = new AxisXModel(mainDatasource, crosshair)
     const axisY = new AxisYModel(mainDatasource, crosshair)
@@ -182,12 +185,24 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this.loadHistory().then(() => {
-      setTimeout(() => {
-        this.initEvents()
-        this.pulseUpdate()
-      }, 300)
-    })
+    // 首先获取服务器的时间
+    this.getServerTime()
+      .then(() => {
+        this._chartLayoutModel = new ChartLayoutModel()
+        this.prepareMainChart()
+        this.state.update = true
+        this.setState(this.state)
+        // 开始显示加载中菊花转
+        const spinner = new Spinner().spin(this.refs.root)
+        // 加载首屏数据
+        this.loadHistory()
+          .then(() => setTimeout(() => {
+              this.initEvents()
+              this.pulseUpdate()
+              spinner.stop()
+            }, 300)
+          )
+      })
   }
 
   public initEvents () {
@@ -195,6 +210,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.axisx.addListener('offsetchange', () => this.fullUpdate())
     this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.fullUpdate())
     this._chartLayoutModel.addListener('resolutionchange', resolution => {
+      // 股票类型时，分时图显示线形图，其他显示蜡烛图
       if (resolution === '1' && this._chartLayoutModel.mainDatasource instanceof StockDatasource) {
         this._chartLayoutModel.mainChart.graphs
           .filter(graph => graph instanceof StockModel)
@@ -211,7 +227,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
     this._chartLayoutModel.addListener('marginchange', () => this.lightUpdate())
     this._chartLayoutModel.addListener('studychange', () => {
-      this.state.studyChange = true
+      this.state.update = true
       this.setState(this.state)
       this.fullUpdate()
     })
@@ -265,6 +281,16 @@ export default class ChartLayout extends React.Component<Prop, State> {
       })
       this._lastAnimationFrame = null
     })
+  }
+
+  public getServerTime (): Promise<any> {
+    return new Promise((resolve, reject) => getServerTime().then(response => 
+      response.text()
+        .then(timeStr => {
+          this._timeDiff = ~~(Date.now() / 1000) - +timeStr
+          resolve()
+        })
+    ))
   }
 
   /**
@@ -341,7 +367,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
           promises.push(
             datasource.loadTimeRange(
               mainDatasource.last().time,
-              Date.now() / 1000
+              mainDatasource.now()
             )
           )
           return promises
@@ -361,9 +387,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public render () {
+    if (!this.state.update) {
+      return null
+    }
+
     const chartLayoutModel = this._chartLayoutModel
     let availWidth = this.props.width - 2
     let availHeight = this.props.height - AXIS_X_HEIGHT - 2
+
     if (this.props.shownavbar) {
       availHeight -= NAVBAR_HEIGHT
     }
@@ -373,6 +404,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     if (chartLayoutModel.charts.length > 1) {
       availHeight -= chartLayoutModel.charts.length - 1
     }
+
     const additionalChartCount = chartLayoutModel.charts.length - 1
     const mainChartHeight = ~~((1 - additionalChartCount * .3 > .3 ? 1 - additionalChartCount * .3 : .3) * availHeight)
     const addtionalChartHeight = ~~((availHeight - mainChartHeight) / additionalChartCount)
@@ -388,16 +420,16 @@ export default class ChartLayout extends React.Component<Prop, State> {
         chartLines.push(<div className='chart-separator'></div>)
       }
     }
+
     return (
-      <div className='chart-layout'>
+      <div className='chart-layout' ref='root'>
         {
           this.props.shownavbar ?
             <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} /> : null
         }
         <div className='chart-body'>
           {chartLines}
-          <AxisX
-            chartLayout={this._chartLayoutModel}
+          <AxisX chartLayout={this._chartLayoutModel}
             axis={this._chartLayoutModel.axisx}
             height={AXIS_X_HEIGHT}
             width={availWidth - AXIS_Y_WIDTH} />

@@ -64,8 +64,4 @@ export default class AxisXRenderer {
     }
     ctx.restore()
   }
-
-  set ctx (ctx: CanvasRenderingContext2D) {
-    this._ctx = ctx
-  }
 }

@@ -8,7 +8,7 @@ import StockModel from '../model/stock'
 import { ResolutionType, StudyType } from '../constant'
 
 export default class ChartLayoutModel extends EventEmitter {
-  public study: StudyType
+  public _study: StudyType
 
   private _charts: ChartModel[]
   private _axisx: AxisXModel
@@ -17,7 +17,7 @@ export default class ChartLayoutModel extends EventEmitter {
   constructor () {
     super()
     this._charts = []
-    this.study = null
+    this._study = null
   }
 
   public setResolution (resolution: ResolutionType) {
@@ -59,6 +59,15 @@ export default class ChartLayoutModel extends EventEmitter {
   public setCursorPoint (point: Point) {
     this.charts.forEach(ch => ch.crosshair.point = point)
     this.emit('cursormove')
+  }
+
+  set study (study: StudyType) {
+    this._study = study
+    this.emit('studychange')
+  }
+
+  get study (): StudyType {
+    return this._study
   }
 
   set charts (charts: ChartModel[]) {

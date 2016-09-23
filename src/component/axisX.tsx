@@ -24,27 +24,24 @@ export default class AxisX extends React.Component<Prop, any> {
   public componentWillMount () {
     this._chartLayout = this.props.chartLayout
     this._axis = this.props.axis
+    this._axis.size = {
+      height: this.props.height,
+      width: this.props.width,
+    }
   }
 
   public componentWillReceiveProps (nextProps: Prop) {
     this._chartLayout = nextProps.chartLayout
     this._axis = nextProps.axis
+    this._axis.size = {
+      height: nextProps.height,
+      width: nextProps.width,
+    }
   }
 
   public componentDidMount () {
-    this._axis.size = {
-      height: this.props.height,
-      width: this.props.width,
-    }
     document.addEventListener('mousemove', this.mouseMoveHandler)
     document.addEventListener('mouseup', this.mouseUpHandler)
-  }
-
-  public componentDidUpdate () {
-    this._axis.size = {
-      height: this.props.height,
-      width: this.props.width,
-    }
   }
 
   public componentWillUnmount () {

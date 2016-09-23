@@ -11,7 +11,7 @@ type Prop = {
 }
 
 type State = {
-  cursorMoved: boolean
+  update: boolean
   hit: boolean
 }
 
@@ -20,14 +20,14 @@ export default class Legend extends React.Component<Prop, State> {
   constructor (proportion: number) {
     super()
     this.state = {
-      cursorMoved: false,
+      update: false,
       hit: false,
     }
   }
 
   public componentDidMount () {
     this.props.chartModel.chartLayout.addListener('cursormove', () => {
-      this.state.cursorMoved = true
+      this.state.update = true
       this.setState(this.state)
     })
     this.props.chartModel.chartLayout.addListener('hit', hit => {
@@ -38,13 +38,13 @@ export default class Legend extends React.Component<Prop, State> {
       if (graph instanceof StockModel) {
         graph.resolveSymbol()
           .then(() => {
-            this.state.cursorMoved = true
+            this.state.update = true
             this.setState(this.state)
           })
       }
     })
     this.props.chartModel.chartLayout.on('resolutionchange', () => {
-      this.state.cursorMoved = true
+      this.state.update = true
       this.setState(this.state)
     })
   }

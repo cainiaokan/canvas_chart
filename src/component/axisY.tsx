@@ -45,13 +45,6 @@ export default class AxisY extends React.Component<Prop, any> {
     document.addEventListener('mouseup', this.onMouseUpHandler)
   }
 
-  public componentDidUpdate () {
-    this._axis.size = {
-      height: this.props.height,
-      width: this.props.width,
-    }
-  }
-
   public componentWillUnmount () {
     document.removeEventListener('mousemove', this.onMouseMoveHandler)
     document.removeEventListener('mouseup', this.onMouseUpHandler)

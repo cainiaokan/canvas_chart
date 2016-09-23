@@ -101,6 +101,5 @@ export default class FooterBar extends React.Component<Prop, State> {
       }
     }
     chartLayout.study = study as StudyType
-    chartLayout.emit('studychange')
   }
 }
