@@ -1,0 +1,33 @@
+.chart-indicator {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 12px;
+
+  position: absolute;
+  z-index: 99;
+  top: 24px;
+  right: 24px;
+
+  vertical-align: middle;
+
+  color: #ccc;
+  &:before {
+    display: inline-block;
+
+    width: 8px;
+    height: 8px;
+    margin-top: 2px;
+    margin-right: 2px;
+
+    content: '\0020';
+
+    border-radius: 100%;
+    background: #ccc;
+  }
+  &.open {
+    color: #318757;
+  }
+  &:before {
+    background: #318757;
+  }
+}

@@ -4,6 +4,7 @@ import { AXIS_Y_WIDTH } from '../../constant'
 import Legend from './../legend'
 import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
+import Indicator from './indicator'
 import AxisY from './../axisY'
 import { clientOffset } from '../../util'
 
@@ -14,7 +15,11 @@ type Prop = {
   height: number
 }
 
-export default class Chart extends React.Component<Prop, any> {
+type State = {
+  hover: boolean
+}
+
+export default class Chart extends React.Component<Prop, State> {
   public refs: {
     [propName: string]: any
     plot: HTMLDivElement
@@ -81,6 +86,7 @@ export default class Chart extends React.Component<Prop, any> {
   public render () {
     const width = ~~this.props.width - AXIS_Y_WIDTH
     const height = ~~this.props.height
+
     return <div className='chart-line'
       onMouseEnter={this.mouseEnterHandler.bind(this)}
       onMouseLeave={this.mouseLeaveHandler.bind(this)}>
@@ -114,6 +120,7 @@ export default class Chart extends React.Component<Prop, any> {
           onMouseLeave={this.mouseLeaveHandler.bind(this)}
           onClick={this.mouseClickHandler.bind(this)}>
         </canvas>
+        <Indicator chart={this._chart} />
       </div>
       <AxisY axis={this._chart.axisY} chartLayout={this._chartLayout} height={height} width={AXIS_Y_WIDTH} />
     </div>
