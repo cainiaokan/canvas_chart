@@ -1,4 +1,5 @@
 import { Datasource, IBar, DataAdapter, DataConverter } from '../datasource'
+import { setContext, clearContext } from '../datasource'
 import ChartModel from './chart'
 import PlotModel from './plot'
 import { YRange } from './axisy'
@@ -8,7 +9,7 @@ abstract class GraphModel {
   protected _datasource: Datasource
   protected _chart: ChartModel
   protected _adapter: DataAdapter
-  protected _converter: DataConverter
+  protected _calc: DataConverter
   protected _input: any[]
   protected _isPrice: boolean
 
@@ -23,13 +24,13 @@ abstract class GraphModel {
     chart: ChartModel,
     isPrice: boolean,
     adapter: DataAdapter,
-    converter: DataConverter,
+    calc: DataConverter,
     input: any = null) {
     this._datasource = datasource
     this._chart = chart
     this._isPrice = isPrice
     this._adapter = adapter
-    this._converter = converter
+    this._calc = calc
     this._input = input
     this._plots = []
     this._cache = {}
@@ -185,6 +186,8 @@ abstract class GraphModel {
 
     const data = []
 
+    setContext(this._datasource, this._adapter)
+
     for (
       let i = 0,
           len = bars.length,
@@ -194,11 +197,9 @@ abstract class GraphModel {
       bar = bars[i]
       cache = this._cache[bar.time]
       if (!cache) {
-        cache = this._converter(
+        cache = this._calc(
           this._adapter(bar),
           start,
-          this._datasource,
-          this._adapter,
           this._input
         )
         this._cache[bar.time] = cache
@@ -206,10 +207,7 @@ abstract class GraphModel {
       data.push(cache)
     }
 
-    // 清理缓存转换函数的缓存
-    if (this._converter.clearCache) {
-      this._converter.clearCache()
-    }
+    clearContext()
 
     const visibleBars = []
     let i = 0

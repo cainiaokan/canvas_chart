@@ -14,9 +14,13 @@ type State = {
 export default class Indicator extends React.Component<Prop, State> {
   private _chart: ChartModel
   private _isOpen: boolean
+  private _intervalCheckStatus: number
 
   constructor () {
     super()
+    this.state = {
+      isOpen: false,
+    }
   }
 
   public componentWillMount() {
@@ -29,13 +33,17 @@ export default class Indicator extends React.Component<Prop, State> {
 
   public componentDidMount () {
     this._isOpen = this.isOpen()
-    setInterval(() => {
+    this._intervalCheckStatus = setInterval(() => {
       const open = this.isOpen()
       if (this._isOpen !== open) {
         this.state.isOpen = open
         this.setState(this.state)
       }
     }, 10000)
+  }
+
+  public componentWillUnmount () {
+    clearInterval(this._intervalCheckStatus)
   }
 
   public render () {

@@ -120,7 +120,9 @@ export default class Chart extends React.Component<Prop, State> {
           onMouseLeave={this.mouseLeaveHandler.bind(this)}
           onClick={this.mouseClickHandler.bind(this)}>
         </canvas>
-        <Indicator chart={this._chart} />
+        {
+          this._chart.isMain ? <Indicator chart={this._chart} /> : null
+        }
       </div>
       <AxisY axis={this._chart.axisY} chartLayout={this._chartLayout} height={height} width={AXIS_Y_WIDTH} />
     </div>

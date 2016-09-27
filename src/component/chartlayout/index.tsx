@@ -166,17 +166,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
       new StudyModel(
         mainDatasource,
         chart,
-        'VOLUME',
-        function (bar: IStockBar) {
-          return [0, bar.time, bar.volume, bar.close < bar.open]
-        }
+        'VOLUME'
       ),
       new StockModel(
         mainDatasource,
         chart,
-        function (array: any): any[] {
-          return [array.slice(0, 6)]
-        },
         this.props.resolution === '1' && this.props.shape === 'candle' ? 'line' : this.props.shape,
         { lineWidth: 2 }
       ),

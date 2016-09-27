@@ -1,150 +1,241 @@
-import { Datasource, DataAdapter, DataConverter } from './'
+import { Datasource, DataAdapter } from './'
 
-export function cacheable (output: DataConverter): DataConverter {
-  let cache = {}
-  const cachebaleConverter: DataConverter = function (
-      data: any[],
-      index: number,
-      datasource: Datasource,
-      adapter: DataAdapter,
-      input: any[]): any[][] {
-    return output(data, index, datasource, adapter, input, cache)
-  }
-  cachebaleConverter.clearCache = () => cache = {}
-  return cachebaleConverter
+let context: {
+  datasource: Datasource
+  adapter: DataAdapter
+  cacheObj: {}
+} = null
+
+type Attr = {
+  prop: string
+  get: (c: number, n: number, datasource: Datasource, adapter: DataAdapter) => number
 }
 
-export function DEA (
-  signalLength: number,
-  slowLen: number,
-  fastLen: number,
-  curIndex: number,
-  datasource: Datasource,
-  adapter: DataAdapter,
-  cache: {[propName: string]: any}): number {
-  const cacheKey = 'DEA' + curIndex
-  const prevKey = 'DEA' + (curIndex - 1)
-
-  if (typeof cache[cacheKey] === 'number') {
-    return cache[cacheKey]
-  } else if (cache[prevKey]) {
-    return cache[cacheKey] =
-      2 / (signalLength + 1) *
-        (EMA(fastLen, curIndex, datasource, adapter, cache) -
-        EMA(slowLen, curIndex, datasource, adapter, cache)) +
-        (signalLength - 1) / (signalLength + 1) * cache[prevKey]
+export function setContext (datasource: Datasource, adapter: DataAdapter) {
+  context = {
+    datasource,
+    adapter,
+    cacheObj : {},
   }
-  let dateBack = curIndex - ~~(signalLength * 5)
-  dateBack = dateBack < 0 ? 0 : dateBack
-  let dea = 0
-  for (let i = dateBack + 1, len = curIndex, dif; i <= len; i++) {
-    dif = EMA(fastLen, i, datasource, adapter, cache) - EMA(slowLen, i, datasource, adapter, cache)
-    dea = 2 / (signalLength + 1) * dif + (signalLength - 1) / (signalLength + 1) * dea
-  }
-  cache[cacheKey] = dea
-  return dea
 }
 
-export function EMA (
-  length: number,
-  curIndex: number,
-  datasource: Datasource,
-  adapter: DataAdapter,
-  cache: {[propName: string]: any}): number {
-  const cacheKey = 'EMA' + length + curIndex
-  const prevKey = 'EMA' + length + (curIndex - 1)
-
-  if (typeof cache[cacheKey] === 'number') {
-    return cache[cacheKey]
-  } else if (cache[prevKey]) {
-    return cache[cacheKey] =
-      2 / (length + 1) * (adapter(datasource.barAt(curIndex))[2] - cache[prevKey]) + cache[prevKey]
-  }
-  let dateBack = curIndex - ~~(length * 5)
-  dateBack = dateBack < 0 ? 0 : dateBack
-  let ema = adapter(datasource.barAt(dateBack))[2]
-  for (let i = dateBack + 1, len = curIndex, bar; i <= len; i++) {
-    bar = adapter(datasource.barAt(i))
-    ema = 2 / (length + 1) * (bar[2] - ema) + ema
-  }
-  cache[cacheKey] = ema
-  return ema
+export function clearContext () {
+  context = null
 }
 
-export function RSV (
-  length: number,
-  curIndex: number,
-  datasource: Datasource,
-  adapter: DataAdapter,
-  cache: {[propName: string]: any}): number {
-  const cacheKey = 'RSV' + curIndex
-  if (cache[cacheKey]) {
-    return cache[cacheKey]
+export function MA (c: number, n: number, attr: Attr): number {
+  const { datasource, adapter } = context
+  const { get } = attr
+  const start = c - n + 1
+  const end = c + 1
+  let ma = 0
+
+  if (start < 0) {
+    return null
   }
-  const start = curIndex - length + 1
-  const bars = datasource.slice(start < 0 ? 0 : start, curIndex + 1)
-  const low = Math.min.apply(Math, bars.map(bar => adapter(bar)[4]))
-  const high = Math.max.apply(Math, bars.map(bar => adapter(bar)[3]))
-  const cur = adapter(datasource.barAt(curIndex))[2]
-  if (high === low) {
-    return cache[cacheKey] = 0
+
+  for (let i = start; i < end; i++) {
+    ma += get(i, n, datasource, adapter)
   }
-  const rsv = (cur - low) / (high - low) * 100
-  cache[cacheKey] = rsv
-  return rsv
+
+  return ma / (end - start)
 }
 
-export function K (
-  n: number,
-  fastLength: number,
-  curIndex: number,
-  datasource: Datasource,
-  adapter: DataAdapter,
-  cache: {[propName: string]: any}): number {
-  const cacheKey = 'K' + curIndex
-  const prevKey = 'K' + (curIndex - 1)
+export function STD (c: number, n: number, ma: number, attr: Attr) {
+  const { datasource, adapter } = context
+  const { get } = attr
+  const start = c - n + 1
 
-  if (typeof cache[cacheKey] === 'number') {
-    return cache[cacheKey]
-  } else if (cache[prevKey]) {
-    return cache[cacheKey] =
-      2 / fastLength * cache[prevKey] +
-      RSV(n, curIndex, datasource, adapter, cache) / fastLength
+  if (start < 0) {
+    return null
   }
 
-  let dateBack = curIndex - n * 10
-  dateBack = dateBack < 0 ? 0 : dateBack
-  let k = 50
-  for (let i = dateBack + 1, len = curIndex; i <= len; i++) {
-    k = 2 / fastLength * k + RSV(n, i, datasource, adapter, cache) / fastLength
+  let md = 0
+  for (let i = start; i <= c; i++) {
+    md += Math.pow(get(i, n, datasource, adapter) - ma, 2)
   }
-  cache[cacheKey] = k
-  return k
+  return Math.sqrt(md / n)
 }
 
-export function D (
-  n: number,
-  fastLength: number,
-  slowLength: number,
-  curIndex: number,
-  datasource: Datasource,
-  adapter: DataAdapter,
-  cache: {[propName: string]: any}): number {
-  const cacheKey = 'D' + curIndex
-  const prevKey = 'D' + (curIndex - 1)
-  if (typeof cache[cacheKey] === 'number') {
-    return cache[cacheKey]
-  } else if (cache[prevKey]) {
-    return cache[cacheKey] =
-      2 / slowLength * cache[prevKey] +
-      K(n, fastLength, curIndex, datasource, adapter, cache) / slowLength
+export function EMA (c: number, n: number, attr: Attr): number {
+  const { datasource, adapter, cacheObj } = context
+  const { prop, get } = attr
+  const cacheKey = 'ema' + prop + n + c
+  const prevKey = 'ema' + prop + n + (c - 1)
+
+  if (typeof cacheObj[cacheKey] === 'number') {
+    return cacheObj[cacheKey]
+  } else if (typeof cacheObj[prevKey] === 'number') {
+    return cacheObj[cacheKey] =
+      2 / (n + 1) * (get(c, n, datasource, adapter) - cacheObj[prevKey]) + cacheObj[prevKey]
+  } else {
+    const start = c - ~~(n * 5) < 0 ? 0 : c - ~~(n * 5)
+    let ema = 0
+    for (let i = start + 1, end = c + 1; i < end; i++) {
+      ema = 2 / (n + 1) * (get(i, n, datasource, adapter) - ema) + ema
+    }
+    cacheObj[cacheKey] = ema
+    return ema
   }
-  let dateBack = curIndex - n * 10
-  dateBack = dateBack < 0 ? 0 : dateBack
-  let d = 50
-  for (let i = dateBack + 1, len = curIndex; i <= len; i++) {
-    d = 2 / slowLength * d + K(n, fastLength, i, datasource, adapter, cache) / slowLength
-  }
-  cache[cacheKey] = d
-  return d
 }
+
+export function SMA (c: number, n: number, w: number, attr: Attr): number {
+  const { datasource, adapter, cacheObj } = context
+  const { prop, get } = attr
+  const cacheKey = 'sma' + prop + n + c
+  const prevKey = 'sma' + prop + n + (c - 1)
+
+  if (typeof cacheObj[cacheKey] === 'number') {
+    return cacheObj[cacheKey]
+  } else if (cacheObj[prevKey]) {
+    return cacheObj[cacheKey] =
+      (get(c, n, datasource, adapter) + (n - 1) * cacheObj[prevKey]) / n
+  }
+
+  const start = c - n * 10 < 0 ? 0 : c - n * 10
+  let sma = 50
+  for (let i = start + 1, end = c + 1; i < end; i++) {
+    sma = (get(i, n, datasource, adapter) + (n - 1) * sma) / n
+  }
+  cacheObj[cacheKey] = sma
+  return sma
+}
+
+export function LLV (c: number, n: number, attr: Attr): number {
+  const { datasource, adapter, cacheObj } = context
+  const { prop, get } = attr
+  const cacheKey = 'llv' + prop + n + c
+
+  if (typeof cacheObj[cacheKey] === 'number') {
+    return cacheObj[cacheKey]
+  }
+  const start = c - n + 1 < 0 ? 0 : c - n + 1
+  const end = c + 1
+  let min = Number.MAX_VALUE
+  for (let i = start, val; i < end; i++) {
+    val = get(i, n, datasource, adapter)
+    if (val < min) {
+      min = val
+    }
+  }
+  return cacheObj[cacheKey] = min
+}
+
+export function HHV (c: number, n: number, attr: Attr): number {
+  const { datasource, adapter, cacheObj } = context
+  const { prop, get } = attr
+  const cacheKey = 'hhv' + prop + n + c
+
+  if (typeof cacheObj[cacheKey] === 'number') {
+    return cacheObj[cacheKey]
+  }
+  const start = c - n + 1 < 0 ? 0 : c - n + 1
+  const end = c + 1
+  let max = -Number.MAX_VALUE
+  for (let i = start, val; i < end; i++) {
+    val = get(i, n, datasource, adapter)
+    if (val > max) {
+      max = val
+    }
+  }
+  return cacheObj[cacheKey] = max
+}
+
+// export function RSV (
+//   length: number,
+//   curIndex: number,
+//   datasource: Datasource,
+//   adapter: DataAdapter,
+//   cache: {[propName: string]: any}): number {
+//   const cacheKey = 'RSV' + curIndex
+//   if (cache[cacheKey]) {
+//     return cache[cacheKey]
+//   }
+//   const start = curIndex - length + 1 < 0 ? 0 : curIndex - length + 1
+//   const bars = datasource.slice(start, curIndex + 1)
+//   const low = Math.min.apply(Math, bars.map(bar => adapter(bar)[4]))
+//   const high = Math.max.apply(Math, bars.map(bar => adapter(bar)[3]))
+//   const cur = adapter(datasource.barAt(curIndex))[2]
+//   if (high === low) {
+//     return cache[cacheKey] = 0
+//   }
+//   const rsv = (cur - low) / (high - low) * 100
+//   cache[cacheKey] = rsv
+//   return rsv
+// }
+
+// export function K (
+//   n: number,
+//   fastLength: number,
+//   curIndex: number,
+//   datasource: Datasource,
+//   adapter: DataAdapter,
+//   cache: {[propName: string]: any}): number {
+//   const cacheKey = 'K' + curIndex
+//   const prevKey = 'K' + (curIndex - 1)
+
+//   if (typeof cache[cacheKey] === 'number') {
+//     return cache[cacheKey]
+//   } else if (cache[prevKey]) {
+//     return cache[cacheKey] =
+//       2 / fastLength * cache[prevKey] +
+//       RSV(n, curIndex, datasource, adapter, cache) / fastLength
+//   }
+
+//   let dateBack = curIndex - n * 10
+//   dateBack = dateBack < 0 ? 0 : dateBack
+//   let k = 50
+//   for (let i = dateBack + 1, len = curIndex; i <= len; i++) {
+//     k = 2 / fastLength * k + RSV(n, i, datasource, adapter, cache) / fastLength
+//   }
+//   cache[cacheKey] = k
+//   return k
+// }
+
+// export function D (
+//   n: number,
+//   fastLength: number,
+//   slowLength: number,
+//   curIndex: number,
+//   datasource: Datasource,
+//   adapter: DataAdapter,
+//   cache: {[propName: string]: any}): number {
+//   const cacheKey = 'D' + curIndex
+//   const prevKey = 'D' + (curIndex - 1)
+//   if (typeof cache[cacheKey] === 'number') {
+//     return cache[cacheKey]
+//   } else if (cache[prevKey]) {
+//     return cache[cacheKey] =
+//       2 / slowLength * cache[prevKey] +
+//       K(n, fastLength, curIndex, datasource, adapter, cache) / slowLength
+//   }
+//   let dateBack = curIndex - n * 10
+//   dateBack = dateBack < 0 ? 0 : dateBack
+//   let d = 50
+//   for (let i = dateBack + 1, len = curIndex; i <= len; i++) {
+//     d = 2 / slowLength * d + K(n, fastLength, i, datasource, adapter, cache) / slowLength
+//   }
+//   cache[cacheKey] = d
+//   return d
+// }
+
+// export function RSI (
+//   length: number,
+//   curIndex: number,
+//   datasource: Datasource,
+//   adapter: DataAdapter): number {
+//   const start = curIndex - length + 1 < 0 ? 0 : curIndex - length + 1
+//   const bars = datasource.slice(start, curIndex + 1)
+//   let positive = 0
+//   let negtive = 0
+//   bars.forEach((bar, i) => {
+//     const change = start + i - 1 < 0 ? 0 : adapter(bar)[2] - adapter(datasource.barAt(start + i - 1))[2]
+//     if (change >= 0) {
+//       positive += change
+//     } else {
+//       negtive -= change
+//     }
+//   })
+//   const RS = positive / negtive
+//   return RS / (1 + RS) * 100
+// }

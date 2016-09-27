@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { ShapeType } from '../constant'
-import { Datasource, IStockBar, DataConverter, SymbolInfo } from '../datasource'
+import { Datasource, SymbolInfo, IStockBar } from '../datasource'
 import { ChartStyle } from '../graphic/basechart'
 import ChartModel from './chart'
 import PlotModel from './plot'
@@ -11,14 +11,21 @@ export default class StockModel extends GraphModel {
   constructor (
     datasource: Datasource,
     chart: ChartModel,
-    converter: DataConverter,
     shape: ShapeType,
     style?: ChartStyle) {
 
-    super(datasource, chart, true, bar => {
-      const b = bar as IStockBar
-      return [0, b.time, b.open, b.close, b.high, b.low, b.volume, b.amount, b.changerate, b.turnover]
-    }, converter)
+    super(datasource, chart, true,
+      bar => {
+        const b = bar as IStockBar
+        return [
+          0, b.time,
+          b.open, b.close,
+          b.high, b.low,
+          b.volume, b.amount,
+          b.changerate, b.turnover,
+        ]
+      },
+      bar => [bar])
 
     this._plots.push(
       new PlotModel(

@@ -1,18 +1,14 @@
 import { ChartStyle } from '../graphic/basechart'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar, DataAdapter } from '../datasource'
-import { cacheable, EMA, DEA, K, D } from './studyhelper'
+import { MA, STD, EMA, LLV, HHV, SMA } from './studyhelper'
 
 export type DataConverter = {
   (
     data: any[],
     index: number,
-    datasource: Datasource,
-    adapter: DataAdapter,
-    input: any[],
-    cache?: {[propName: string]: any}
+    input: any[]
   ): any[][]
-  clearCache? (): void
 }
 
 type StudyConfig = {
@@ -29,6 +25,13 @@ type StudyConfig = {
   }
 }
 
+const CLOSE = {
+  prop: 'close',
+  get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+    return adapter(datasource.barAt(c))[2]
+  },
+}
+
 export const studyConfig: StudyConfig = {
   'MA': {
     stockAdapter (bar: IStockBar) {
@@ -36,28 +39,16 @@ export const studyConfig: StudyConfig = {
     },
     input: [5],
     isPrice: true,
-    output: (
-      data: any[],
-      index: number,
-      datasource: Datasource,
-      adapter: DataAdapter,
-      input: any[]): any[][] => {
-
+    output: (data: any[], index: number, input: any[]): any[][] => {
       const n = input[0]
-      const start = index - n + 1
-      const end = index + 1
-
-      if (end - start < n || start < 0) {
-        return null
-      }
-
-      return [
+      const ma = MA(index, n, CLOSE)
+      return ma !== null ? [
         [
-          data[0],
+          0,
           data[1],
-          datasource.slice(start, end).reduce((prev, cur) => prev + adapter(cur)[2], 0) / n,
+          ma,
         ],
-      ]
+      ] : null
     },
     plots: [
       {
@@ -76,7 +67,9 @@ export const studyConfig: StudyConfig = {
     input: [],
     isPrice: false,
     output: (data: any[]): any[][] => {
-      return [data.slice(0, 4)]
+      return [
+        data,
+      ]
     },
     plots: [
       {
@@ -95,27 +88,20 @@ export const studyConfig: StudyConfig = {
     },
     input: [20, 2],
     isPrice: true,
-    output: (
-      data: any[],
-      index: number,
-      datasource: Datasource,
-      adapter: DataAdapter,
-      input: any[]): any[][] => {
+    output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
       const n = input[0]
-      const dateBack = index - n + 1 < 0 ? 0 : index - n + 1
-      const ma = datasource
-        .slice(dateBack, index + 1)
-        .reduce((prev, cur) => prev + adapter(cur)[2], 0) / (index + 1 - dateBack)
-      let md = 0
-      for (let i = dateBack; i <= index; i++) {
-        md += Math.pow(adapter(datasource.barAt(i))[2] - ma, 2)
+      const ma = MA(index, n, CLOSE)
+
+      if (ma === null) {
+        return null
       }
-      md = Math.sqrt(md / n)
+
+      const md = STD(index, n, ma, CLOSE)
       const posX = data[0]
       const time = data[1]
-      const upper = ma + input[1] * md
-      const lower = ma - input[1] * md
+      const ub = ma + input[1] * md
+      const lb = ma - input[1] * md
       return [
         [
           posX,
@@ -125,18 +111,18 @@ export const studyConfig: StudyConfig = {
         [
           posX,
           time,
-          upper,
+          ub,
         ],
         [
           posX,
           time,
-          lower,
+          lb,
         ],
         [
           posX,
           time,
-          upper,
-          lower,
+          ub,
+          lb,
         ],
       ]
     },
@@ -178,26 +164,27 @@ export const studyConfig: StudyConfig = {
     },
     input: [12, 26, 9],
     isPrice: false,
-    output: cacheable((
+    output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
-      data: any[],
-      index: number,
-      datasource: Datasource,
-      adapter: DataAdapter,
-      input: any[],
-      cache: {[propName: string]: any}): any[][] => {
-      const posX = data[0]
+      const fast = input[0]
+      const slow = input[1]
+      const signal = input[2]
       const time = data[1]
-      const dif = EMA(input[0], index, datasource, adapter, cache) -
-        EMA(input[1], index, datasource, adapter, cache)
-      const dea = DEA(input[2], input[1], input[0], index, datasource, adapter, cache)
-      const bar = (dif - dea) * 2
+      const DIF = EMA(index, fast, CLOSE) - EMA(index, slow, CLOSE)
+      const DIF1 = {
+        prop: 'dif',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return EMA(c, fast, CLOSE) - EMA(c, slow, CLOSE)
+        },
+      }
+      const DEA = EMA(index, signal, DIF1)
+      const MACD = (DIF - DEA) * 2
       return [
-        [posX, time, bar],
-        [posX, time, dif],
-        [posX, time, dea],
+        [0, time, MACD],
+        [0, time, DIF],
+        [0, time, DEA],
       ]
-    }),
+    },
     plots: [
       {
         shape: 'histogram',
@@ -227,24 +214,50 @@ export const studyConfig: StudyConfig = {
     },
     input: [9, 3, 3],
     isPrice: false,
-    output: cacheable((
-      data: any[],
-      index: number,
-      datasource: Datasource,
-      adapter: DataAdapter,
-      input: any[],
-      cache: {[propName: string]: any}): any[][] => {
-      const k = K(input[0], input[1], index, datasource, adapter, cache)
-      const d = D(input[0], input[1], input[2], index, datasource, adapter, cache)
+    output: (data: any[], index: number, input: any[]): any[][] => {
+      const signal = input[0]
+      const HIGH = {
+        prop: 'high',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return adapter(datasource.barAt(c))[3]
+        },
+      }
+
+      const LOW = {
+        prop: 'low',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return adapter(datasource.barAt(c))[4]
+        },
+      }
+      const RSV = {
+        prop: 'rsv',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return (adapter(datasource.barAt(c))[2] - LLV(c, signal, LOW)) /
+            (HHV(c, signal, HIGH) - LLV(c, signal, LOW)) * 100
+        },
+      }
+      const K = {
+        prop: 'k',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return SMA(c, n, 1, RSV)
+        },
+      }
+      const D = {
+        prop: 'd',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return SMA(c, n, 1, K)
+        },
+      }
+      const k = SMA(index, input[1], 1, K)
+      const d = SMA(index, input[2], 1, D)
       const j = 3 * k - 2 * d
-      const x = data[0]
       const time = data[1]
       return [
-        [x, time, k],
-        [x, time, d],
-        [x, time, j],
+        [0, time, k],
+        [0, time, d],
+        [0, time, j],
       ]
-    }),
+    },
     plots: [
       {
         shape: 'line',
@@ -266,4 +279,45 @@ export const studyConfig: StudyConfig = {
       },
     ],
   },
+  // 'RSI': {
+  //   stockAdapter (bar: IStockBar) {
+  //     return [0, bar.time, bar.close]
+  //   },
+  //   input: [6, 12, 24],
+  //   isPrice: false,
+  //   output: (
+  //     data: any[],
+  //     index: number,
+  //     datasource: Datasource,
+  //     adapter: DataAdapter,
+  //     input: any[]): any[][] => {
+  //     const x = data[0]
+  //     const time = data[1]
+  //     return [
+  //       [x, time, RSI(input[0], index, datasource, adapter)],
+  //       [x, time, RSI(input[1], index, datasource, adapter)],
+  //       [x, time, RSI(input[2], index, datasource, adapter)],
+  //     ]
+  //   },
+  //   plots: [
+  //     {
+  //       shape: 'line',
+  //       style: {
+  //         color: '#f8b439',
+  //       },
+  //     },
+  //     {
+  //       shape: 'line',
+  //       style: {
+  //         color: '#1b96ff',
+  //       },
+  //     },
+  //     {
+  //       shape: 'line',
+  //       style: {
+  //         color: '#ea45b3',
+  //       },
+  //     },
+  //   ],
+  // },
 }
