@@ -1,7 +1,7 @@
 import { ChartStyle } from '../graphic/basechart'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar, DataAdapter } from '../datasource'
-import { MA, STD, EMA, LLV, HHV, SMA } from './studyhelper'
+import { MA, STD, EMA, LLV, HHV, SMA, REF } from './studyhelper'
 
 export type DataConverter = {
   (
@@ -242,14 +242,8 @@ export const studyConfig: StudyConfig = {
           return SMA(c, n, 1, RSV)
         },
       }
-      const D = {
-        prop: 'd',
-        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
-          return SMA(c, n, 1, K)
-        },
-      }
-      const k = SMA(index, input[1], 1, K)
-      const d = SMA(index, input[2], 1, D)
+      const k = SMA(index, input[1], 1, RSV)
+      const d = SMA(index, input[2], 1, K)
       const j = 3 * k - 2 * d
       const time = data[1]
       return [
@@ -279,45 +273,51 @@ export const studyConfig: StudyConfig = {
       },
     ],
   },
-  // 'RSI': {
-  //   stockAdapter (bar: IStockBar) {
-  //     return [0, bar.time, bar.close]
-  //   },
-  //   input: [6, 12, 24],
-  //   isPrice: false,
-  //   output: (
-  //     data: any[],
-  //     index: number,
-  //     datasource: Datasource,
-  //     adapter: DataAdapter,
-  //     input: any[]): any[][] => {
-  //     const x = data[0]
-  //     const time = data[1]
-  //     return [
-  //       [x, time, RSI(input[0], index, datasource, adapter)],
-  //       [x, time, RSI(input[1], index, datasource, adapter)],
-  //       [x, time, RSI(input[2], index, datasource, adapter)],
-  //     ]
-  //   },
-  //   plots: [
-  //     {
-  //       shape: 'line',
-  //       style: {
-  //         color: '#f8b439',
-  //       },
-  //     },
-  //     {
-  //       shape: 'line',
-  //       style: {
-  //         color: '#1b96ff',
-  //       },
-  //     },
-  //     {
-  //       shape: 'line',
-  //       style: {
-  //         color: '#ea45b3',
-  //       },
-  //     },
-  //   ],
-  // },
+  'RSI': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.close]
+    },
+    input: [6, 12, 24],
+    isPrice: false,
+    output: (data: any[], index: number, input: any[]): any[][] => {
+      const time = data[1]
+      const POS = {
+        prop: 'pos',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return Math.max(adapter(datasource.barAt(c))[2] - REF(c, n, CLOSE), 0)
+        },
+      }
+      const ABS = {
+        prop: 'abs',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          return Math.abs(adapter(datasource.barAt(c))[2] - REF(c, n, CLOSE))
+        },
+      }
+      return [
+        [0, time, SMA(index, input[0], 1, POS) / SMA(index, input[0], 1, ABS) * 100],
+        [0, time, SMA(index, input[1], 1, POS) / SMA(index, input[1], 1, ABS) * 100],
+        [0, time, SMA(index, input[2], 1, POS) / SMA(index, input[2], 1, ABS) * 100],
+      ]
+    },
+    plots: [
+      {
+        shape: 'line',
+        style: {
+          color: '#f8b439',
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#1b96ff',
+        },
+      },
+      {
+        shape: 'line',
+        style: {
+          color: '#ea45b3',
+        },
+      },
+    ],
+  },
 }
