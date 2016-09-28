@@ -84,8 +84,11 @@ export default class PlotModel {
   public getVisibleBars (): IBar[] {
     const visibleBars = this._graph.getVisibleBars()
     const results = []
-    for (let i = 0, len = visibleBars.length, index = this._index; i < len; i++) {
-      results.push(visibleBars[i][index])
+    for (let i = 0, len = visibleBars.length, index = this._index, bar; i < len; i++) {
+      bar = visibleBars[i][index]
+      if (bar) {
+        results.push(bar)
+      }
     }
     return results
   }

@@ -227,7 +227,9 @@ abstract class GraphModel {
         j++
       } else if (curBar[1] === timeBar.time) {
         for (let k = 0, cbar = curData, klen = cbar.length; k < klen; k++) {
-          cbar[k][0] = timeBar.x
+          if (cbar[k]) {
+            cbar[k][0] = timeBar.x
+          }
         }
         visibleBars.push(curData)
         i++

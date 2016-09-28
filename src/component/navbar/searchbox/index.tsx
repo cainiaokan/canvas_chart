@@ -1,8 +1,8 @@
 import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import { StockDatasource, SymbolInfo } from '../../datasource'
-import ChartLayoutModel from '../../model/chartlayout'
+import { StockDatasource, SymbolInfo } from '../../../datasource'
+import ChartLayoutModel from '../../../model/chartlayout'
 
 type Prop = {
   chartLayout: ChartLayoutModel

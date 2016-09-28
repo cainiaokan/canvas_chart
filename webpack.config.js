@@ -35,16 +35,11 @@ module.exports = {
         loader: 'style!css!csso?comments=false!postcss!less'
       },
       {
-        test: /\.png$/,
-        loader: 'url?mimetype=image/png'
-      },
-      {
-        test: /\.gif$/,
-        loader: 'url?mimetype=image/gif'
-      },
-      {
-        test: /\.jpg$/,
-        loader: 'url?mimetype=image/jpg'
+        test: /\.(jpe?g|png|gif|svg)$/i,
+        loaders: [
+          'image?{bypassOnDebug: true, progressive:true, optimizationLevel: 3, pngquant:{quality: "65-80"}}',
+          'url?limit=10000&name=img/[hash:8].[name].[ext]',
+        ]
       }
     ]
   },

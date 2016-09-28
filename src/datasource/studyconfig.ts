@@ -1,7 +1,7 @@
 import { ChartStyle } from '../graphic/basechart'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar, DataAdapter } from '../datasource'
-import { MA, STD, AVEDEV, EMA, LLV, HHV, SMA, REF, } from './studyhelper'
+import { MA, STD, AVEDEV, EMA, LLV, HHV, SMA, REF } from './studyhelper'
 
 export type DataConverter = {
   (
@@ -90,17 +90,15 @@ export const studyConfig: StudyConfig = {
     isPrice: true,
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
-      const n = input[0]
-      const ma = MA(index, n, CLOSE)
-
-      if (ma === null) {
+      if (index - input[0] < 0) {
         return null
       }
-
-      const md = STD(index, n, CLOSE)
+      const n = input[0]
+      const ma = MA(index, n, CLOSE)
+      const mb = STD(index, n, CLOSE)
       const time = data[1]
-      const ub = ma + input[1] * md
-      const lb = ma - input[1] * md
+      const ub = ma + input[1] * mb
+      const lb = ma - input[1] * mb
       return [
         [
           0,
@@ -215,6 +213,9 @@ export const studyConfig: StudyConfig = {
     isPrice: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const signal = input[0]
+      if (index - signal < 0) {
+        return null
+      }
       const HIGH = {
         prop: 'high',
         get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
@@ -308,9 +309,9 @@ export const studyConfig: StudyConfig = {
         },
       }
       return [
-        [0, time, SMA(index, input[0], 1, POS) / SMA(index, input[0], 1, ABS) * 100],
-        [0, time, SMA(index, input[1], 1, POS) / SMA(index, input[1], 1, ABS) * 100],
-        [0, time, SMA(index, input[2], 1, POS) / SMA(index, input[2], 1, ABS) * 100],
+        index - input[0] >= 0 ? [0, time, SMA(index, input[0], 1, POS) / SMA(index, input[0], 1, ABS) * 100] : null,
+        index - input[1] >= 0 ? [0, time, SMA(index, input[1], 1, POS) / SMA(index, input[1], 1, ABS) * 100] : null,
+        index - input[2] >= 0 ? [0, time, SMA(index, input[2], 1, POS) / SMA(index, input[2], 1, ABS) * 100] : null,
       ]
     },
     plots: [
@@ -341,8 +342,11 @@ export const studyConfig: StudyConfig = {
     input: [14],
     isPrice: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
-      const time = data[1]
       const len = input[0]
+      if (index - len < 0) {
+        return null
+      }
+      const time = data[1]
       const TYP = {
         prop: 'typ',
         get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
@@ -350,12 +354,12 @@ export const studyConfig: StudyConfig = {
           return (bar[2] + bar[3] + bar[4]) / 3
         },
       }
-      const typ = (data[2] + data[3] + data[4]) / 3
+
       return [
         [
           0,
           time,
-          (typ - MA(index, len, TYP)) / (0.015 * AVEDEV(index, len, TYP)),
+          ((data[2] + data[3] + data[4]) / 3 - MA(index, len, TYP)) / (0.015 * AVEDEV(index, len, TYP)),
         ],
       ]
     },

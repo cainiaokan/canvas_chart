@@ -1,7 +1,8 @@
 import './index.less'
 import * as React from 'react'
 import { ResolutionType } from '../../constant'
-import SearchBox from './../searchbox'
+import SearchBox from './searchbox'
+import FullScreen from './fullscreen'
 import ChartLayoutModel from '../../model/chartlayout'
 
 type Prop = {
@@ -42,6 +43,7 @@ export default class Navbar extends React.Component<Prop, State> {
             })
           }
         </div>
+        <FullScreen />
       </div>
     )
   }
