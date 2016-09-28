@@ -25,7 +25,7 @@ export default class FooterBar extends React.Component<Prop, State> {
   }
 
   public render () {
-    const studies = ['MACD', 'BOLL', 'KDJ', 'RSI']
+    const studies = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI']
     return (
       <div className='chart-footerbar'>
         <div className='control-list'>

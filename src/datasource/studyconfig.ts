@@ -1,7 +1,7 @@
 import { ChartStyle } from '../graphic/basechart'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar, DataAdapter } from '../datasource'
-import { MA, STD, EMA, LLV, HHV, SMA, REF } from './studyhelper'
+import { MA, STD, AVEDEV, EMA, LLV, HHV, SMA, REF, } from './studyhelper'
 
 export type DataConverter = {
   (
@@ -97,29 +97,28 @@ export const studyConfig: StudyConfig = {
         return null
       }
 
-      const md = STD(index, n, ma, CLOSE)
-      const posX = data[0]
+      const md = STD(index, n, CLOSE)
       const time = data[1]
       const ub = ma + input[1] * md
       const lb = ma - input[1] * md
       return [
         [
-          posX,
+          0,
           time,
           ma,
         ],
         [
-          posX,
+          0,
           time,
           ub,
         ],
         [
-          posX,
+          0,
           time,
           lb,
         ],
         [
-          posX,
+          0,
           time,
           ub,
           lb,
@@ -171,13 +170,13 @@ export const studyConfig: StudyConfig = {
       const signal = input[2]
       const time = data[1]
       const DIF = EMA(index, fast, CLOSE) - EMA(index, slow, CLOSE)
-      const DIF1 = {
+      const DIFT = {
         prop: 'dif',
         get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
           return EMA(c, fast, CLOSE) - EMA(c, slow, CLOSE)
         },
       }
-      const DEA = EMA(index, signal, DIF1)
+      const DEA = EMA(index, signal, DIFT)
       const MACD = (DIF - DEA) * 2
       return [
         [0, time, MACD],
@@ -242,10 +241,25 @@ export const studyConfig: StudyConfig = {
           return SMA(c, n, 1, RSV)
         },
       }
-      const k = SMA(index, input[1], 1, RSV)
-      const d = SMA(index, input[2], 1, K)
-      const j = 3 * k - 2 * d
+      let k = SMA(index, input[1], 1, RSV)
+      let d = SMA(index, input[2], 1, K)
+      let j = 3 * k - 2 * d
       const time = data[1]
+      if (k < 0) {
+        k = 0
+      } else if (k > 100) {
+        k = 100
+      }
+      if (d < 0) {
+        d = 0
+      } else if (d > 100) {
+        d = 100
+      }
+      if (j < 0) {
+        j = 0
+      } else if (j > 100) {
+        j = 100
+      }
       return [
         [0, time, k],
         [0, time, d],
@@ -316,6 +330,40 @@ export const studyConfig: StudyConfig = {
         shape: 'line',
         style: {
           color: '#ea45b3',
+        },
+      },
+    ],
+  },
+  'CCI': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.high, bar.low, bar.close]
+    },
+    input: [14],
+    isPrice: false,
+    output: (data: any[], index: number, input: any[]): any[][] => {
+      const time = data[1]
+      const len = input[0]
+      const TYP = {
+        prop: 'typ',
+        get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
+          const bar = adapter(datasource.barAt(c))
+          return (bar[2] + bar[3] + bar[4]) / 3
+        },
+      }
+      const typ = (data[2] + data[3] + data[4]) / 3
+      return [
+        [
+          0,
+          time,
+          (typ - MA(index, len, TYP)) / (0.015 * AVEDEV(index, len, TYP)),
+        ],
+      ]
+    },
+    plots: [
+      {
+        shape: 'line',
+        style: {
+          color: 'rgba( 60, 120, 216, 1)',
         },
       },
     ],

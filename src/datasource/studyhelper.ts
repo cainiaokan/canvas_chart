@@ -41,20 +41,58 @@ export function MA (c: number, n: number, attr: Attr): number {
   return ma / (end - start)
 }
 
-export function STD (c: number, n: number, ma: number, attr: Attr) {
+export function STD (c: number, n: number, attr: Attr): number {
   const { datasource, adapter } = context
   const { get } = attr
   const start = c - n + 1
+  const end = c + 1
 
   if (start < 0) {
     return null
   }
 
+  let ma = 0
+
+  for (let i = start; i < end; i++) {
+    ma += get(i, n, datasource, adapter)
+  }
+
+  ma /= end - start
+
   let md = 0
-  for (let i = start; i <= c; i++) {
+
+  for (let i = start; i < end; i++) {
     md += Math.pow(get(i, n, datasource, adapter) - ma, 2)
   }
-  return Math.sqrt(md / n)
+
+  return Math.sqrt(md / (end - start))
+}
+
+export function AVEDEV (c: number, n: number, attr: Attr): number {
+  const { datasource, adapter } = context
+  const { get } = attr
+  const start = c - n + 1
+  const end = c + 1
+
+  if (start < 0) {
+    return null
+  }
+
+  let ma = 0
+
+  for (let i = start; i < end; i++) {
+    ma += get(i, n, datasource, adapter)
+  }
+
+  ma /= end - start
+
+  let dev = 0
+
+  for (let i = start; i < end; i++) {
+    dev += Math.abs(get(i, n, datasource, adapter) - ma)
+  }
+
+  return dev / (end - start)
 }
 
 export function EMA (c: number, n: number, attr: Attr): number {
