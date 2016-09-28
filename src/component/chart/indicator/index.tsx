@@ -1,7 +1,7 @@
-import './indicator.less'
+import './index.less'
 import * as React from 'react'
 
-import ChartModel from '../../model/chart'
+import ChartModel from '../../../model/chart'
 
 type Prop = {
   chart: ChartModel
