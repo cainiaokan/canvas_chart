@@ -18,14 +18,15 @@ export interface ITimeBar {
 }
 
 const MARGIN = 50
-export const MAX_BAR_WIDTH = 50
-export const MIN_BAR_WIDTH = 3
+export const MAX_BAR_WIDTH = 30
+export const MIN_BAR_WIDTH = 1
 
 export default class AxisXModel extends EventEmitter {
 
   public ctx: CanvasRenderingContext2D
 
   private _size: ISize
+
   private _barWidth: number = 5
   private _offset: number = -MARGIN
   private _datasource: Datasource

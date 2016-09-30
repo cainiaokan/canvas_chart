@@ -24,6 +24,7 @@ export default class Chart extends React.Component<Prop, State> {
     [propName: string]: any
     plot: HTMLDivElement
   }
+  private _isSupportTouch = 'ontouchend' in document ? true : false
   private _chart: ChartModel
   private _chartLayout: ChartLayout
   private _dragOffsetStart: boolean
@@ -62,12 +63,20 @@ export default class Chart extends React.Component<Prop, State> {
         this.refs.plot.style.cursor = hover ? 'pointer' : 'crosshair'
       }
     })
-    document.addEventListener('mousemove', this.dragMoveHandler)
+    if (this._isSupportTouch) {
+      document.addEventListener('touchmove', this.dragMoveHandler)
+    } else {
+      document.addEventListener('mousemove', this.dragMoveHandler)
+    }
     document.addEventListener('mouseup', this.mouseUpHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener('mousemove', this.dragMoveHandler)
+    if (this._isSupportTouch) {
+      document.removeEventListener('touchmove', this.dragMoveHandler)
+    } else {
+      document.removeEventListener('mousemove', this.dragMoveHandler)
+    }
     document.removeEventListener('mouseup', this.mouseUpHandler)
   }
 
@@ -114,11 +123,14 @@ export default class Chart extends React.Component<Prop, State> {
               }
             }
           } width={width} height={height}
-          onMouseMove={this.mouseMoveHandler.bind(this)}
-          onMouseDown={this.mouseDownHandler.bind(this)}
-          onMouseEnter={this.mouseEnterHandler.bind(this)}
-          onMouseLeave={this.mouseLeaveHandler.bind(this)}
-          onClick={this.mouseClickHandler.bind(this)}>
+          onMouseMove={this._isSupportTouch ? null : this.mouseMoveHandler.bind(this)}
+          onMouseDown={this._isSupportTouch ? null : this.mouseDownHandler.bind(this)}
+          onMouseEnter={this._isSupportTouch ? null : this.mouseEnterHandler.bind(this)}
+          onMouseLeave={this._isSupportTouch ? null : this.mouseLeaveHandler.bind(this)}
+          onTouchStart={this._isSupportTouch ? this.mouseDownHandler.bind(this) : null}
+          onTouchEnd={this._isSupportTouch ? this.mouseUpHandler.bind(this) : null}
+          onTouchMove={this._isSupportTouch ? this.mouseMoveHandler.bind(this) : null}
+          >
         </canvas>
         {
           this._chart.isMain ? <Indicator chart={this._chart} /> : null
@@ -128,47 +140,62 @@ export default class Chart extends React.Component<Prop, State> {
     </div>
   }
 
-  private mouseClickHandler (ev: MouseEvent) {
-    this._chart.hitTest(true)
-  }
-
-  private mouseEnterHandler (ev: MouseEvent) {
+  private mouseEnterHandler () {
     this._chart.hover = true
   }
 
-  private mouseLeaveHandler (ev: MouseEvent) {
+  private mouseLeaveHandler () {
     this._chart.hover = false
     this._chart.graphs.forEach(graph => graph.hover = false)
     this._chartLayout.setCursorPoint(null)
   }
 
-  private mouseDownHandler (ev: MouseEvent) {
+  private mouseDownHandler (ev: any) {
     this._chartLayout.charts
       .forEach(chart =>
         chart.graphs.filter(graph => graph.selected)
           .forEach(graph => graph.selected = false)
       )
     this._dragOffsetStart = true
-    this._dragPosX = ev.pageX
+    if (this._isSupportTouch) {
+      const offset = clientOffset(ev.target as HTMLElement)
+      this._chartLayout.charts.forEach(chart => chart.hover = false)
+      this._chartLayout.charts.forEach(chart => chart.graphs.forEach(graph => graph.hover = false))
+      this._chart.hover = true
+      this._dragPosX = ev.touches[0].pageX
+      this._chartLayout.setCursorPoint({
+        x: ev.touches[0].clientX - offset.offsetLeft,
+        y: ev.touches[0].clientY - offset.offsetTop,
+      })
+    } else {
+      this._dragPosX = ev.pageX
+    }
+    this._chart.hitTest(true)
   }
 
-  private mouseUpHandler (ev: MouseEvent) {
+  private mouseUpHandler () {
     this._dragOffsetStart = false
   }
 
-  private mouseMoveHandler (ev: MouseEvent) {
+  private mouseMoveHandler (ev: any) {
     const offset = clientOffset(ev.target as HTMLElement)
-    const point = {
-      x: ev.clientX - offset.offsetLeft,
-      y: ev.clientY - offset.offsetTop,
-    }
+    const point = this._isSupportTouch ? {
+        x: ev.touches[0].clientX - offset.offsetLeft,
+        y: ev.touches[0].clientY - offset.offsetTop,
+      } :
+      {
+        x: ev.clientX - offset.offsetLeft,
+        y: ev.clientY - offset.offsetTop,
+      }
     this._chartLayout.setCursorPoint(point)
     this._chart.hitTest()
   }
 
-  private dragMoveHandler (ev: MouseEvent) {
+  private dragMoveHandler (ev: any) {
+    ev.preventDefault()
+    ev.stopPropagation()
     if (this._dragOffsetStart) {
-      const pageX = ev.pageX
+      const pageX = this._isSupportTouch ? ev.touches[0].pageX : ev.pageX
       const axisX = this._chartLayout.axisx
       const curOffset = axisX.offset
       const newOffset = curOffset + pageX - this._dragPosX

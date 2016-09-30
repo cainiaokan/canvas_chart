@@ -14,6 +14,7 @@ export default class AxisX extends React.Component<Prop, any> {
   private _axis: AxisXModel
   private _dragBarWidthStart: boolean
   private _dragPosX: number
+  private _isSupportTouch = 'ontouchend' in document ? true : false
 
   constructor () {
     super()
@@ -40,13 +41,23 @@ export default class AxisX extends React.Component<Prop, any> {
   }
 
   public componentDidMount () {
-    document.addEventListener('mousemove', this.mouseMoveHandler)
-    document.addEventListener('mouseup', this.mouseUpHandler)
+    if (this._isSupportTouch) {
+      document.addEventListener('touchmove', this.mouseMoveHandler)
+      document.addEventListener('touchend', this.mouseUpHandler)
+    } else {
+      document.addEventListener('mousemove', this.mouseMoveHandler)
+      document.addEventListener('mouseup', this.mouseUpHandler)
+    }
   }
 
   public componentWillUnmount () {
-    document.removeEventListener('mousemove', this.mouseMoveHandler)
-    document.removeEventListener('mouseup', this.mouseUpHandler)
+    if (this._isSupportTouch) {
+      document.removeEventListener('touchmove', this.mouseMoveHandler)
+      document.removeEventListener('touchend', this.mouseUpHandler)
+    } else {
+      document.removeEventListener('mousemove', this.mouseMoveHandler)
+      document.removeEventListener('mouseup', this.mouseUpHandler)
+    }
   }
 
   public render () {
@@ -55,7 +66,8 @@ export default class AxisX extends React.Component<Prop, any> {
     return (
       <div className='chart-line'>
         <div className='chart-axisx'
-          onMouseDown={this.mouseDownHandler.bind(this)}
+          onMouseDown={!this._isSupportTouch ? this.mouseDownHandler.bind(this) : null}
+          onTouchStart={this._isSupportTouch ? this.mouseDownHandler.bind(this) : null}
           style={ {height: height, width: width} }>
           <canvas ref={el => {
             if (el) {
@@ -69,12 +81,12 @@ export default class AxisX extends React.Component<Prop, any> {
     )
   }
 
-  private mouseMoveHandler (ev: MouseEvent) {
+  private mouseMoveHandler (ev: any) {
     if (this._dragBarWidthStart) {
       const axisX = this._axis
-      const pageX = ev.pageX
+      const pageX = this._isSupportTouch ? ev.touches[0].pageX : ev.pageX
       const curBarWidth = axisX.barWidth
-      const newBarWidth = curBarWidth - (ev.pageX - this._dragPosX) / 50
+      const newBarWidth = curBarWidth - (pageX - this._dragPosX) / 100
       if (newBarWidth < MIN_BAR_WIDTH) {
         axisX.barWidth = MIN_BAR_WIDTH
       } else if (newBarWidth > MAX_BAR_WIDTH) {
@@ -87,8 +99,12 @@ export default class AxisX extends React.Component<Prop, any> {
     }
   }
 
-  private mouseDownHandler (ev: MouseEvent) {
-    this._dragPosX = ev.pageX
+  private mouseDownHandler (ev: any) {
+    if (this._isSupportTouch) {
+      this._dragPosX = ev.touches[0].pageX
+    } else {
+      this._dragPosX = ev.pageX
+    }
     this._dragBarWidthStart = true
   }
 

@@ -8,7 +8,7 @@ import Navbar from '../navbar'
 import FooterBar from '../footerbar'
 import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
-import { StockDatasource, IStockBar, getServerTime } from '../../datasource'
+import { StockDatasource, getServerTime } from '../../datasource'
 import {
   ShapeType,
   ResolutionType,
