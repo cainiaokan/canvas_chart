@@ -22,8 +22,7 @@
     "underscore": "^1.8.3",
     "url-loader": "^0.5.7",
     "webpack": "^1.13.0",
-    "webpack-dev-server": "^1.14.1",
-    "zepto": "^1.2.0"
+    "webpack-dev-server": "^1.14.1"
   },
   "scripts": {
     "dev": "node ./dev.js",

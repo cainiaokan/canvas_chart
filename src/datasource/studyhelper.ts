@@ -98,8 +98,8 @@ export function AVEDEV (c: number, n: number, attr: Attr): number {
 export function EMA (c: number, n: number, attr: Attr): number {
   const { datasource, adapter, cacheObj } = context
   const { prop, get } = attr
-  const cacheKey = 'ema' + prop + n + '_' + c
-  const prevKey = 'ema' + prop + n + '_' + (c - 1)
+  const cacheKey = `ema${prop}${n}_${c}`
+  const prevKey = `ema${prop}${n}_${c - 1}`
 
   if (typeof cacheObj[cacheKey] === 'number') {
     return cacheObj[cacheKey]
@@ -120,8 +120,8 @@ export function EMA (c: number, n: number, attr: Attr): number {
 export function SMA (c: number, n: number, w: number, attr: Attr): number {
   const { datasource, adapter, cacheObj } = context
   const { prop, get } = attr
-  const cacheKey = 'sma' + prop + n + '_' + c
-  const prevKey = 'sma' + prop + n + '_' + (c - 1)
+  const cacheKey = `sma${prop}${n}_${c}`
+  const prevKey = `sma${prop}${n}_${c - 1}`
 
   if (typeof cacheObj[cacheKey] === 'number') {
     return cacheObj[cacheKey]
@@ -143,7 +143,7 @@ export function SMA (c: number, n: number, w: number, attr: Attr): number {
 export function LLV (c: number, n: number, attr: Attr): number {
   const { datasource, adapter, cacheObj } = context
   const { prop, get } = attr
-  const cacheKey = 'llv' + prop + n + '_' + c
+  const cacheKey = `llv${prop}${n}_${c}`
 
   if (typeof cacheObj[cacheKey] === 'number') {
     return cacheObj[cacheKey]
@@ -163,7 +163,7 @@ export function LLV (c: number, n: number, attr: Attr): number {
 export function HHV (c: number, n: number, attr: Attr): number {
   const { datasource, adapter, cacheObj } = context
   const { prop, get } = attr
-  const cacheKey = 'hhv' + prop + n + '_' + c
+  const cacheKey = `hhv${prop}${n}_${c}`
 
   if (typeof cacheObj[cacheKey] === 'number') {
     return cacheObj[cacheKey]

@@ -7,6 +7,7 @@ import ChartModel from '../../model/chart'
 import Indicator from './indicator'
 import AxisY from './../axisY'
 import { clientOffset } from '../../util'
+import { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../../model/axisx'
 
 type Prop = {
   chart: ChartModel
@@ -28,6 +29,9 @@ export default class Chart extends React.Component<Prop, State> {
   private _chart: ChartModel
   private _chartLayout: ChartLayout
   private _dragOffsetStart: boolean
+  private _pinchHorzStart: boolean
+  private _pinchVertStart: boolean
+  private _pinchOffset: number
   private _dragPosX: number
 
   constructor () {
@@ -156,18 +160,35 @@ export default class Chart extends React.Component<Prop, State> {
         chart.graphs.filter(graph => graph.selected)
           .forEach(graph => graph.selected = false)
       )
-    this._dragOffsetStart = true
     if (this._isSupportTouch) {
-      const offset = clientOffset(ev.target as HTMLElement)
-      this._chartLayout.charts.forEach(chart => chart.hover = false)
-      this._chartLayout.charts.forEach(chart => chart.graphs.forEach(graph => graph.hover = false))
-      this._chart.hover = true
-      this._dragPosX = ev.touches[0].pageX
-      this._chartLayout.setCursorPoint({
-        x: ev.touches[0].clientX - offset.offsetLeft,
-        y: ev.touches[0].clientY - offset.offsetTop,
-      })
+      if (ev.touches.length === 1) {
+        this._dragOffsetStart = true
+        const offset = clientOffset(ev.target as HTMLElement)
+        this._chartLayout.charts.forEach(chart => chart.hover = false)
+        this._chartLayout.charts.forEach(chart => chart.graphs.forEach(graph => graph.hover = false))
+        this._chart.hover = true
+        this._dragPosX = ev.touches[0].pageX
+        this._chartLayout.setCursorPoint({
+          x: ev.touches[0].clientX - offset.offsetLeft,
+          y: ev.touches[0].clientY - offset.offsetTop,
+        })
+      } else if (ev.touches.length === 2) {
+        const offsetHorz = Math.abs(ev.touches[0].clientX - ev.touches[1].clientX)
+        const offsetVert = Math.abs(ev.touches[0].clientY - ev.touches[1].clientY)
+        this._dragOffsetStart = false
+        this._chartLayout.setCursorPoint(null)
+        if (offsetHorz >= offsetVert) {
+          this._pinchHorzStart = true
+          this._pinchOffset = offsetHorz
+        } else {
+          this._pinchVertStart = true
+          this._pinchOffset = offsetVert
+        }
+      } else {
+        this._dragOffsetStart = false
+      }
     } else {
+      this._dragOffsetStart = true
       this._dragPosX = ev.pageX
     }
     this._chart.hitTest(true)
@@ -175,9 +196,15 @@ export default class Chart extends React.Component<Prop, State> {
 
   private mouseUpHandler () {
     this._dragOffsetStart = false
+    this._pinchHorzStart = false
+    this._pinchVertStart = false
+    this._pinchOffset = 0
   }
 
   private mouseMoveHandler (ev: any) {
+    if (this._pinchHorzStart || this._pinchVertStart) {
+      return this._chartLayout.setCursorPoint(null)
+    }
     const offset = clientOffset(ev.target as HTMLElement)
     const point = this._isSupportTouch ? {
         x: ev.touches[0].clientX - offset.offsetLeft,
@@ -207,6 +234,26 @@ export default class Chart extends React.Component<Prop, State> {
         axisX.offset = newOffset
       }
       this._dragPosX = pageX
+    } else if (this._pinchHorzStart) {
+      const axisX = this._chartLayout.axisx
+      const newOffset = Math.abs(ev.touches[1].pageX - ev.touches[0].pageX)
+      const curBarWidth = axisX.barWidth
+      const newBarWidth = curBarWidth + (newOffset - this._pinchOffset) / 100
+      this._pinchOffset = newOffset
+      if (newBarWidth < MIN_BAR_WIDTH) {
+        axisX.barWidth = MIN_BAR_WIDTH
+      } else if (newBarWidth > MAX_BAR_WIDTH) {
+        axisX.barWidth = MAX_BAR_WIDTH
+      } else {
+        axisX.barWidth = newBarWidth
+      }
+      axisX.offset *= axisX.barWidth / curBarWidth
+    } else if (this._pinchVertStart) {
+      const axisY = this._chartLayout.hoverChart.axisY
+      const newOffset = Math.abs(ev.touches[1].pageY - ev.touches[0].pageY)
+      const newMargin = axisY.margin + (this._pinchOffset - newOffset)
+      this._pinchOffset = newOffset
+      axisY.margin = newMargin
     }
   }
 }

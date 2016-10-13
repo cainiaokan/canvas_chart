@@ -52,8 +52,7 @@ export default class PlotModel {
         this._graphic = new BandRenderer(this, style)
         break
       default:
-        // code...
-        break
+        throw 'unsupported chart shape'
     }
   }
 
@@ -116,5 +115,4 @@ export default class PlotModel {
     }
     return bar[this._index]
   }
-
 }
