@@ -167,6 +167,9 @@ export const studyConfig: StudyConfig = {
       const slow = input[1]
       const signal = input[2]
       const time = data[1]
+      if (index - 5 * Math.max.apply(Math, input) < 0) {
+        return null
+      }
       const DIF = EMA(index, fast, CLOSE) - EMA(index, slow, CLOSE)
       const DIFT = {
         prop: 'dif',
@@ -295,6 +298,9 @@ export const studyConfig: StudyConfig = {
     input: [6, 12, 24],
     isPrice: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
+      if (index - Math.max.apply(Math, input) < 0) {
+        return null
+      }
       const time = data[1]
       const POS = {
         prop: 'pos',
