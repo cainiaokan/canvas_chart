@@ -57,19 +57,20 @@ export default class MountainChartRenderer extends BaseChart {
 
   public draw (): void {
     const plot = this.plotModel
+    const bars = plot.getVisibleBars()
+
+    if (!bars.length) {
+      return
+    }
+
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
     const ctx = chart.ctx
     const height = parseInt(ctx.canvas.style.height)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-    const bars = plot.getVisibleBars()
     const histogramBase = this.style.histogramBase
     const baseHeight = typeof histogramBase === 'number' ? axisY.getYByValue(histogramBase, rangeY) : -1
-
-    if (!bars.length) {
-      return
-    }
 
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth

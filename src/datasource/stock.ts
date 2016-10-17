@@ -198,19 +198,18 @@ export class StockDatasource extends Datasource {
   public resolveSymbol (): Promise<SymbolInfo> {
     return new Promise((resolve, reject) => {
       RPC.resolveSymbol(this._symbol)
-        .then(response => {
-          response
-            .json()
-            .then(data => {
-              resolve({
-                description: data.description,
-                exchange: data.exchange,
-                symbol: data.symbol,
-                type: data.type,
-              })
+        .then(response => response
+          .json()
+          .then(data =>
+            resolve({
+              description: data.description,
+              exchange: data.exchange,
+              symbol: data.symbol,
+              type: data.type,
             })
-            .catch(reject)
-        })
+          )
+          .catch(reject)
+        )
         .catch(reject)
     })
   }

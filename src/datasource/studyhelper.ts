@@ -129,7 +129,7 @@ export function SMA (c: number, n: number, w: number, attr: Attr): number {
     return cacheObj[cacheKey] =
       (w * get(c, n, datasource, adapter) + (n - w) * cacheObj[prevKey]) / n
   } else {
-    const start = c - n * 10 < 0 ? 0 : c - n * 10
+    const start = c - n * 5 < 0 ? 0 : c - n * 5
     const end = c + 1
     let sma = 50
     for (let i = start + 1; i < end; i++) {

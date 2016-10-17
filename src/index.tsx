@@ -13,16 +13,14 @@ class Page extends React.Component<any, State> {
 
   constructor () {
     super()
-    const gapWidth = 10
-    const ctn = document.getElementById('chart_container')
     this.state = {
-      height: document.documentElement.clientHeight - gapWidth,
-      width: ctn.clientWidth - gapWidth,
+      height: document.documentElement.clientHeight,
+      width: document.documentElement.clientWidth,
     }
     window.onresize = () => {
       this.setState({
-        height: document.documentElement.clientHeight - gapWidth,
-        width: ctn.clientWidth - gapWidth,
+        height: document.documentElement.clientHeight,
+        width: document.documentElement.clientWidth,
       })
     }
   }
@@ -34,7 +32,9 @@ class Page extends React.Component<any, State> {
       width={this.state.width}
       shape={'candle'}
       resolution={'1'}
-      shownavbar={true} />
+      shownavbar={true}
+      showfooterbar={true}
+      showsidebar={true} />
   }
 }
 

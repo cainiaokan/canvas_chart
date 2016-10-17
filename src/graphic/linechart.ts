@@ -56,16 +56,18 @@ export default class LineChartRenderer extends BaseChart {
 
   public draw (): void {
     const plot = this.plotModel
-    const graph = plot.graph
-    const chart = graph.chart
-    const ctx = chart.ctx
-    const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const bars = plot.getVisibleBars()
 
     if (!bars.length) {
       return
     }
+
+    const graph = plot.graph
+    const chart = graph.chart
+    const ctx = chart.ctx
+    const axisY = chart.axisY
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
     ctx.beginPath()

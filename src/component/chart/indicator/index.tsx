@@ -36,8 +36,7 @@ export default class Indicator extends React.Component<Prop, State> {
     this._intervalCheckStatus = setInterval(() => {
       const open = this.isOpen()
       if (this._isOpen !== open) {
-        this.state.isOpen = open
-        this.setState(this.state)
+        this.setState({ isOpen: open })
       }
     }, 10000)
   }

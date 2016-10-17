@@ -45,7 +45,8 @@ class Page extends React.Component<any, State> {
               width={width}
               shape={resolution === '1' ? 'line' : 'candle'}
               resolution={resolution}
-              shownavbar={false} />
+              shownavbar={false}
+              showsidebar={false}/>
           </div>
         )
       }

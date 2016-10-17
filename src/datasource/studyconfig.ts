@@ -167,7 +167,7 @@ export const studyConfig: StudyConfig = {
       const slow = input[1]
       const signal = input[2]
       const time = data[1]
-      if (index - 5 * Math.max.apply(Math, input) < 0) {
+      if (index - 1.25 * Math.max.apply(Math, input) < 0) {
         return null
       }
       const DIF = EMA(index, fast, CLOSE) - EMA(index, slow, CLOSE)

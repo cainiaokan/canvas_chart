@@ -52,18 +52,19 @@ export default class CandleChartRenderer extends BaseChart {
 
   public draw () {
     const plot = this.plotModel
+    const bars = plot.getVisibleBars()
+
+    if (!bars.length) {
+      return
+    }
+
     const graph = plot.graph
     const chart = graph.chart
     const ctx = chart.ctx
     const axisY = chart.axisY
     const barWidth = chart.axisX.barWidth
     const candleWidth = barWidth * 0.6
-    const bars = plot.getVisibleBars()
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-
-    if (!bars.length) {
-      return
-    }
 
     ctx.lineWidth = 2
 

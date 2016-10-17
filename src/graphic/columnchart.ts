@@ -65,22 +65,23 @@ export default class ColumnChartRenderer extends BaseChart {
 
   public draw () {
     const plot = this.plotModel
+    const bars = plot.getVisibleBars()
+
+    if (!bars.length) {
+      return
+    }
+
     const graph = plot.graph
     const chart = graph.chart
     const ctx = chart.ctx
     const axisY = chart.axisY
     const height = parseInt(ctx.canvas.style.height)
     const barWidth = chart.axisX.barWidth
-    const bars = plot.getVisibleBars()
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const style = this.style
     const margin = axisY.margin
     const scale = style.scale || 1
     const histogramBase = style.histogramBase
-
-    if (!bars.length) {
-      return
-    }
 
     ctx.lineWidth = 1
     ctx.globalAlpha = 0.3

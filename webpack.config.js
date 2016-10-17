@@ -8,6 +8,7 @@ module.exports = {
     vendor: [
       'react',
       'react-dom',
+      'underscore',
       './src/vendor/hidpi-canvas-polyfill.js',
       './src/vendor/spin.js'
     ],

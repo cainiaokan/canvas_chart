@@ -9,7 +9,9 @@ import CrosshairModel from '../../model/crosshair'
 import { studyConfig } from '../../datasource'
 
 type Prop = {
-  chartLayout: ChartLayoutModel
+  chartLayout: ChartLayoutModel,
+  width: number,
+  height: number,
 }
 
 type State = {
@@ -27,7 +29,7 @@ export default class FooterBar extends React.Component<Prop, State> {
   public render () {
     const studies = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI']
     return (
-      <div className='chart-footerbar'>
+      <div className='chart-footerbar' style={ {width: this.props.width + 'px', height: this.props.height + 'px'} }>
         <div className='control-list'>
           {studies.map(study => <a onClick={this.clickHandler.bind(this)}>{study}</a>)}
         </div>

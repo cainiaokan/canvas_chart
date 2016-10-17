@@ -42,22 +42,23 @@ export default class HistogramChartRenderer extends BaseChart {
 
   public draw (): void {
     const plot = this.plotModel
+    const bars = plot.getVisibleBars()
+
+    if (!bars.length) {
+      return
+    }
+
     const graph = plot.graph
     const chart = graph.chart
     const ctx = chart.ctx
     const axisY = chart.axisY
     const axisX = chart.axisX
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-    const style = this.style
-    const histogramBase = style.histogramBase
-    const base = axisY.getYByValue(histogramBase, rangeY)
-    const bars = plot.getVisibleBars()
     // 宽度为bar宽度的一半
     const width = axisX.barWidth * 0.5
-
-    if (!bars.length) {
-      return
-    }
+    const style = this.style
+    const histogramBase = style.histogramBase
+    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const base = axisY.getYByValue(histogramBase, rangeY)
 
     for (let i = 0, len = bars.length, data, x, y; i < len; i++) {
       data = bars[i]

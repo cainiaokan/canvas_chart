@@ -5,6 +5,7 @@ import * as _ from 'underscore'
 import Chart from '../chart'
 import AxisX from '../axisX'
 import Navbar from '../navbar'
+import Sidebar from '../sidebar'
 import FooterBar from '../footerbar'
 import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
@@ -17,6 +18,8 @@ import {
   AXIS_X_HEIGHT,
   NAVBAR_HEIGHT,
   FOOTERBAR_HEIGHT,
+  SIDEBAR_WIDTH,
+  SIDEBAR_FOLD_WIDTH,
 } from '../../constant'
 import AxisXModel from '../../model/axisx'
 import AxisYModel from '../../model/axisy'
@@ -39,11 +42,13 @@ type Prop  = {
   scrollable?: boolean
   scalable?: boolean
   shownavbar?: boolean
+  showsidebar?: boolean
   showfooterbar?: boolean
 }
 
 type State = {
-  update: boolean
+  update: boolean,
+  sidebar: 'fold' | 'unfold',
 }
 
 export default class ChartLayout extends React.Component<Prop, State> {
@@ -56,6 +61,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scrollable: React.PropTypes.bool,
     shape: React.PropTypes.oneOf(['histogram', 'mountain', 'line', 'bar', 'candle']),
     showfooterbar: React.PropTypes.bool,
+    showsidebar: React.PropTypes.bool,
     shownavbar: React.PropTypes.bool,
     study: React.PropTypes.oneOf(['MA', 'MACD', 'BOLL', 'KDJ', 'VOLUME']),
     to: React.PropTypes.number,
@@ -71,6 +77,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     shape: 'line',
     showfooterbar: true,
     shownavbar: true,
+    showsidebar: true,
     type: 'realtime',
   }
 
@@ -91,6 +98,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   constructor () {
     super()
     this.state = {
+      sidebar: 'unfold',
       update: false,
     }
   }
@@ -221,9 +229,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
     this._chartLayoutModel.addListener('marginchange', () => this.lightUpdate())
     this._chartLayoutModel.addListener('studychange', () => {
-      this.state.update = true
       this.setState(this.state)
       this.fullUpdate()
+    })
+    this._chartLayoutModel.addListener('sidebarchange', state => {
+      this.state.sidebar = state
+      this.setState(this.state)
     })
   }
 
@@ -239,7 +250,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.loadHistory()
     }
 
-    // 取消上一帧动画的调度，避免卡顿
+    // 取消上一未调度的帧动画，避免卡顿
     if (this._lastAnimationFrame) {
       cancelAnimationFrame(this._lastAnimationFrame)
     }
@@ -278,7 +289,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public getServerTime (): Promise<any> {
-    return new Promise((resolve, reject) => getServerTime().then(response => 
+    return new Promise((resolve, reject) => getServerTime().then(response =>
       response.text()
         .then(timeStr => {
           this._timeDiff = ~~(Date.now() / 1000) - +timeStr
@@ -386,9 +397,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
 
     const chartLayoutModel = this._chartLayoutModel
-    let availWidth = this.props.width - 2
-    let availHeight = this.props.height - AXIS_X_HEIGHT - 2
+    // 12 是padding 10 和 border 2
+    let availWidth = this.props.width - 12
+    let availHeight = this.props.height - AXIS_X_HEIGHT - 12
 
+    if (this.props.showsidebar) {
+      availWidth -= this.state.sidebar === 'unfold' ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
+    }
     if (this.props.shownavbar) {
       availHeight -= NAVBAR_HEIGHT
     }
@@ -403,6 +418,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     const mainChartHeight = ~~((1 - additionalChartCount * .3 > .3 ? 1 - additionalChartCount * .3 : .3) * availHeight)
     const addtionalChartHeight = ~~((availHeight - mainChartHeight) / additionalChartCount)
     const chartLines = []
+
     for (let i = 0, len = chartLayoutModel.charts.length, chart; i < len; i++) {
       chart = chartLayoutModel.charts[i]
       chartLines.push(
@@ -416,12 +432,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
 
     return (
-      <div className='chart-layout' ref='root'>
+      <div className='chart-layout' ref='root' style={ {height: this.props.height + 'px'} }>
         {
           this.props.shownavbar ?
             <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} /> : null
         }
-        <div className='chart-body'>
+        <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }>
           {chartLines}
           <AxisX chartLayout={this._chartLayoutModel}
             axis={this._chartLayoutModel.axisx}
@@ -429,8 +445,15 @@ export default class ChartLayout extends React.Component<Prop, State> {
             width={availWidth - AXIS_Y_WIDTH} />
         </div>
         {
+          this.props.showsidebar ?
+            <Sidebar chartLayout={this._chartLayoutModel}
+              width={this.state.sidebar === 'unfold' ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
+              height={this.props.height} /> : null
+            }
+        }
+        {
           this.props.showfooterbar ?
-            <FooterBar chartLayout={this._chartLayoutModel} /> : null
+            <FooterBar chartLayout={this._chartLayoutModel} width={availWidth + 2} height={FOOTERBAR_HEIGHT} /> : null
         }
       </div>
     )
