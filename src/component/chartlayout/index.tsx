@@ -432,7 +432,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
 
     return (
-      <div className='chart-layout' ref='root' style={ {height: this.props.height + 'px'} }>
+      <div className='chart-layout' ref='root'
+        style={ {height: this.props.height + 'px',width: this.props.width + 'px'} }>
         {
           this.props.shownavbar ?
             <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} /> : null

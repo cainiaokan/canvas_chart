@@ -14,9 +14,7 @@ const QU_CHAO_GU = 'http://www.quchaogu.com'
  * @param  {number}  to         结束时间戳（精确到秒）
  * @return {Promise<IResponse>}          
  */
-export function getStockBars (
-  symbol: string, resolution: string,
-  from: number, to: number): Promise<IResponse> {
+export function getStockBars (symbol: string, resolution: string, from: number, to: number): Promise<IResponse> {
   return fetch(`${QU_CHAO_GU}/chart/history/?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`)
 }
 
@@ -30,4 +28,8 @@ export function searchSymbols (keyword: string): Promise<IResponse> {
 
 export function getServerTime (): Promise<IResponse> {
   return fetch(`${QU_CHAO_GU}/chart/time/`)
+}
+
+export function getStockInfo (symbol: string): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/stock/info?code=${symbol.toLowerCase()}&ticks_time=0`)
 }

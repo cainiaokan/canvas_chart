@@ -21,6 +21,29 @@ function requestFullscreen( elem ) {
     }
 }
 
+function exitFullscreen () {
+  ['exitFullscreen', 'mozCancelFullScreen', 'mozExitFullscreen', 'webkitExitFullscreen', 'msExitFullscreen']
+    .some(function(funcName) {
+      if ('function' === typeof document[funcName]) {
+          return document[funcName](), true
+      }
+  })
+}
+
+function getFullScreenElement () {
+  let fullscreenElement = null
+  let propNames = ['fullscreenElement', 'webkitFullscreenElement', 'mozFullscreenElement', 'msFullscreenElement']
+
+  propNames.some(propName => {
+    if (propName in document) {
+      fullscreenElement = document[propName]
+      return true
+    }
+  })
+
+  return fullscreenElement
+}
+
 export default class FullScreen extends React.Component<any, any> {
   public refs: {
     [propName: string]: any
@@ -38,7 +61,8 @@ export default class FullScreen extends React.Component<any, any> {
 
   public render () {
     return (
-      <a ref='btn' className='full-screen' onClick={this.mouseclickhandler.bind(this)}></a>
+      <a ref='btn' className='full-screen' title='全屏/取消'
+        onClick={this.mouseclickhandler.bind(this)}></a>
     )
   }
 
@@ -50,6 +74,10 @@ export default class FullScreen extends React.Component<any, any> {
         break
       }
     }
-    requestFullscreen(chartRoot)
+    if (getFullScreenElement() !== null) {
+      exitFullscreen()
+    } else {
+      requestFullscreen(chartRoot)
+    }
   }
 }
