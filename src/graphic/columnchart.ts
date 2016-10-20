@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
@@ -10,10 +11,16 @@ enum PLOT_DATA {
   IS_DOWN
 }
 
+const DEFAULT_STYLE = {
+  color: '#ff524f',
+  colorDown: '#2bbe65',
+  lineWidth: 1,
+}
+
 export default class ColumnChartRenderer extends BaseChart {
 
   constructor (plotModel: PlotModel, style: ChartStyle) {
-    super(plotModel, style)
+    super(plotModel, _.defaults(style, DEFAULT_STYLE))
   }
 
   public hitTest (): boolean {
@@ -50,9 +57,19 @@ export default class ColumnChartRenderer extends BaseChart {
         x1, y1,
         x2, y2
       )
-    } else {
+    } else if (typeof this.style.scale === 'number') {
       x1 = curBar[PLOT_DATA.X] - width / 2
       y1 = ~~(height - (height - axisY.getYByValue(curBar[PLOT_DATA.VOLUME], rangeY) - margin) * scale)
+      x2 = x1 + width
+      y2 = height
+      return isPointInRect(
+        x0, y0,
+        x1, y1,
+        x2, y2
+      )
+    } else {
+      x1 = curBar[PLOT_DATA.X] - width / 2
+      y1 = ~~axisY.getYByValue(curBar[PLOT_DATA.VOLUME], rangeY)
       x2 = x1 + width
       y2 = height
       return isPointInRect(
@@ -84,7 +101,7 @@ export default class ColumnChartRenderer extends BaseChart {
     const histogramBase = style.histogramBase
 
     ctx.lineWidth = 1
-    ctx.globalAlpha = 0.3
+    ctx.globalAlpha = 0.6
     ctx.strokeStyle = 'black'
     ctx.beginPath()
 
@@ -102,9 +119,17 @@ export default class ColumnChartRenderer extends BaseChart {
         ctx.lineTo(x, y)
         ctx.lineTo(x + barWidth, y)
         ctx.lineTo(x + barWidth, y1)
-      } else {
+      } else if (typeof style.scale === 'number') {
         ctx.fillStyle = bar[PLOT_DATA.IS_DOWN] ? style.colorDown : style.color
         y = ~~(height - (height - y1 - margin) * scale)
+        ctx.fillRect(x, y, barWidth, height - y)
+        ctx.moveTo(x, height)
+        ctx.lineTo(x, y)
+        ctx.lineTo(x + barWidth, y)
+        ctx.lineTo(x + barWidth, height)
+      } else {
+        ctx.fillStyle = bar[PLOT_DATA.IS_DOWN] ? style.colorDown : style.color
+        y = y1
         ctx.fillRect(x, y, barWidth, height - y)
         ctx.moveTo(x, height)
         ctx.lineTo(x, y)
@@ -131,9 +156,11 @@ export default class ColumnChartRenderer extends BaseChart {
     const histogramBase = style.histogramBase
 
     if (typeof histogramBase === 'number') {
-      return axisY.getYByValue(bar[PLOT_DATA.VOLUME], rangeY)
-    } else {
+      return ~~axisY.getYByValue(bar[PLOT_DATA.VOLUME], rangeY)
+    } else if (typeof style.scale === 'number') {
       return ~~(height - (height - ~~axisY.getYByValue(bar[PLOT_DATA.VOLUME], rangeY) - margin) * scale)
+    } else {
+      return ~~axisY.getYByValue(bar[PLOT_DATA.VOLUME], rangeY)
     }
   }
 
@@ -146,13 +173,16 @@ export default class ColumnChartRenderer extends BaseChart {
 
     const range: YRange = {
       max: -Number.MAX_VALUE,
-      min: 0,
+      min: Number.MAX_VALUE,
     }
 
     return bars.reduce((prev, cur) => {
       const data = cur
       if (data[PLOT_DATA.VOLUME] > prev.max) {
         prev.max = data[PLOT_DATA.VOLUME]
+      }
+      if (data[PLOT_DATA.VOLUME] < prev.min) {
+        prev.min = data[PLOT_DATA.VOLUME]
       }
       return prev
     }, range)

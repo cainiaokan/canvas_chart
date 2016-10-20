@@ -73,15 +73,14 @@ export default class LineChartRenderer extends BaseChart {
     ctx.beginPath()
 
     const len = bars.length
-
     if (len) {
       const bar = bars[0]
-      ctx.moveTo(bar[PLOT_DATA.X], axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
+      ctx.moveTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
     }
 
     for (let i = 1; i < len; i++) {
       const bar = bars[i]
-      ctx.lineTo(bar[PLOT_DATA.X], axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
+      ctx.lineTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
     }
 
     ctx.stroke()
@@ -109,12 +108,11 @@ export default class LineChartRenderer extends BaseChart {
     }
 
     return bars.reduce((prev, cur) => {
-      const bar = cur
-      if (bar[PLOT_DATA.VALUE] < prev.min) {
-        prev.min = bar[PLOT_DATA.VALUE]
+      if (cur[PLOT_DATA.VALUE] > prev.max) {
+        prev.max = cur[PLOT_DATA.VALUE]
       }
-      if (bar[PLOT_DATA.VALUE] > prev.max) {
-        prev.max = bar[PLOT_DATA.VALUE]
+      if (cur[PLOT_DATA.VALUE] < prev.min) {
+        prev.min = cur[PLOT_DATA.VALUE]
       }
       return prev
     }, range)

@@ -32,7 +32,7 @@ export class StockDatasource extends Datasource {
    * 股票代码
    * @type {string}
    */
-  private _symbol: string
+  private _symbolInfo: SymbolInfo
 
   /**
    * @constructor
@@ -41,16 +41,21 @@ export class StockDatasource extends Datasource {
    */
   constructor (symbol: string, resolution: ResolutionType, timeDiff: number) {
     super(resolution, timeDiff)
-    this._symbol = symbol
+    this._symbolInfo = {
+      symbol,
+      type: 'stock',
+      exchange: '',
+      description: '',
+    }
     this._plotList = new PlotList<IStockBar>()
   }
 
-  get symbol (): string {
-    return this._symbol
+  get symbolInfo (): SymbolInfo {
+    return this._symbolInfo
   }
 
-  set symbol (symbol: string) {
-    this._symbol = symbol
+  set symbolInfo (symbolInfo: SymbolInfo) {
+    this._symbolInfo = symbolInfo
   }
 
   public barAt (index: number): IStockBar {
@@ -166,7 +171,7 @@ export class StockDatasource extends Datasource {
       }
     }
 
-    return RPC.getStockBars(this._symbol, this._resolution, from, to)
+    return RPC.getStockBars(this._symbolInfo.symbol, this._resolution, from, to)
       .then(
         response => response.json()
           .then(data => {
@@ -197,7 +202,7 @@ export class StockDatasource extends Datasource {
 
   public resolveSymbol (): Promise<SymbolInfo> {
     return new Promise((resolve, reject) => {
-      RPC.resolveSymbol(this._symbol)
+      RPC.resolveSymbol(this._symbolInfo.symbol)
         .then(response => response
           .json()
           .then(data =>

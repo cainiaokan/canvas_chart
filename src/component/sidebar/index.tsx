@@ -1,5 +1,4 @@
 import './index.less'
-import * as _ from 'underscore'
 import * as React from 'react'
 import ChartLayoutModel from '../../model/chartlayout'
 import Realtime from './realtime'
@@ -26,6 +25,8 @@ export default class Sidebar extends React.Component<Prop, State> {
     foldingBtn: HTMLElement
   }
 
+  private _stockInfoPoll: number
+
   constructor () {
     super()
     this.pollStockInfo = this.pollStockInfo.bind(this)
@@ -38,6 +39,10 @@ export default class Sidebar extends React.Component<Prop, State> {
 
   public componentDidMount () {
     this.pollStockInfo()
+    this.props.chartLayout.on('symbolchange', () => {
+      clearTimeout(this._stockInfoPoll)
+      this.pollStockInfo()
+    })
   }
 
   public render () {
@@ -51,23 +56,24 @@ export default class Sidebar extends React.Component<Prop, State> {
     let tabPage = null
     switch (this.state.tabIndex) {
       case 0:
-        tabPage = <Realtime stockInfo={this.state.stockInfo} />
+        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
         break
       case 1:
-        tabPage = <Realtime stockInfo={this.state.stockInfo} />
+        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
         break
       case 2:
-        tabPage = <Realtime stockInfo={this.state.stockInfo} />
+        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
         break
       case 3:
-        tabPage = <Realtime stockInfo={this.state.stockInfo} />
+        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
         break
       case 4:
-        tabPage = <Realtime stockInfo={this.state.stockInfo} />
+        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
         break
       default:
     }
     const stockInfo = this.state.stockInfo
+    const chartLayout = this.props.chartLayout
     return <div className='chart-sidebar' ref='container' style={ {
       height: this.props.height,
       width: this.props.width,
@@ -91,14 +97,15 @@ export default class Sidebar extends React.Component<Prop, State> {
           <div className='pressure-support'>
             <span className='pressure'>
               <label>今日压力</label>&nbsp;
-              <b>16.74</b>
+              <b>{stockInfo.pressure.toFixed(2)}</b>
             </span>
             <span className='support'>
               <label>今日支撑</label>&nbsp;
-              <b>15.54</b>
+              <b>{stockInfo.support.toFixed(2)}</b>
             </span>
           </div>
-        </div> : <div className='stock-title'>上证指数</div>
+        </div> :
+        <div className='stock-title'>{(chartLayout.mainDatasource as StockDatasource).symbolInfo.description}</div>
       }
       <div className='data-window-tabs'>
         <ul className='tab-list' onClick={this.switchTabPage.bind(this)}>
@@ -136,7 +143,8 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   private pollStockInfo () {
-    getStockInfo((this.props.chartLayout.mainDatasource as StockDatasource).symbol)
+    const datasource = this.props.chartLayout.mainDatasource as StockDatasource
+    getStockInfo(datasource.symbolInfo.symbol)
       .then(response =>
         response.json()
           .then(data => {
@@ -147,7 +155,7 @@ export default class Sidebar extends React.Component<Prop, State> {
             stockInfo.open = ds.open
             stockInfo.high = ds.high
             stockInfo.low = ds.low
-            stockInfo.preClose = ds.preclose
+            stockInfo.preClose = ds.pre_close
             stockInfo.price = ds.price
             stockInfo.changeRate = ds.p_change
             stockInfo.changePrice = ds.price_change
@@ -157,25 +165,29 @@ export default class Sidebar extends React.Component<Prop, State> {
             stockInfo.amplitude = ds.zf
             stockInfo.inVol = ds.invol
             stockInfo.outVol = ds.outvol
-            stockInfo.selling = [
-              [ds.a1_p, ds.a1_v],
-              [ds.a2_p, ds.a2_v],
-              [ds.a3_p, ds.a3_v],
-              [ds.a4_p, ds.a4_v],
+
+            stockInfo.selling = ds.a5_p ? [
               [ds.a5_p, ds.a5_v],
-            ]
-            stockInfo.buying = [
+              [ds.a4_p, ds.a4_v],
+              [ds.a3_p, ds.a3_v],
+              [ds.a2_p, ds.a2_v],
+              [ds.a1_p, ds.a1_v],
+            ] : null
+            stockInfo.buying = ds.b1_p ? [
               [ds.b1_p, ds.b1_v],
               [ds.b2_p, ds.b2_v],
               [ds.b3_p, ds.b3_v],
               [ds.b4_p, ds.b4_v],
               [ds.b5_p, ds.b5_v],
-            ]
+            ] : null
+
             stockInfo.pressure = +dp.upper_price
             stockInfo.support = +dp.lower_price
 
+            stockInfo.ticks = data.data.ticks_list
+
             this.setState(this.state)
-            setTimeout(this.pollStockInfo, data.data.reflush_time * 1000)
+            this._stockInfoPoll = setTimeout(this.pollStockInfo, data.data.reflush_time * 1000)
           })
       )
   }

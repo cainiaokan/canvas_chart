@@ -1,5 +1,6 @@
 .chart-sidebar {
   .bid-list {
+    border-top: 1px solid #c9cbcd;
     .caption {
       display: inline-block;
 
@@ -114,6 +115,77 @@
       }
       tr td:last-child {
         text-align: right;
+      }
+    }
+    .in-out-chart {
+      padding: 0 10px;
+      p {
+        font-size: 12px;
+        line-height: 2;
+
+        margin: 0;
+        padding: 0;
+
+        color: #999;
+      }
+      h3 {
+        font-size: 16px;
+
+        margin: 25px 0 16px 0;
+
+        text-align: center;
+
+        color: #333;
+      }
+    }
+    .in-out-legend > div {
+      display: inline-block;
+
+      width: 56px;
+      margin: 0 1px;
+
+      text-align: center;
+      .color-block {
+        height: 8px;
+      }
+      p {
+        line-height: 1.5;
+      }
+    }
+    .in-out-legend .color-desc-1 {
+      float: left;
+      .color-block {
+        background: #ff524f;
+      }
+    }
+    .in-out-legend .color-desc-2 {
+      float: left;
+      .color-block {
+        background: #ff7d42;
+      }
+    }
+    .in-out-legend .color-desc-3 {
+      float: right;
+      .color-block {
+        background: #68ce3c;
+      }
+    }
+    .in-out-legend .color-desc-4 {
+      float: right;
+      .color-block {
+        background: #15af3d;
+      }
+    }
+    .capital-in {
+      float: left;
+      .capital-in-num {
+        color: #ff524f;
+      }
+    }
+    .capital-out {
+      float: right;
+      .capital-out-num {
+        color: #15af3d;
       }
     }
   }

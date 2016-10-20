@@ -30,7 +30,7 @@ class Page extends React.Component<any, State> {
       symbol={'SH000001'}
       height={this.state.height}
       width={this.state.width}
-      shape={'candle'}
+      shape={'mountain'}
       resolution={'1'}
       shownavbar={true}
       showfooterbar={true}

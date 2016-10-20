@@ -18,4 +18,6 @@ export default class StockInfo {
 
   public pressure: number = 0
   public support: number = 0
+
+  public ticks: { time: string, price: string, volume: string, type: '1' | '2' | '3' }[] = []
 }

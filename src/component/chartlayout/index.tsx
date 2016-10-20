@@ -59,7 +59,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     resolution: React.PropTypes.oneOf(['1', '5', '15', '30', '60', 'D', 'W', 'M']),
     scalable: React.PropTypes.bool,
     scrollable: React.PropTypes.bool,
-    shape: React.PropTypes.oneOf(['histogram', 'mountain', 'line', 'bar', 'candle']),
+    shape: React.PropTypes.oneOf(['mountain', 'line', 'column', 'candle']),
     showfooterbar: React.PropTypes.bool,
     showsidebar: React.PropTypes.bool,
     shownavbar: React.PropTypes.bool,
@@ -213,14 +213,22 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.fullUpdate())
     this._chartLayoutModel.addListener('resolutionchange', resolution => {
       // 股票类型时，分时图显示线形图，其他显示蜡烛图
-      if (resolution === '1' && this._chartLayoutModel.mainDatasource instanceof StockDatasource) {
-        this._chartLayoutModel.mainChart.graphs
-          .filter(graph => graph instanceof StockModel)
-          .forEach(graph => graph.plots[0].shape = 'line')
-      } else {
-        this._chartLayoutModel.mainChart.graphs
-          .filter(graph => graph instanceof StockModel)
-          .forEach(graph => graph.plots[0].shape = 'candle')
+      if (this._chartLayoutModel.mainDatasource instanceof StockDatasource && this.props.shape === 'candle') {
+        if (resolution === '1') {
+          this._chartLayoutModel.mainChart.graphs
+            .filter(graph => graph instanceof StockModel)
+            .forEach(graph => {
+              (graph as StockModel).setShape('line')
+              graph.plots[0].shape = 'line'
+            })
+        } else {
+          this._chartLayoutModel.mainChart.graphs
+            .filter(graph => graph instanceof StockModel)
+            .forEach(graph => {
+              (graph as StockModel).setShape(this.props.shape)
+              graph.plots[0].shape = this.props.shape
+            })
+        }
       }
       this.fullUpdate()
     })
@@ -232,8 +240,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.setState(this.state)
       this.fullUpdate()
     })
-    this._chartLayoutModel.addListener('sidebarchange', state => {
-      this.state.sidebar = state
+    this._chartLayoutModel.addListener('sidebarchange', folded => {
+      this.state.sidebar = folded
       this.setState(this.state)
     })
   }

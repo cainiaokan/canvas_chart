@@ -33,3 +33,7 @@ export function getServerTime (): Promise<IResponse> {
 export function getStockInfo (symbol: string): Promise<IResponse> {
   return fetch(`${QU_CHAO_GU}/chart/stock/info?code=${symbol.toLowerCase()}&ticks_time=0`)
 }
+
+export function getCapitalFlow (symbol: string): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/stock/moneyflow?code=${symbol}`)
+}

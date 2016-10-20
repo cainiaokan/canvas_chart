@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import AxisYMoel from './axisy'
 import { padRight } from '../util'
 
-const TICK_SPAN = 30
+const TICK_SPAN = 50
 const precision = 2
 
 type TickMark = {
@@ -70,51 +70,55 @@ export default class YTickMark {
 
   /**
    * 计算合适的刻度距离，以便展示的美观性
-   * @param {number} span [description]
+   * @param {number} span 数值间距
    */
   private normalizeTickSpan (span: number) {
-    let array = span.toFixed(precision)
+    let array = span + ''
     let carry = 0
-    let re = []
+    let arr = []
     span = +array
     for (let i = 0, len = array.length, cur; i < len; i++) {
       cur = array[i]
       if (cur === '.') {
-        re.push(cur)
+        arr.push(cur)
       } else {
         cur = +cur
         if (cur === 0) {
-          re.push(cur)
+          arr.push(cur)
         } else if (cur < 5) {
           if (cur < 3) {
-            re.push(cur + 1)
+            arr.push(cur + 1)
             break
           } else {
-            re.push(5)
+            arr.push(5)
             break
           }
         } else {
           if (i - 1 >= 0) {
-            if (re[i - 1] === '.') {
-              re[i - 2] += 1
+            if (arr[i - 1] === '.') {
+              arr[i - 2] += 1
             } else {
-              re[i - 1] += 1
+              arr[i - 1] += 1
             }
-            re.push(0)
+            arr.push(0)
           } else {
-            re.push(1)
-            re.push(0)
+            arr.push(1)
+            arr.push(0)
             carry = 1
           }
           break
         }
       }
     }
+    let re = +arr.join('')
     let padLength = 1
     while (span >= 10) {
       padLength ++
       span /= 10
     }
-    return +padRight(re.join(''), padLength + carry)
+    if (re < 1 / Math.pow(10, precision)) {
+      re = 1 / Math.pow(10, precision)
+    }
+    return +padRight(re + '', padLength + carry)
   }
 }

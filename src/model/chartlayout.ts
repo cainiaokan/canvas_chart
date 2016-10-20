@@ -48,7 +48,7 @@ export default class ChartLayoutModel extends EventEmitter {
       mainGraphModel.symbolInfo = symbolInfo
     }
     if (mainDatasource instanceof StockDatasource) {
-      mainDatasource.symbol = symbolInfo.symbol
+      mainDatasource.symbolInfo = symbolInfo
     } else {
       throw 'mainDatasource required to be an instance of StockDatasource.'
     }
