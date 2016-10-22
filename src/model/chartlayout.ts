@@ -4,7 +4,6 @@ import ChartModel from './chart'
 import AxisXModel from './axisx'
 import { Datasource, StockDatasource, SymbolInfo } from '../datasource'
 import { Point } from '../model/crosshair'
-import StockModel from '../model/stock'
 import { ResolutionType, StudyType } from '../constant'
 
 export default class ChartLayoutModel extends EventEmitter {
@@ -37,16 +36,12 @@ export default class ChartLayoutModel extends EventEmitter {
 
   public setSymbol (symbolInfo: SymbolInfo) {
     const mainDatasource = this._mainDatasource
-    const mainGraphModel = this.mainChart.graphs.filter(graph => graph instanceof StockModel)[0]
     this._charts.forEach(chart => {
       chart.graphs.forEach(graph => {
         graph.datasource.clearCache()
         graph.clearCache()
       })
     })
-    if (mainGraphModel instanceof StockModel) {
-      mainGraphModel.symbolInfo = symbolInfo
-    }
     if (mainDatasource instanceof StockDatasource) {
       mainDatasource.symbolInfo = symbolInfo
     } else {

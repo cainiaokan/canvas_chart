@@ -37,3 +37,11 @@ export function getStockInfo (symbol: string): Promise<IResponse> {
 export function getCapitalFlow (symbol: string): Promise<IResponse> {
   return fetch(`${QU_CHAO_GU}/stock/moneyflow?code=${symbol}`)
 }
+
+export function getIndexesInfo (): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/stock/guzhi`)
+}
+
+export function getRealtimeTools (): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/stock/realtimetool`)
+}

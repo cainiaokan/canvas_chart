@@ -1,6 +1,6 @@
 import './index.less'
 import * as React from 'react'
-import { IStockBar } from '../../datasource'
+import { StockDatasource, IStockBar } from '../../datasource'
 import ChartModel from '../../model/chart'
 import StudyModel from '../../model/study'
 import StockModel from '../../model/stock'
@@ -36,11 +36,12 @@ export default class Legend extends React.Component<Prop, State> {
     })
     this.props.chartModel.graphs.forEach(graph => {
       if (graph instanceof StockModel) {
-        graph.resolveSymbol()
-          .then(() => {
-            this.state.update = true
-            this.setState(this.state)
-          })
+        // TODO
+        // graph.resolveSymbol()
+        //   .then(() => {
+        //     this.state.update = true
+        //     this.setState(this.state)
+        //   })
       }
     })
     this.props.chartModel.chartLayout.on('resolutionchange', () => {
@@ -59,13 +60,14 @@ export default class Legend extends React.Component<Prop, State> {
             if (graph instanceof StockModel) {
               const bars = graph.getCurBar()
               const prevBars = graph.getPrevBar()
+              const datasource = graph.datasource as StockDatasource
               const bar = bars ?
-                graph.datasource.barAt(graph.datasource.search(bars[0][1])) as IStockBar : null
+                datasource.barAt(datasource.search(bars[0][1])) as IStockBar : null
               const prev = prevBars ?
-                graph.datasource.barAt(graph.datasource.search(prevBars[0][1])) as IStockBar : null
+                datasource.barAt(datasource.search(prevBars[0][1])) as IStockBar : null
               const colorUp = '#FF0000'
               const colorDown = '#008000'
-              const resolution = graph.datasource.resolution
+              const resolution = datasource.resolution
               let resolutionText = null
               switch (resolution) {
                 case '1':
@@ -96,9 +98,9 @@ export default class Legend extends React.Component<Prop, State> {
                   break
               }
               return <div className='chart-legend-line'
-                style={ {fontWeight: graph.hover || graph.selected ? '600' : 'normal'} }>
+                style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item main'>
-                  {graph.symbolInfo ? graph.symbolInfo.description : 'N/A'},{resolutionText}
+                  {datasource.symbolInfo ? datasource.symbolInfo.description : 'N/A'},{resolutionText}
                 </div>
                 <div className='chart-legend-item' style={ bar ? {
                   color: bar.changerate > 0 ?
@@ -157,7 +159,7 @@ export default class Legend extends React.Component<Prop, State> {
                 </div>
                 <div className='chart-legend-item'
                 style={ {display: bar && typeof bar.turnover === 'string' ? '' : 'none'} }>
-                  换手率&nbsp;{ bar && typeof bar.turnover === 'string' ? (bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
+                  换手率&nbsp;{ bar && typeof bar.turnover === 'string' ? (+bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
                 </div>
               </div>
             }
@@ -174,7 +176,7 @@ export default class Legend extends React.Component<Prop, State> {
                 return <div className='chart-legend-item'
                   style={ {
                     color: styles[0].color,
-                    fontWeight: ma.hover || ma.selected ? '600' : 'normal',
+                    fontWeight: ma.hover || ma.selected ? 600 : 'normal',
                   } }>
                   {ma.studyType}{ma.input[0]}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
                 </div>
@@ -187,7 +189,7 @@ export default class Legend extends React.Component<Prop, State> {
              if (graph instanceof StudyModel && graph.studyType !== 'MA' && graph.studyType !== 'VOLUME') {
               const bars = graph.getCurBar()
               return <div className='chart-legend-line'
-                style={ {fontWeight: graph.hover || graph.selected ? '600' : 'normal'} }>
+                style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item'>
                   {graph.studyType}({graph.input.join(',')})
                 </div>

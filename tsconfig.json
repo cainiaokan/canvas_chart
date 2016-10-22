@@ -7,6 +7,7 @@
     "experimentalDecorators": true
   },
   "exclude": [
+    "src",
     "node_modules"
   ]
 }

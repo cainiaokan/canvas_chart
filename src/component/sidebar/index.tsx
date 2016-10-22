@@ -1,9 +1,10 @@
 import './index.less'
 import * as React from 'react'
 import ChartLayoutModel from '../../model/chartlayout'
+import { StockDatasource } from '../../datasource'
+import PollManager, { PollData } from './pollmanager'
 import Realtime from './realtime'
-import { StockDatasource, getStockInfo } from '../../datasource'
-import StockInfo from './stockinfo'
+import Indexes from './indexes'
 
 type Prop = {
   chartLayout: ChartLayoutModel
@@ -14,7 +15,6 @@ type Prop = {
 type State = {
   sidebarFolded: boolean
   tabIndex: number
-  stockInfo: StockInfo
 }
 
 export default class Sidebar extends React.Component<Prop, State> {
@@ -25,23 +25,27 @@ export default class Sidebar extends React.Component<Prop, State> {
     foldingBtn: HTMLElement
   }
 
-  private _stockInfoPoll: number
+  private _pollManager: PollManager
+  private _data: PollData = {}
 
   constructor () {
     super()
-    this.pollStockInfo = this.pollStockInfo.bind(this)
     this.state = {
       sidebarFolded: false,
-      stockInfo: new StockInfo(),
       tabIndex: 0,
     }
   }
 
   public componentDidMount () {
-    this.pollStockInfo()
+    const datasource = this.props.chartLayout.mainDatasource as StockDatasource
+    this._pollManager = new PollManager(datasource.symbolInfo.symbol, 0)
+    this._pollManager.start()
+    this._pollManager.on('data', data => {
+      this._data = data
+      this.setState(this.state)
+    })
     this.props.chartLayout.on('symbolchange', () => {
-      clearTimeout(this._stockInfoPoll)
-      this.pollStockInfo()
+      this._pollManager.restart()
     })
   }
 
@@ -53,33 +57,40 @@ export default class Sidebar extends React.Component<Prop, State> {
       ['sector', '所属板块'],
       ['tools', '更多工具'],
     ]
+    const stockInfo = this._data.stockInfo
+    const chartLayout = this.props.chartLayout
+
     let tabPage = null
     switch (this.state.tabIndex) {
       case 0:
-        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
+        tabPage =
+          this._data.stockInfo ?
+          <Realtime
+            chartLayout={this.props.chartLayout}
+            stockInfo={this._data.stockInfo}
+            capitalFlowInfo={this._data.capitalFlowInfo} /> : null
         break
       case 1:
-        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
+        tabPage = <Indexes realtimeTools={this._data.realtimeTools} indexesInfo={this._data.indexesInfo}/>
         break
-      case 2:
-        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
-        break
-      case 3:
-        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
-        break
-      case 4:
-        tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this.state.stockInfo} />
-        break
+      // case 2:
+      //   tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this._data.stockInfo} />
+      //   break
+      // case 3:
+      //   tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this._data.stockInfo} />
+      //   break
+      // case 4:
+      //   tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this._data.stockInfo} />
+      //   break
       default:
     }
-    const stockInfo = this.state.stockInfo
-    const chartLayout = this.props.chartLayout
+
     return <div className='chart-sidebar' ref='container' style={ {
       height: this.props.height,
       width: this.props.width,
     } }>
       {
-        !this.state.sidebarFolded ?
+        !this.state.sidebarFolded && stockInfo ?
         <div className='stock-panel'>
           <div className='stock-data'>
             <span className={stockInfo.changePrice > 0 ? 'price positive' : 'price negtive'}>
@@ -142,56 +153,6 @@ export default class Sidebar extends React.Component<Prop, State> {
     }
   }
 
-  private pollStockInfo () {
-    const datasource = this.props.chartLayout.mainDatasource as StockDatasource
-    getStockInfo(datasource.symbolInfo.symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            const ds = data.data.stock_info
-            const dp = data.data.pressure
-            const stockInfo = this.state.stockInfo
-
-            stockInfo.open = ds.open
-            stockInfo.high = ds.high
-            stockInfo.low = ds.low
-            stockInfo.preClose = ds.pre_close
-            stockInfo.price = ds.price
-            stockInfo.changeRate = ds.p_change
-            stockInfo.changePrice = ds.price_change
-            stockInfo.amount = ds.amount
-            stockInfo.volume = ds.volume
-            stockInfo.turnover = ds.turnover
-            stockInfo.amplitude = ds.zf
-            stockInfo.inVol = ds.invol
-            stockInfo.outVol = ds.outvol
-
-            stockInfo.selling = ds.a5_p ? [
-              [ds.a5_p, ds.a5_v],
-              [ds.a4_p, ds.a4_v],
-              [ds.a3_p, ds.a3_v],
-              [ds.a2_p, ds.a2_v],
-              [ds.a1_p, ds.a1_v],
-            ] : null
-            stockInfo.buying = ds.b1_p ? [
-              [ds.b1_p, ds.b1_v],
-              [ds.b2_p, ds.b2_v],
-              [ds.b3_p, ds.b3_v],
-              [ds.b4_p, ds.b4_v],
-              [ds.b5_p, ds.b5_v],
-            ] : null
-
-            stockInfo.pressure = +dp.upper_price
-            stockInfo.support = +dp.lower_price
-
-            stockInfo.ticks = data.data.ticks_list
-
-            this.setState(this.state)
-            this._stockInfoPoll = setTimeout(this.pollStockInfo, data.data.reflush_time * 1000)
-          })
-      )
-  }
-
   private switchTabPage (ev) {
     // 如果侧边栏已经收起状态，则先展开侧边栏
     if (this.refs.container.classList.contains('folded')) {
@@ -207,5 +168,6 @@ export default class Sidebar extends React.Component<Prop, State> {
     const index = Array.prototype.slice.call(ev.currentTarget.children).indexOf(ev.target)
     this.state.tabIndex = index
     this.setState(this.state)
+    this._pollManager.tabIndex = index
   }
 }

@@ -39,7 +39,7 @@ export class StockDatasource extends Datasource {
    * @param {string} symbol     股票代码
    * @param {string} resolution 解析度
    */
-  constructor (symbol: string, resolution: ResolutionType, timeDiff: number) {
+  constructor (symbol: string, resolution: ResolutionType, timeDiff: number = 0) {
     super(resolution, timeDiff)
     this._symbolInfo = {
       symbol,
@@ -82,7 +82,7 @@ export class StockDatasource extends Datasource {
     return this._plotList.size()
   }
 
-  public search (time, bias): number {
+  public search (time, bias?): number {
     return this._plotList.search(time, bias)
   }
 
@@ -205,14 +205,13 @@ export class StockDatasource extends Datasource {
       RPC.resolveSymbol(this._symbolInfo.symbol)
         .then(response => response
           .json()
-          .then(data =>
-            resolve({
-              description: data.description,
-              exchange: data.exchange,
-              symbol: data.symbol,
-              type: data.type,
-            })
-          )
+          .then(data => {
+            this._symbolInfo.description = data.description
+            this._symbolInfo.exchange = data.exchange
+            this._symbolInfo.symbol = data.symbol
+            this._symbolInfo.type = data.type
+            resolve()
+          })
           .catch(reject)
         )
         .catch(reject)

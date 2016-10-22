@@ -35,9 +35,13 @@ export abstract class Datasource extends EventEmitter {
   protected _requestFromTime: number
   protected _pulseInterval = 60
 
-  constructor (resolution: ResolutionType, timeDiff: number) {
+  constructor (resolution: ResolutionType, timeDiff: number = 0) {
     super()
     this._resolution = resolution
+    this._timeDiff = timeDiff
+  }
+
+  set timeDiff (timeDiff: number) {
     this._timeDiff = timeDiff
   }
 

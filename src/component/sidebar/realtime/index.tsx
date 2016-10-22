@@ -1,13 +1,16 @@
 import './index.less'
 import * as React from 'react'
-import * as d3 from 'd3'
-import StockInfo from '../stockinfo'
+import { max as d3_max } from 'd3-array'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import { arc as d3_arc, pie as d3_pie } from 'd3-shape'
+
 import ChartLayout from '../../../model/chartlayout'
-import { getCapitalFlow } from '../../../datasource'
+import { StockInfo, CapitalFlowInfo } from '../pollmanager'
 
 type Prop = {
   chartLayout: ChartLayout
   stockInfo: StockInfo
+  capitalFlowInfo: CapitalFlowInfo
 }
 
 type State = {
@@ -15,6 +18,14 @@ type State = {
 }
 
 export default class Realtime extends React.Component<Prop, State> {
+
+  public refs: {
+    [propName: string]: Element
+    inOutDonut: HTMLCanvasElement
+    inOutBar: HTMLCanvasElement
+    capitalInNum: HTMLElement
+    capitalOutNum: HTMLElement
+  }
 
   constructor () {
     super()
@@ -161,13 +172,13 @@ export default class Realtime extends React.Component<Prop, State> {
                       <p>主力流出</p>
                   </div>
               </div>
-              <canvas ref='in_out_donut' width='248' height='128'></canvas>
+              <canvas ref='inOutDonut' width='248' height='128'></canvas>
               <div className='clearfix'>
-                  <p className='capital-in'>流入<i className='capital-in-num'>1451</i></p>
-                  <p className='capital-out'>流出<i className='capital-out-num'>1709</i></p>
+                  <p className='capital-in'>流入<i ref='capitalInNum' className='capital-in-num'>1451</i></p>
+                  <p className='capital-out'>流出<i ref='capitalOutNum' className='capital-out-num'>1709</i></p>
               </div>
               <h3>最近5日主力流入</h3>
-              <canvas ref='in_out_bar' width='248' height='128'></canvas>
+              <canvas ref='inOutBar' width='248' height='128'></canvas>
             </li>
           </ul>
         </div> : null
@@ -179,5 +190,157 @@ export default class Realtime extends React.Component<Prop, State> {
     const index = Array.prototype.slice.call(ev.currentTarget.children).indexOf(ev.target)
     this.state.tabIndex = index
     this.setState(this.state)
+    if (index === 1) {
+      this.drawfiveDaysCapitalInOutBarChart(this.props.capitalFlowInfo.barChartData)
+      this.drawCapitalInOutDonutChart(this.props.capitalFlowInfo.donutChartData)
+    }
+  }
+
+  private drawfiveDaysCapitalInOutBarChart (data) {
+    const width = 248
+    const height = 128
+    const canvas = this.refs.inOutBar
+    const context = canvas.getContext('2d')
+
+    const x = scaleBand()
+        .rangeRound([0, width])
+        .padding(0.4)
+
+    const y = scaleLinear()
+        .rangeRound([height, 0])
+
+    // data = [1234.56, -1234.56, 234.56, -1234.56, 589.56]
+    x.domain(data.map(function(d, i) {
+      return i
+    }))
+
+    y.domain([0, d3_max(data, d => Math.abs(d as number))])
+
+    context.clearRect(0, 0, width, height)
+    context.save()
+    context.translate(0, height / 2)
+    context.beginPath()
+    context.moveTo(0, 0)
+    context.lineTo(width, 0)
+    context.strokeStyle = '#999'
+    context.stroke()
+
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    data.forEach(function(d, i) {
+      if (d > 0) {
+        context.fillStyle = '#ff524f'
+        context.fillRect(x(i), (y(d) - height) / 2, x.bandwidth(), (height - y(d)) / 2)
+        context.fillText(~~(d + 0.5) + '', x(i) + x.bandwidth() / 2, 12)
+
+      } else {
+        context.fillStyle = '#15af3d'
+        context.fillRect(x(i), 0, x.bandwidth(), (height - y(Math.abs(d))) / 2)
+        context.fillText(~~(d + 0.5) + '', x(i) + x.bandwidth() / 2, -12)
+      }
+    })
+    context.restore()
+  }
+
+  private drawCapitalInOutDonutChart (data) {
+    const canvas = this.refs.inOutDonut
+    const context = canvas.getContext('2d')
+
+    const width = 248
+    const height = 128
+    const radius = width / 2
+
+    const colors = ['#ff524f', '#ff7d42', '#68ce3c', '#15af3d']
+
+    const arc = d3_arc()
+      .context(context)
+
+    // 绘制扇形白边
+    const bgArc = d3_arc()
+      .context(context)
+
+    const labelArc = d3_arc()
+      .context(context)
+
+    const pie = d3_pie()
+      .startAngle(-Math.PI / 2)
+      .endAngle(Math.PI / 2)
+      .padAngle(0)
+      .sort(null)
+
+    const arcs = pie(data)
+
+    context.clearRect(0, 0, width, height)
+    context.save()
+    context.translate(width / 2, height)
+
+    // 绘制灰边
+    bgArc({
+      outerRadius: radius - 5,
+      innerRadius: radius - 65,
+      startAngle: -Math.PI / 2,
+      endAngle: Math.PI / 2,
+      padAngle: 0,
+    })
+
+    context.fillStyle = '#f1f3f6'
+    context.fill()
+
+    arcs.forEach(function(d, i) {
+      context.beginPath()
+      arc({
+        outerRadius: radius - 10,
+        innerRadius: radius - 60,
+        startAngle: d.startAngle,
+        endAngle: d.endAngle,
+        padAngle: d.padAngle,
+      })
+      context.closePath()
+      context.fillStyle = colors[i]
+      context.fill()
+    })
+
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    context.fillStyle = '#fff'
+
+    let total = data.reduce(function (prev, cur) {
+      return prev + cur
+    }, 0)
+
+    arcs.forEach(function(d) {
+      if (d.value / total * 100 < 3) {
+        return
+      }
+      let c = labelArc.centroid({
+        outerRadius: radius - 35,
+        innerRadius: radius - 35,
+        startAngle: d.startAngle,
+        endAngle: d.endAngle,
+        padAngle: d.padAngle,
+      })
+      context.fillText(~~(d.value / total * 100 + 0.5) + '%', c[0], c[1])
+    })
+
+    context.font = '26px Arial'
+
+    let addup = data[0] + data[1] - data[2] - data[3]
+
+    if (addup > 0) {
+      context.fillStyle = '#ff524f'
+      context.fillText('+' + ~~(addup + 0.5), 0, -12)
+    } else {
+      context.fillStyle = '#15af3d'
+      context.fillText(~~(addup + 0.5) + '', 0, -12)
+    }
+
+    context.font = '14px Arial'
+    context.fillStyle = '#999999'
+    context.fillText('今日资金', 0, - 36)
+    context.restore()
+
+    this.refs.capitalInNum.innerHTML = ~~(data[0] + data[1] + 0.5) + ''
+    this.refs.capitalOutNum.innerHTML = ~~(data[2] + data[3] + 0.5) + ''
+
   }
 }

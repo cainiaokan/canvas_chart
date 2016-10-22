@@ -9,6 +9,10 @@ module.exports = {
       'react',
       'react-dom',
       'underscore',
+      'es6-promise',
+      'eventemitter3',
+      'isomorphic-fetch',
+      'd3',
       './src/vendor/hidpi-canvas-polyfill.js',
       './src/vendor/spin.js'
     ],

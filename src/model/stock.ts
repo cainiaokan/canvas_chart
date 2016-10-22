@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { ShapeType } from '../constant'
-import { Datasource, SymbolInfo, IStockBar } from '../datasource'
+import { Datasource, IStockBar } from '../datasource'
 import { ChartStyle } from '../graphic/basechart'
 import ChartModel from './chart'
 import PlotModel from './plot'
@@ -26,7 +26,6 @@ const adaptorFuncs = {
 }
 
 export default class StockModel extends GraphModel {
-  private _symbolInfo: SymbolInfo = null
   constructor (
     datasource: Datasource,
     chart: ChartModel,
@@ -48,19 +47,5 @@ export default class StockModel extends GraphModel {
 
   public setShape (shape: ShapeType) {
     this._adapter = adaptorFuncs[shape]
-  }
-
-  public resolveSymbol (): Promise<SymbolInfo> {
-    return this._datasource
-      .resolveSymbol()
-      .then(symbolInfo => this._symbolInfo = symbolInfo)
-  }
-
-  get symbolInfo (): SymbolInfo {
-    return this._symbolInfo
-  }
-
-  set symbolInfo (symbolInfo: SymbolInfo) {
-    this._symbolInfo = symbolInfo
   }
 }

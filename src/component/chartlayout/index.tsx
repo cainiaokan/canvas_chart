@@ -47,7 +47,7 @@ type Prop  = {
 }
 
 type State = {
-  update: boolean,
+  loaded: boolean,
   sidebar: 'fold' | 'unfold',
 }
 
@@ -93,13 +93,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
    */
   private _loading: boolean = false
   private _lastAnimationFrame: number
-  private _timeDiff: number
 
   constructor () {
     super()
     this.state = {
       sidebar: 'unfold',
-      update: false,
+      loaded: false,
     }
   }
 
@@ -108,10 +107,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.props.scrollable = false
       this.props.scalable = false
     }
+    this._chartLayoutModel = new ChartLayoutModel()
+    this.prepareMainChart()
   }
 
   public prepareMainChart () {
-    const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution, this._timeDiff)
+    const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution)
     const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = new AxisXModel(mainDatasource, crosshair)
     const axisY = new AxisYModel(mainDatasource, crosshair)
@@ -187,24 +188,19 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    // 首先获取服务器的时间
-    this.getServerTime()
-      .then(() => {
-        this._chartLayoutModel = new ChartLayoutModel()
-        this.prepareMainChart()
-        this.state.update = true
-        this.setState(this.state)
-        // 开始显示加载中菊花转
-        const spinner = new Spinner().spin(this.refs.root)
-        // 加载首屏数据
-        this.loadHistory()
-          .then(() => setTimeout(() => {
-              this.initEvents()
-              this.pulseUpdate()
-              spinner.stop()
-            }, 300)
-          )
-      })
+    const spinner = new Spinner().spin(this.refs.root)
+    Promise.all([
+      this.getServerTime(),
+      this.loadHistory(),
+      this._chartLayoutModel.mainDatasource.resolveSymbol(),
+    ])
+    .then(() => {
+      this.initEvents()
+      this.pulseUpdate()
+      spinner.stop()
+      this.state.loaded = true
+      this.setState(this.state)
+    })
   }
 
   public initEvents () {
@@ -300,7 +296,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
     return new Promise((resolve, reject) => getServerTime().then(response =>
       response.text()
         .then(timeStr => {
-          this._timeDiff = ~~(Date.now() / 1000) - +timeStr
+          const timeDiff = ~~(Date.now() / 1000) - (+timeStr)
+          const datasources = []
+          this._chartLayoutModel.charts.forEach(chart => {
+            chart.graphs.forEach(graph => {
+              datasources.push(graph.datasource)
+            })
+          })
+          datasources.forEach(dt => dt.timeDiff = timeDiff)
           resolve()
         })
     ))
@@ -400,10 +403,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public render () {
-    if (!this.state.update) {
-      return null
-    }
-
     const chartLayoutModel = this._chartLayoutModel
     // 12 是padding 10 和 border 2
     let availWidth = this.props.width - 12
@@ -443,7 +442,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       <div className='chart-layout' ref='root'
         style={ {height: this.props.height + 'px',width: this.props.width + 'px'} }>
         {
-          this.props.shownavbar ?
+          this.state.loaded && this.props.shownavbar ?
             <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} /> : null
         }
         <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }>
@@ -454,14 +453,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
             width={availWidth - AXIS_Y_WIDTH} />
         </div>
         {
-          this.props.showsidebar ?
+          this.state.loaded && this.props.showsidebar ?
             <Sidebar chartLayout={this._chartLayoutModel}
               width={this.state.sidebar === 'unfold' ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
               height={this.props.height} /> : null
             }
         }
         {
-          this.props.showfooterbar ?
+          this.state.loaded && this.props.showfooterbar ?
             <FooterBar chartLayout={this._chartLayoutModel} width={availWidth + 2} height={FOOTERBAR_HEIGHT} /> : null
         }
       </div>
