@@ -15,15 +15,15 @@ const QU_CHAO_GU = 'http://www.quchaogu.com'
  * @return {Promise<IResponse>}          
  */
 export function getStockBars (symbol: string, resolution: string, from: number, to: number): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/history/?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`)
+  return fetch(`${QU_CHAO_GU}/chart/history?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`)
 }
 
 export function resolveSymbol (symbol: string): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/symbols/?symbol=${symbol}`)
+  return fetch(`${QU_CHAO_GU}/chart/symbols?symbol=${symbol}`)
 }
 
 export function searchSymbols (keyword: string): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/search/?query=${keyword}&limit=15&type=&exchange=`)
+  return fetch(`${QU_CHAO_GU}/chart/search?query=${keyword}&limit=15&type=&exchange=`)
 }
 
 export function getServerTime (): Promise<IResponse> {
@@ -39,9 +39,25 @@ export function getCapitalFlow (symbol: string): Promise<IResponse> {
 }
 
 export function getIndexesInfo (): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/stock/guzhi`)
+  return fetch(`${QU_CHAO_GU}/chart/stock/guzhi/`)
 }
 
 export function getRealtimeTools (): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/stock/realtimetool`)
+  return fetch(`${QU_CHAO_GU}/chart/stock/realtimetool/`)
+}
+
+export function getFinancingInfo (symbol: string): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/stock/finance?code=${symbol}`)
+}
+
+export function getPlatesBySymbol (symbol: string): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/stock/industry?code=${symbol}`)
+}
+
+export function getStockListByPlate (plateName: string, type: string): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/stock/industrystock?name=${plateName}&type=${type}`)
+}
+
+export function getNonrealtimeTools (): Promise<IResponse> {
+  return fetch(`${QU_CHAO_GU}/chart/stock/nonrealtime`)
 }

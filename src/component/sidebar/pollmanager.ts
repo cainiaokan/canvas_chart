@@ -1,9 +1,13 @@
 import * as EventEmitter from 'eventemitter3'
 import {
+  SymbolInfo,
   getStockInfo,
   getCapitalFlow,
   getIndexesInfo,
   getRealtimeTools,
+  getFinancingInfo,
+  getPlatesBySymbol,
+  getNonrealtimeTools,
 } from '../../datasource'
 
 export type StockInfo = {
@@ -57,15 +61,118 @@ export type RealtimeTools = {
   fallStaying: any[]
 }
 
+export type FinancingInfo = {
+  InventoryTurnover: string
+  LiabilityToEquityRatio: string
+  asset_liability_ratio: string
+  asset_write_down: string
+  book_value_per_share: string
+  borrowingFromCentralBank: string
+  capital_surplus: string
+  capital_surplus_per_share: string
+  cashAndCentralBankDeposit: string
+  cashChangeDueToFOREX: string
+  cashPaidToEmployee: string
+  common_stock: string
+  currentRatio: string
+  daysAccountReceivableTurnover: string
+  daysInventoryTurnover: string
+  daysOperationPeriod: string
+  depositFromIntermediaries: string
+  deposits: string
+  earning_per_Share: string
+  equity: string
+  finance_day: string
+  financingCashflowIn: string
+  financingCashflowOut: string
+  fixed_asset: string
+  gainLossFromFairValueChange: string
+  heldForTradingFinancialAsset: string
+  heldForTradingFinancialLiabilities: string
+  held_for_sale_financial_asset: string
+  id: string
+  incomeTax: string
+  intangible_asset: string
+  interbankDeposit: string
+  interest_expense: string
+  interest_income: string
+  interest_payable: string
+  interest_receivable: string
+  investmentCashflowIn: string
+  investmentCashflowOut: string
+  investment_income: string
+  loanAndAdvances: string
+  longterm_equity_investment: string
+  management_expense: string
+  minority_interest: string
+  miscellaneousTaxAndFee: string
+  netChangeOfCashAndCashEquivalent: string
+  netChangeOfClientAndOtherIntermediaryDeposit: string
+  netChangeOfClientLoanAndAdvances: string
+  netFinancingCashflow: string
+  netInvestmentCashflow: string
+  netProcessingFeeAndCommissionIncome: string
+  net_income: string
+  net_income_growth_rate: string
+  net_interest_income: string
+  net_operating_cashflow: string
+  operating_cash_flow_per_share: string
+  operating_cashflow_in: string
+  operating_cashflow_out: string
+  quickRatio: string
+  quickRatioConservative: string
+  remittance_income: string
+  report_day: string
+  retained_earning: string
+  retained_earning_per_share: string
+  returnOnEquityGrowthRate: string
+  return_on_Equity: string
+  return_on_equity_diluted: string
+  revenue: string
+  revenue_growth_rate: string
+  salary_payable: string
+  stock_code: string
+  stock_id: string
+  tax_payable: string
+  total_asset: string
+  total_earning: string
+  total_liabilities: string
+  total_operating_expense: string
+  total_operating_income: string
+}
+
+export type PlateList = {
+  concept: string[],
+  industry: string[],
+}
+
+export type NonRealtimeTools = {
+  bankCapital: string[]
+  stockForumSentiment: string
+  searchSentiment: string
+  institutionCapital: string[]
+  investerCapital: string[]
+  tradingInvester: string
+  liftBanCapitalisation: string
+  pressure: string
+  support: string
+  financingBalance: string
+  financingBalanceChange: string[]
+  newInvester: string
+}
+
 export type PollData = {
   stockInfo?: StockInfo
   capitalFlowInfo?: CapitalFlowInfo
   indexesInfo?: IndexesInfo
   realtimeTools?: RealtimeTools
+  financingInfo?: FinancingInfo
+  plates?: PlateList
+  nonRealtimeTools?: NonRealtimeTools
 }
 
 export default class PollManager extends EventEmitter {
-  private _symbol: string
+  private _symbolInfo: SymbolInfo
 
   private _tabIndex: number
 
@@ -85,9 +192,9 @@ export default class PollManager extends EventEmitter {
 
   private _data: PollData = {}
 
-  constructor (symbol: string, tabIndex: number) {
+  constructor (symbolInfo: SymbolInfo, tabIndex: number) {
     super()
-    this._symbol = symbol
+    this._symbolInfo = symbolInfo
     this._tabIndex = tabIndex
     this.pollStockInfo = this.pollStockInfo.bind(this)
     this.pollCapitalFlow = this.pollCapitalFlow.bind(this)
@@ -95,8 +202,8 @@ export default class PollManager extends EventEmitter {
     this.pollRealtimeTools = this.pollRealtimeTools.bind(this)
   }
 
-  set symbol (symbol: string) {
-    this._symbol = symbol
+  set symbolInfo (symbolInfo: SymbolInfo) {
+    this._symbolInfo = symbolInfo
   }
 
   set tabIndex (tabIndex: number) {
@@ -108,8 +215,10 @@ export default class PollManager extends EventEmitter {
       case 1:
         clearTimeout(this._timers.indexesInfo)
         clearTimeout(this._timers.realtimeTools)
+      case 2: break
       default:
     }
+    this._tabIndex = tabIndex
     switch (tabIndex) {
       case 0:
         // if (this._refreshDelay.stockInfo) {
@@ -135,22 +244,46 @@ export default class PollManager extends EventEmitter {
           this.pollRealtimeTools()
         }
         break
+      case 2:
+        if (this._symbolInfo.type === 'stock' && !this._data.financingInfo) {
+          this.getFinancingInfo()
+        }
+        break
+      case 3:
+        if (this._symbolInfo.type === 'stock' && !this._data.plates) {
+          this.getPlates()
+        }
+        break
+      case 4:
+        if (!this._data.nonRealtimeTools) {
+          this.getNonRealtimeTools()
+        }
+        break
       default:
     }
-    this._tabIndex = tabIndex
   }
 
   public start () {
+    this.pollStockInfo()
     switch (this._tabIndex) {
       case 0:
-        this.pollStockInfo()
         this.pollCapitalFlow()
         break
       case 1:
         this.pollIndexesInfo()
         this.pollRealtimeTools()
         break
+      case 2:
+        this.getFinancingInfo()
+        break
+      case 3:
+        this.getPlates()
+        break
+      case 4:
+        this.getNonRealtimeTools()
+        break
       default:
+        break
     }
   }
 
@@ -161,13 +294,16 @@ export default class PollManager extends EventEmitter {
 
   public stop () {
     Object.keys(this._timers).forEach(key => clearTimeout(this._timers[key]))
+    this._data = {}
+    this._timers = {}
+    this._refreshDelay = {}
   }
 
   private pollStockInfo () {
     // if (this._tabIndex !== 0) {
     //   return this._timers.stockInfo = setTimeout(this.pollStockInfo, this._refreshDelay.stockInfo)
     // }
-    getStockInfo(this._symbol)
+    getStockInfo(this._symbolInfo.symbol)
       .then(response =>
         response.json()
           .then(data => {
@@ -209,6 +345,39 @@ export default class PollManager extends EventEmitter {
             this._refreshDelay.stockInfo = data.data.reflush_time * 1000
             this._data.stockInfo = stockInfo
             this._timers.stockInfo = setTimeout(this.pollStockInfo, this._refreshDelay.stockInfo)
+            this.emit('data', this._data)
+          })
+      )
+  }
+
+  private pollCapitalFlow () {
+    if (this._symbolInfo.type !== 'stock') {
+      return
+    }
+    if (this._tabIndex !== 0) {
+      return this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow(), this._refreshDelay.capitalFlowInfo)
+    }
+    getCapitalFlow(this._symbolInfo.symbol)
+      .then(response =>
+        response.json()
+          .then(data => {
+            data = data.data
+            const barChartData = data.map(d => (d.mainIn - d.mainOut) / 1E4).reverse()
+            data = data[0]
+            const retailIn = data.retailIn / 1E4
+            const retailOut = data.retailOut / 1E4
+            const mainIn = data.mainIn / 1E4
+            const mainOut = data.mainOut / 1E4
+            const donutChartData = [retailIn, mainIn, mainOut, retailOut]
+
+            const chartData: CapitalFlowInfo = {
+              barChartData,
+              donutChartData,
+            }
+
+            this._refreshDelay.capitalFlowInfo = 3 * 60 * 1000
+            this._data.capitalFlowInfo = chartData
+            this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, this._refreshDelay.capitalFlowInfo)
             this.emit('data', this._data)
           })
       )
@@ -277,28 +446,58 @@ export default class PollManager extends EventEmitter {
       )
   }
 
-  private pollCapitalFlow () {
-    getCapitalFlow(this._symbol)
+  private getFinancingInfo () {
+    if (this._symbolInfo.type !== 'stock') {
+      return
+    }
+    getFinancingInfo(this._symbolInfo.symbol)
       .then(response =>
         response.json()
           .then(data => {
+            this._data.financingInfo = data.data
+            this.emit('data', this._data)
+          })
+      )
+  }
+
+  private getPlates () {
+    if (this._symbolInfo.type !== 'stock') {
+      return
+    }
+    getPlatesBySymbol(this._symbolInfo.symbol)
+      .then(response =>
+        response.json()
+          .then(data => {
+            this._data.plates = data.data
+            this.emit('data', this._data)
+          })
+      )
+  }
+
+  private getNonRealtimeTools () {
+    getNonrealtimeTools()
+      .then(respopnse =>
+        respopnse.json()
+          .then(data => {
+            const clzReg = /class="(.*?)"/
+            const tagReg = /<.*?>/g
+            const pressureStrs = data.data.pressure_str.split(/\/(?=\<)/)
+            const financingStrs = data.data.rzInfo_str.split('\&nbsp;')
             data = data.data
-            const barChartData = data.map(d => (d.mainIn - d.mainOut) / 1E4).reverse()
-            data = data[0]
-            const retailIn = data.retailIn / 1E4
-            const retailOut = data.retailOut / 1E4
-            const mainIn = data.mainIn / 1E4
-            const mainOut = data.mainOut / 1E4
-            const donutChartData = [retailIn, mainIn, mainOut, retailOut]
-
-            const chartData: CapitalFlowInfo = {
-              barChartData,
-              donutChartData,
+            this._data.nonRealtimeTools = {
+              bankCapital: [data.bankInfo_str.replace(tagReg, ''), clzReg.exec(data.bankInfo_str)[1]],
+              stockForumSentiment: data.guba_str.replace(tagReg, ''),
+              searchSentiment: data.search_str.replace(tagReg, ''),
+              institutionCapital: [data.jgInfo_str.replace(tagReg, ''), clzReg.exec(data.jgInfo_str)[1]],
+              investerCapital: [data.zijin_str.replace(tagReg, ''), clzReg.exec(data.zijin_str)[1]],
+              tradingInvester: data.jiaoyi_str.replace(tagReg, ''),
+              liftBanCapitalisation: data.jiejingInfo_str.replace(tagReg, ''),
+              support: pressureStrs[1].replace(tagReg, ''),
+              pressure: pressureStrs[0].replace(tagReg, ''),
+              financingBalance: financingStrs[0],
+              financingBalanceChange: [financingStrs[1].replace(tagReg, ''), clzReg.exec(financingStrs[1])[1]],
+              newInvester: data.xinzeng_str.replace(tagReg, ''),
             }
-
-            this._refreshDelay.capitalFlowInfo = 3 * 60 * 1000
-            this._data.capitalFlowInfo = chartData
-            this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, this._refreshDelay.capitalFlowInfo)
             this.emit('data', this._data)
           })
       )

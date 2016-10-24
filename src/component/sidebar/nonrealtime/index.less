@@ -1,4 +1,4 @@
-.indexes {
+.non-realtime {
   font-size: 13px;
   h3 {
     font-size: 13px;
@@ -21,21 +21,30 @@
 
     width: 100%;
     padding: 0 10px;
-  }
-  .indexes-display {
-    tr td:nth-child(2) {
-      text-align: right;
-    }
-    tr td:nth-child(3) {
-      text-align: right;
-    }
-  }
-  .realtime-tools {
     tr td:nth-child(1) {
       text-align: left;
     }
     tr td:nth-child(2) {
       text-align: right;
+    }
+  }
+  .financing-balance {
+    > span:after {
+      display: inline-block;
+
+      width: 8px;
+      height: 10px;
+      margin-left: 2px;
+
+      content: '\0020';
+
+      background: url(../new_icon.png) no-repeat;
+    }
+    .positive:after {
+      background-position: 0 -115px;
+    }
+    .negtive:after {
+      background-position: 0 -130px;
     }
   }
 }

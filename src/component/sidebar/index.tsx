@@ -5,6 +5,9 @@ import { StockDatasource } from '../../datasource'
 import PollManager, { PollData } from './pollmanager'
 import Realtime from './realtime'
 import Indexes from './indexes'
+import Financing from './financing'
+import Plates from './plates'
+import NonRealtime from './nonrealtime'
 
 type Prop = {
   chartLayout: ChartLayoutModel
@@ -36,15 +39,16 @@ export default class Sidebar extends React.Component<Prop, State> {
     }
   }
 
-  public componentDidMount () {
+  public componentWillMount () {
     const datasource = this.props.chartLayout.mainDatasource as StockDatasource
-    this._pollManager = new PollManager(datasource.symbolInfo.symbol, 0)
+    this._pollManager = new PollManager(datasource.symbolInfo, 0)
     this._pollManager.start()
     this._pollManager.on('data', data => {
       this._data = data
       this.setState(this.state)
     })
-    this.props.chartLayout.on('symbolchange', () => {
+    this.props.chartLayout.addListener('symbolchange', symbolInfo => {
+      this._pollManager.symbolInfo = symbolInfo
       this._pollManager.restart()
     })
   }
@@ -63,25 +67,20 @@ export default class Sidebar extends React.Component<Prop, State> {
     let tabPage = null
     switch (this.state.tabIndex) {
       case 0:
-        tabPage =
-          this._data.stockInfo ?
-          <Realtime
-            chartLayout={this.props.chartLayout}
-            stockInfo={this._data.stockInfo}
-            capitalFlowInfo={this._data.capitalFlowInfo} /> : null
+        tabPage = <Realtime pollManager={this._pollManager} stockInfo={this._data.stockInfo}/>
         break
       case 1:
         tabPage = <Indexes realtimeTools={this._data.realtimeTools} indexesInfo={this._data.indexesInfo}/>
         break
-      // case 2:
-      //   tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this._data.stockInfo} />
-      //   break
-      // case 3:
-      //   tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this._data.stockInfo} />
-      //   break
-      // case 4:
-      //   tabPage = <Realtime chartLayout={this.props.chartLayout} stockInfo={this._data.stockInfo} />
-      //   break
+      case 2:
+        tabPage = <Financing financingInfo={this._data.financingInfo} />
+        break
+      case 3:
+        tabPage = <Plates plates={this._data.plates} />
+        break
+      case 4:
+        tabPage = <NonRealtime nonRealtimeTools={this._data.nonRealtimeTools} />
+        break
       default:
     }
 
@@ -92,19 +91,24 @@ export default class Sidebar extends React.Component<Prop, State> {
       {
         !this.state.sidebarFolded && stockInfo ?
         <div className='stock-panel'>
-          <div className='stock-data'>
-            <span className={stockInfo.changePrice > 0 ? 'price positive' : 'price negtive'}>
-              {stockInfo.price}
-            </span>
-            <span className={stockInfo.changePrice > 0 ? 'positive' : 'negtive'}>
-              {stockInfo.changePrice > 0 ? '+' + stockInfo.changePrice : stockInfo.changePrice}
-            </span>
-            <span className={stockInfo.changeRate > 0 ? 'positive' : 'negtive'}>
-              {stockInfo.changeRate > 0 ?
-                '+' + (stockInfo.changeRate * 100).toFixed(2) + '%'
-                : (stockInfo.changeRate * 100).toFixed(2) + '%'}
-            </span>
-          </div>
+          {
+            +stockInfo.price !== 0 ?
+            <div className='stock-data'>
+              <span className={stockInfo.changePrice > 0 ? 'price positive' : 'price negtive'}>
+                {stockInfo.price}
+              </span>
+              <span className={stockInfo.changePrice > 0 ? 'positive' : 'negtive'}>
+                {stockInfo.changePrice > 0 ? '+' + stockInfo.changePrice : stockInfo.changePrice}
+              </span>
+              <span className={stockInfo.changeRate > 0 ? 'positive' : 'negtive'}>
+                {stockInfo.changeRate > 0 ?
+                  '+' + (stockInfo.changeRate * 100).toFixed(2) + '%'
+                  : (stockInfo.changeRate * 100).toFixed(2) + '%'}
+              </span>
+            </div> : <div className='stock-data'>
+              <span>停牌</span>
+            </div>
+          }
           <div className='pressure-support'>
             <span className='pressure'>
               <label>今日压力</label>&nbsp;
@@ -122,9 +126,9 @@ export default class Sidebar extends React.Component<Prop, State> {
         <ul className='tab-list' onClick={this.switchTabPage.bind(this)}>
           {
             tabsConfig.map((tab, i) =>
-              <li
-                className={!this.state.sidebarFolded && this.state.tabIndex === i ? `${tab[0]} active` : tab[0]}
-                title={tab[1]}></li>
+              <li className={!this.state.sidebarFolded && this.state.tabIndex === i ? `${tab[0]} active` : tab[0]}
+                title={tab[1]}
+                data-index={i}></li>
             )
           }
         </ul>
@@ -165,7 +169,7 @@ export default class Sidebar extends React.Component<Prop, State> {
       return
     }
 
-    const index = Array.prototype.slice.call(ev.currentTarget.children).indexOf(ev.target)
+    const index = +ev.target.dataset.index
     this.state.tabIndex = index
     this.setState(this.state)
     this._pollManager.tabIndex = index

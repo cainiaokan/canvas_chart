@@ -15,23 +15,30 @@ type Prop = {
 }
 
 type State = {
+  study: '' | StudyType
 }
 
 export default class FooterBar extends React.Component<Prop, State> {
   constructor () {
     super()
-  }
-
-  public componentWillMount () {
-    this.state = {}
+    this.state = {
+      study: '',
+    }
   }
 
   public render () {
     const studies = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI']
     return (
       <div className='chart-footerbar' style={ {width: this.props.width + 'px', height: this.props.height + 'px'} }>
-        <div className='control-list'>
-          {studies.map(study => <a onClick={this.clickHandler.bind(this)}>{study}</a>)}
+        <div className='control-list' onClick={this.clickHandler.bind(this)}>
+          {
+            studies.map(study =>
+              <a href='javascript:;'
+                className={study === this.state.study ? 'active' : ''}>
+                {study}
+              </a>
+            )
+          }
         </div>
       </div>
     )
@@ -40,20 +47,19 @@ export default class FooterBar extends React.Component<Prop, State> {
   private clickHandler (ev: MouseEvent) {
     const chartLayout = this.props.chartLayout
     const dom = ev.target as HTMLElement
-    const study = dom.innerText
+    const oldStudy = this.state.study
+    const study = dom.innerText as StudyType
     const config = studyConfig[study]
-    Array.prototype.slice.call(dom.parentElement.querySelectorAll('a'))
-      .filter(ele => ele !== dom)
-      .forEach(ele => (ele as HTMLElement).classList.remove('active'))
-    dom.classList.toggle('active')
 
-    if (chartLayout.study) {
+    // 先把当前的study移除
+    if (this.state.study) {
       chartLayout.charts
         .some((chart, i) => {
           if (chart.graphs.some((graph, j) => {
-            if (graph instanceof StudyModel && graph.studyType === chartLayout.study) {
+            if (graph instanceof StudyModel && graph.studyType === oldStudy) {
               chart.graphs.splice(j, 1)
               chartLayout.study = null
+              this.state.study = ''
               return true
             } else {
               return false
@@ -69,7 +75,8 @@ export default class FooterBar extends React.Component<Prop, State> {
         })
     }
 
-    if (dom.classList.contains('active')) {
+    // 如果当前你点击的study跟原来不同，那就添加新的study
+    if (oldStudy !== study) {
       if (config.isPrice) {
         const studyModel = new StudyModel(
           chartLayout.mainDatasource,
@@ -101,7 +108,11 @@ export default class FooterBar extends React.Component<Prop, State> {
         chart.graphs = [studyModel]
         chartLayout.charts.push(chart)
       }
+
+      chartLayout.study = study
+      this.state.study = study
     }
-    chartLayout.study = study as StudyType
+    // 刷新视图
+    this.setState(this.state)
   }
 }

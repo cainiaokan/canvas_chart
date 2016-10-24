@@ -27,11 +27,11 @@ class Page extends React.Component<any, State> {
 
   public render () {
     return <ChartLayout
-      // symbol={'SH000001'}
-      symbol={'000516'}
+      symbol={'SH000001'}
+      // symbol={'000516'}
       height={this.state.height}
       width={this.state.width}
-      shape={'mountain'}
+      shape={'candle'}
       resolution={'1'}
       shownavbar={true}
       showfooterbar={true}

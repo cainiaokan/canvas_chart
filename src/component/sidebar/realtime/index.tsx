@@ -3,14 +3,11 @@ import * as React from 'react'
 import { max as d3_max } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { arc as d3_arc, pie as d3_pie } from 'd3-shape'
-
-import ChartLayout from '../../../model/chartlayout'
-import { StockInfo, CapitalFlowInfo } from '../pollmanager'
+import PollManager, { StockInfo, CapitalFlowInfo, PollData } from '../pollmanager'
 
 type Prop = {
-  chartLayout: ChartLayout
+  pollManager: PollManager
   stockInfo: StockInfo
-  capitalFlowInfo: CapitalFlowInfo
 }
 
 type State = {
@@ -18,7 +15,6 @@ type State = {
 }
 
 export default class Realtime extends React.Component<Prop, State> {
-
   public refs: {
     [propName: string]: Element
     inOutDonut: HTMLCanvasElement
@@ -26,19 +22,36 @@ export default class Realtime extends React.Component<Prop, State> {
     capitalInNum: HTMLElement
     capitalOutNum: HTMLElement
   }
+  private _capitalFlowInfo: CapitalFlowInfo
+  private _onData: (data: PollData) => void
 
   constructor () {
     super()
     this.state = {
       tabIndex: 0,
     }
+    this.drawChart = this.drawChart.bind(this)
+  }
+
+  public componentDidMount () {
+    this._onData = (data: PollData) => {
+      if (data.capitalFlowInfo && data.capitalFlowInfo !== this._capitalFlowInfo) {
+        this._capitalFlowInfo = data.capitalFlowInfo
+        setTimeout(() => this.drawChart(data.capitalFlowInfo), 200)
+      }
+    }
+    this.props.pollManager.addListener('data', this._onData)
+  }
+
+  public componentWillUnmount () {
+    this.props.pollManager.removeListener('data', this._onData)
   }
 
   public render () {
     const stockInfo = this.props.stockInfo
     return <div>
       {
-        stockInfo.selling && stockInfo.buying ?
+        stockInfo && stockInfo.selling && stockInfo.buying ?
         <div className='bid-list'>
           <div className='caption'>
             <b className='sold'>卖<br/><br/>盘</b>
@@ -54,7 +67,7 @@ export default class Realtime extends React.Component<Prop, State> {
                       <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
                         {item[0]}
                       </td>
-                      <td width='33.33%'>{item[1]}</td>
+                      <td width='33.33%'>{item[1] / 100}</td>
                     </tr>
                   )
                 }
@@ -70,7 +83,7 @@ export default class Realtime extends React.Component<Prop, State> {
                       <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
                         {item[0]}
                       </td>
-                      <td width='33.33%'>{item[1]}</td>
+                      <td width='33.33%'>{item[1] / 100}</td>
                     </tr>
                   )
                 }
@@ -83,54 +96,61 @@ export default class Realtime extends React.Component<Prop, State> {
         <table>
           <tr>
             <th width='67'>昨收</th>
-            <td width='52'>{stockInfo.preClose}</td>
+            <td width='52'>{stockInfo ? stockInfo.preClose : '--'}</td>
             <th width='67'>成交量</th>
             <td width='81'>
-              {stockInfo.volume >= 10000 ? ~~stockInfo.volume / 10000 : ~~stockInfo.volume}
-              {stockInfo.volume >= 10000 ? '亿手' : '万手'}
+              {stockInfo ? stockInfo.volume >= 10000 ? ~~stockInfo.volume / 10000 : ~~stockInfo.volume : '--'}
+              {stockInfo ? stockInfo.volume >= 10000 ? '亿手' : '万手' : '--'}
             </td>
           </tr>
           <tr>
             <th>今开</th>
-            <td className={stockInfo.open > stockInfo.preClose ? 'positive' : 'negtive'}>
-              {stockInfo.open}
+            <td className={stockInfo ? stockInfo.open > stockInfo.preClose ? 'positive' : 'negtive' : ''}>
+              {stockInfo ? stockInfo.open : '--'}
             </td>
             <th>成交额</th>
             <td>
-              {stockInfo.amount >= 10000 ? (stockInfo.amount / 10000).toFixed(2) : stockInfo.amount.toFixed(2)}
-              {stockInfo.amount >= 10000 ? '万亿' : '亿'}
+              {
+                stockInfo ?
+                  stockInfo.amount >= 10000 ?
+                    (stockInfo.amount / 10000).toFixed(2)
+                    : stockInfo.amount.toFixed(2)
+                :'--'
+              }
+              {stockInfo ? stockInfo.amount >= 10000 ? '万亿' : '亿' : '--'}
             </td>
           </tr>
           <tr>
             <th>最高</th>
-            <td className={stockInfo.high > stockInfo.preClose ? 'positive' : 'negtive'}>
-              {stockInfo.high}
+            <td className={stockInfo ? stockInfo.high > stockInfo.preClose ? 'positive' : 'negtive' : ''}>
+              {stockInfo ? stockInfo.high : '--'}
             </td>
-            <th>振幅</th><td>{stockInfo.amplitude}%</td>
+            <th>振幅</th><td>{stockInfo ? stockInfo.amplitude : '--'}%</td>
           </tr>
           <tr>
             <th>最低</th>
-            <td className={stockInfo.low > stockInfo.preClose ? 'positive' : 'negtive'}>
-              {stockInfo.low}
+            <td className={stockInfo ? stockInfo.low > stockInfo.preClose ? 'positive' : 'negtive' : ''}>
+              {stockInfo ? stockInfo.low : '--'}
             </td>
-            <th>换手率</th><td>{stockInfo.turnover ? stockInfo.turnover : '--'}%</td>
-          </tr>
-          <tr style={ {display: stockInfo.outVol && stockInfo.inVol ? '' : 'none'} }>
-            <th>涨停</th><td className='positive'>{(stockInfo.preClose * 1.1).toFixed(2)}</td>
-            <th>内盘</th><td>{stockInfo.inVol}</td>
+            <th>换手率</th>
+            <td>{stockInfo && stockInfo.turnover ? stockInfo.turnover + '%' : '--'}</td>
           </tr>
           <tr>
-            <th>跌停</th><td className='negtive'>{(stockInfo.preClose * 0.9).toFixed(2)}</td>
-            <th>外盘</th><td>{stockInfo.outVol}</td>
+            <th>涨停</th><td className='positive'>{stockInfo ? (stockInfo.preClose * 1.1).toFixed(2) : '--'}</td>
+            <th>内盘</th><td className='positive'>{stockInfo && stockInfo.inVol ? stockInfo.inVol : '--'}</td>
+          </tr>
+          <tr>
+            <th>跌停</th><td className='negtive'>{stockInfo ? (stockInfo.preClose * 0.9).toFixed(2) : '--'}</td>
+            <th>外盘</th><td className='negtive'>{stockInfo && stockInfo.outVol ? stockInfo.outVol : '--'}</td>
           </tr>
         </table>
       </div>
       {
-        stockInfo.ticks.length ?
+        stockInfo && stockInfo.ticks.length ?
         <div className='detailed-info'>
           <ul className='tab-btn-group' onClick={this.switchTabPage.bind(this)}>
-            <li className={this.state.tabIndex === 0 ? 'on' : ''}>明细</li>
-            <li className={this.state.tabIndex === 1 ? 'on' : ''}>资金</li>
+            <li className={this.state.tabIndex === 0 ? 'on' : ''} data-index='0'>明细</li>
+            <li className={this.state.tabIndex === 1 ? 'on' : ''} data-index='1'>资金</li>
           </ul>
           <ul className='tab-container'>
             <li className={this.state.tabIndex === 0 ? 'trans-entry on' : 'trans-entry'}>
@@ -187,13 +207,17 @@ export default class Realtime extends React.Component<Prop, State> {
   }
 
   private switchTabPage (ev) {
-    const index = Array.prototype.slice.call(ev.currentTarget.children).indexOf(ev.target)
+    const index = +ev.target.dataset.index
     this.state.tabIndex = index
     this.setState(this.state)
     if (index === 1) {
-      this.drawfiveDaysCapitalInOutBarChart(this.props.capitalFlowInfo.barChartData)
-      this.drawCapitalInOutDonutChart(this.props.capitalFlowInfo.donutChartData)
+      this.drawChart(this._capitalFlowInfo)
     }
+  }
+
+  private drawChart (data: CapitalFlowInfo) {
+    this.drawCapitalInOutDonutChart(data.donutChartData)
+    this.drawfiveDaysCapitalInOutBarChart(data.barChartData)
   }
 
   private drawfiveDaysCapitalInOutBarChart (data) {

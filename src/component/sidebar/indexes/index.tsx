@@ -18,9 +18,9 @@ export default class Indexes extends React.Component<Prop, any> {
           <table className='indexes-display'>
             <tbody>
               <tr>
-                <td width='22%'>上证指数</td>
-                <td width='25%'>{indexesInfo.sh000001.price}</td>
-                <td width='53%' className={indexesInfo.sh000001.changeAmount > 0 ? 'positive' : 'negtive'}>
+                <td width='54'>上证指数</td>
+                <td width='62'>{indexesInfo.sh000001.price}</td>
+                <td width='131' className={indexesInfo.sh000001.changeAmount > 0 ? 'positive' : 'negtive'}>
                   {(indexesInfo.sh000001.changeAmount > 0 ? '+' : '') + indexesInfo.sh000001.changeAmount}
                   ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate}%)
                 </td>
@@ -62,8 +62,8 @@ export default class Indexes extends React.Component<Prop, any> {
           <h3>实用工具</h3>
           <table className='realtime-tools'>
             <tr>
-              <td>沪股通资金流入</td>
-              <td className={realtimeTools.hugutong[1] === 'red' ? 'positive' : 'negtive'}>
+              <td width='147'>沪股通资金流入</td>
+              <td width='100' className={realtimeTools.hugutong[1] === 'red' ? 'positive' : 'negtive'}>
                 {realtimeTools.hugutong[0]}
               </td>
             </tr>

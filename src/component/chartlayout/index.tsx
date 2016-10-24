@@ -442,7 +442,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       <div className='chart-layout' ref='root'
         style={ {height: this.props.height + 'px',width: this.props.width + 'px'} }>
         {
-          this.state.loaded && this.props.shownavbar ?
+          this.props.shownavbar ?
             <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} /> : null
         }
         <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }>
@@ -460,7 +460,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
             }
         }
         {
-          this.state.loaded && this.props.showfooterbar ?
+          this.props.showfooterbar ?
             <FooterBar chartLayout={this._chartLayoutModel} width={availWidth + 2} height={FOOTERBAR_HEIGHT} /> : null
         }
       </div>
