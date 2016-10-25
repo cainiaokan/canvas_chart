@@ -8,8 +8,8 @@ type Prop = {
 }
 
 type State = {
-  activeIndex: number
-  stocks: StockInfo[]
+  activeIndex?: number
+  stocks?: StockInfo[]
 }
 
 type StockInfo = {
@@ -21,7 +21,9 @@ type StockInfo = {
 }
 
 export default class Plates extends React.Component<Prop, State> {
+
   private timer = null
+
   constructor () {
     super()
     this.state = {
@@ -29,6 +31,14 @@ export default class Plates extends React.Component<Prop, State> {
       stocks: null,
     }
     this.selectPlate = this.selectPlate.bind(this)
+  }
+
+  public shouldComponentUpdate (nextProps, nextState) {
+    const curProp = this.props
+    const curState = this.state
+    return curProp.plates !== nextProps.plates ||
+      curState.stocks !== nextState.stocks ||
+      curState.activeIndex !== nextState.activeIndex
   }
 
   public render () {
@@ -72,14 +82,15 @@ export default class Plates extends React.Component<Prop, State> {
   private selectPlate (ev) {
     const index = +ev.target.dataset.index
     if (index === this.state.activeIndex) {
-      this.state.activeIndex = -1
       this.cancelStockListTimer()
+      this.setState({ activeIndex: -1 })
     } else {
-      this.state.activeIndex = index
-      this.state.stocks = null
       this.loadStockList(ev.target.innerHTML, ev.target.dataset.type)
+      this.setState({
+        activeIndex: index,
+        stocks: null,
+      })
     }
-    this.setState(this.state)
   }
 
   private loadStockList (name: string, type: string) {
@@ -89,8 +100,9 @@ export default class Plates extends React.Component<Prop, State> {
         response.json()
           .then(data => {
             data = data.data
-            this.state.stocks = data.stock_list
-            this.setState(this.state)
+            this.setState({
+              stocks: data.stock_list,
+            })
             this.timer = setTimeout(() => this.loadStockList(name, type), data.reflush_time * 1000)
           })
       )

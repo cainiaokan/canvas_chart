@@ -10,6 +10,8 @@ import {
   getNonrealtimeTools,
 } from '../../datasource'
 
+const RETRY_DELAY = 10000
+
 export type StockInfo = {
   open: number
   high: number
@@ -176,13 +178,6 @@ export default class PollManager extends EventEmitter {
 
   private _tabIndex: number
 
-  private _refreshDelay: {
-    stockInfo?: number
-    capitalFlowInfo?: number
-    indexesInfo?: number
-    realtimeTools?: number
-  } = {}
-
   private _timers: {
     stockInfo?: number
     capitalFlowInfo?: number
@@ -207,40 +202,31 @@ export default class PollManager extends EventEmitter {
   }
 
   set tabIndex (tabIndex: number) {
-    switch (this._tabIndex) {
-      case 0:
-        // clearTimeout(this._timers.stockInfo)
-        clearTimeout(this._timers.capitalFlowInfo)
-        break
-      case 1:
-        clearTimeout(this._timers.indexesInfo)
-        clearTimeout(this._timers.realtimeTools)
-      case 2: break
-      default:
+    if (tabIndex === this._tabIndex) {
+      return
     }
+    // switch (this._tabIndex) {
+    //   case 0:
+    //     // clearTimeout(this._timers.stockInfo)
+    //     clearTimeout(this._timers.capitalFlowInfo)
+    //     break
+    //   case 1:
+    //     clearTimeout(this._timers.indexesInfo)
+    //     clearTimeout(this._timers.realtimeTools)
+    //   default:
+    // }
     this._tabIndex = tabIndex
     switch (tabIndex) {
       case 0:
-        // if (this._refreshDelay.stockInfo) {
-        //   this._timers.stockInfo = setTimeout(this.pollStockInfo, this._refreshDelay.stockInfo)
-        // } else {
-        //   this.pollStockInfo()
-        // }
-        if (this._refreshDelay.capitalFlowInfo) {
-          this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, this._refreshDelay.capitalFlowInfo)
-        } else {
+        if (!this._timers.capitalFlowInfo) {
           this.pollCapitalFlow()
         }
         break
       case 1:
-        if (this._refreshDelay.indexesInfo) {
-          this._timers.indexesInfo = setTimeout(this.pollIndexesInfo, this._refreshDelay.indexesInfo)
-        } else {
+        if (!this._timers.indexesInfo) {
           this.pollIndexesInfo()
         }
-        if (this._refreshDelay.realtimeTools) {
-          this._timers.realtimeTools = setTimeout(this.pollRealtimeTools, this._refreshDelay.realtimeTools)
-        } else {
+        if (!this._timers.realtimeTools) {
           this.pollRealtimeTools()
         }
         break
@@ -296,7 +282,6 @@ export default class PollManager extends EventEmitter {
     Object.keys(this._timers).forEach(key => clearTimeout(this._timers[key]))
     this._data = {}
     this._timers = {}
-    this._refreshDelay = {}
   }
 
   private pollStockInfo () {
@@ -342,20 +327,20 @@ export default class PollManager extends EventEmitter {
               ticks: data.data.ticks_list,
             }
 
-            this._refreshDelay.stockInfo = data.data.reflush_time * 1000
             this._data.stockInfo = stockInfo
-            this._timers.stockInfo = setTimeout(this.pollStockInfo, this._refreshDelay.stockInfo)
+            this._timers.stockInfo = setTimeout(this.pollStockInfo, data.data.reflush_time * 1000)
             this.emit('data', this._data)
           })
       )
+      .catch(() => {
+        this._timers.stockInfo = setTimeout(this.pollStockInfo, RETRY_DELAY)
+      })
   }
 
   private pollCapitalFlow () {
-    if (this._symbolInfo.type !== 'stock') {
+    if (this._symbolInfo.type !== 'stock' || this._tabIndex !== 0) {
+      this._timers.capitalFlowInfo = null
       return
-    }
-    if (this._tabIndex !== 0) {
-      return this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow(), this._refreshDelay.capitalFlowInfo)
     }
     getCapitalFlow(this._symbolInfo.symbol)
       .then(response =>
@@ -375,17 +360,20 @@ export default class PollManager extends EventEmitter {
               donutChartData,
             }
 
-            this._refreshDelay.capitalFlowInfo = 3 * 60 * 1000
             this._data.capitalFlowInfo = chartData
-            this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, this._refreshDelay.capitalFlowInfo)
+            this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, 3 * 60 * 1000)
             this.emit('data', this._data)
           })
       )
+      .catch(() => {
+        this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, RETRY_DELAY)
+      })
   }
 
   private pollIndexesInfo () {
     if (this._tabIndex !== 1) {
-      return this._timers.indexesInfo = setTimeout(this.pollIndexesInfo, this._refreshDelay.indexesInfo)
+      this._timers.indexesInfo = null
+      return
     }
     getIndexesInfo()
       .then(response =>
@@ -410,17 +398,20 @@ export default class PollManager extends EventEmitter {
               }
             })
 
-            this._refreshDelay.indexesInfo = reflushinter * 1000
             this._data.indexesInfo = indexesInfo
-            this._timers.indexesInfo = setTimeout(this.pollIndexesInfo, this._refreshDelay.indexesInfo)
+            this._timers.indexesInfo = setTimeout(this.pollIndexesInfo, reflushinter * 1000)
             this.emit('data', this._data)
           })
       )
+      .catch(() => {
+        this._timers.indexesInfo = setTimeout(this.pollIndexesInfo, RETRY_DELAY)
+      })
   }
 
   private pollRealtimeTools () {
     if (this._tabIndex !== 1) {
-      return this._timers.realtimeTools = setTimeout(this.pollRealtimeTools, this._refreshDelay.realtimeTools)
+      this._timers.realtimeTools = null
+      return
     }
     getRealtimeTools()
       .then(response =>
@@ -432,18 +423,20 @@ export default class PollManager extends EventEmitter {
             const upAndFallStaying = data.zhangdieting.split('/<')
 
             const realtimeTools: RealtimeTools = {
-              hugutong: [innerTextReg.exec(data.hugutong)[1], clzReg.exec(data.hugutong)[1] === 'red'],
+              hugutong: [innerTextReg.exec(data.hugutong)[1], clzReg.exec(data.hugutong)[1]],
               shortTermMove: [innerTextReg.exec(data.jzjd)[1], clzReg.exec(data.jzjd)[1]],
               goUpStaying: [innerTextReg.exec(upAndFallStaying[0])[1], clzReg.exec(upAndFallStaying[0])[1]],
               fallStaying: [innerTextReg.exec(upAndFallStaying[1])[1], clzReg.exec(upAndFallStaying[1])[1]],
             }
 
-            this._refreshDelay.realtimeTools = data.flush_time * 1000
             this._data.realtimeTools = realtimeTools
-            this._timers.realtimeTools = setTimeout(this.pollRealtimeTools, this._refreshDelay.realtimeTools)
+            this._timers.realtimeTools = setTimeout(this.pollRealtimeTools, data.flush_time * 1000)
             this.emit('data', this._data)
           })
       )
+      .catch(() => {
+        this._timers.realtimeTools = setTimeout(this.pollRealtimeTools, RETRY_DELAY)
+      })
   }
 
   private getFinancingInfo () {

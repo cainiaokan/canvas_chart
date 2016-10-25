@@ -5,6 +5,8 @@ html {
 
   height: 100%;
 
+  cursor: default;
+
   background: #fff;
 
   -webkit-touch-callout: none;
@@ -18,6 +20,8 @@ body {
 }
 
 * {
+  cursor: inherit;
+
   outline: none;
 }
 

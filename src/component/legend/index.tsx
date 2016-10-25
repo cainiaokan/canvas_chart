@@ -11,8 +11,8 @@ type Prop = {
 }
 
 type State = {
-  update: boolean
-  hit: boolean
+  update?: boolean
+  hit?: boolean
 }
 
 export default class Legend extends React.Component<Prop, State> {
@@ -23,31 +23,21 @@ export default class Legend extends React.Component<Prop, State> {
       update: false,
       hit: false,
     }
+    this.updateView = this.updateView.bind(this)
   }
 
   public componentDidMount () {
-    this.props.chartModel.chartLayout.addListener('cursormove', () => {
-      this.state.update = true
-      this.setState(this.state)
-    })
-    this.props.chartModel.chartLayout.addListener('hit', hit => {
-      this.state.hit = hit
-      this.setState(this.state)
-    })
-    this.props.chartModel.graphs.forEach(graph => {
-      if (graph instanceof StockModel) {
-        // TODO
-        // graph.resolveSymbol()
-        //   .then(() => {
-        //     this.state.update = true
-        //     this.setState(this.state)
-        //   })
-      }
-    })
-    this.props.chartModel.chartLayout.on('resolutionchange', () => {
-      this.state.update = true
-      this.setState(this.state)
-    })
+    this.props.chartModel.chartLayout.addListener('cursormove', this.updateView)
+    this.props.chartModel.chartLayout.addListener('hit', this.updateView)
+    this.props.chartModel.chartLayout.addListener('resolutionchange', this.updateView)
+    this.props.chartModel.chartLayout.addListener('symbolchange', this.updateView)
+  }
+
+  public componentWillUnmound () {
+    this.props.chartModel.chartLayout.removeListener('cursormove', this.updateView)
+    this.props.chartModel.chartLayout.removeListener('hit', this.updateView)
+    this.props.chartModel.chartLayout.removeListener('resolutionchange', this.updateView)
+    this.props.chartModel.chartLayout.removeListener('symbolchange', this.updateView)
   }
 
   public render () {
@@ -207,5 +197,9 @@ export default class Legend extends React.Component<Prop, State> {
         }
       </div>
     )
+  }
+
+  private updateView () {
+    this.setState({ update: true })
   }
 }

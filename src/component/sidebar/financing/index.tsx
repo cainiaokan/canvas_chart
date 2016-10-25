@@ -1,4 +1,5 @@
 import './index.less'
+import '../../../style/table.less'
 import * as React from 'react'
 import { FinancingInfo } from '../pollmanager'
 
@@ -7,15 +8,21 @@ type Prop = {
 }
 
 export default class Financing extends React.Component<Prop, any> {
+
+  public shouldComponentUpdate (nextProps, nextState) {
+    const curProp = this.props
+    return curProp.financingInfo !== nextProps.financingInfo
+  }
+
   public render () {
     const financingInfo = this.props.financingInfo
     return financingInfo ? <div className='financing'>
       <h3>财务信息</h3>
-      <table className='indexes-display'>
+      <table className='indexes-display s-table stripe'>
         <tbody>
           <tr>
-            <td width='123'>每股收益</td>
-            <td width='124'>{financingInfo.earning_per_Share}元</td>
+            <td width='133'>每股收益</td>
+            <td width='134'>{financingInfo.earning_per_Share}元</td>
           </tr>
           <tr>
             <td>净利润</td>

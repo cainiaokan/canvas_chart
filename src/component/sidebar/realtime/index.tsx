@@ -15,6 +15,7 @@ type State = {
 }
 
 export default class Realtime extends React.Component<Prop, State> {
+
   public refs: {
     [propName: string]: Element
     inOutDonut: HTMLCanvasElement
@@ -22,6 +23,7 @@ export default class Realtime extends React.Component<Prop, State> {
     capitalInNum: HTMLElement
     capitalOutNum: HTMLElement
   }
+
   private _capitalFlowInfo: CapitalFlowInfo
   private _onData: (data: PollData) => void
 
@@ -31,6 +33,13 @@ export default class Realtime extends React.Component<Prop, State> {
       tabIndex: 0,
     }
     this.drawChart = this.drawChart.bind(this)
+  }
+
+  public shouldComponentUpdate (nextProps, nextState) {
+    const curProp = this.props
+    const curState = this.state
+    return curProp.stockInfo !== nextProps.stockInfo ||
+      curState.tabIndex !== nextState.tabIndex
   }
 
   public componentDidMount () {
@@ -208,8 +217,7 @@ export default class Realtime extends React.Component<Prop, State> {
 
   private switchTabPage (ev) {
     const index = +ev.target.dataset.index
-    this.state.tabIndex = index
-    this.setState(this.state)
+    this.setState({ tabIndex: index})
     if (index === 1) {
       this.drawChart(this._capitalFlowInfo)
     }

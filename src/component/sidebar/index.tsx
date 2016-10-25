@@ -16,8 +16,8 @@ type Prop = {
 }
 
 type State = {
-  sidebarFolded: boolean
-  tabIndex: number
+  sidebarFolded?: boolean
+  tabIndex?: number
 }
 
 export default class Sidebar extends React.Component<Prop, State> {
@@ -70,7 +70,9 @@ export default class Sidebar extends React.Component<Prop, State> {
         tabPage = <Realtime pollManager={this._pollManager} stockInfo={this._data.stockInfo}/>
         break
       case 1:
-        tabPage = <Indexes realtimeTools={this._data.realtimeTools} indexesInfo={this._data.indexesInfo}/>
+        tabPage = <Indexes chartLayout={chartLayout}
+                    realtimeTools={this._data.realtimeTools}
+                    indexesInfo={this._data.indexesInfo}/>
         break
       case 2:
         tabPage = <Financing financingInfo={this._data.financingInfo} />
@@ -93,14 +95,12 @@ export default class Sidebar extends React.Component<Prop, State> {
         <div className='stock-panel'>
           {
             +stockInfo.price !== 0 ?
-            <div className='stock-data'>
-              <span className={stockInfo.changePrice > 0 ? 'price positive' : 'price negtive'}>
-                {stockInfo.price}
-              </span>
-              <span className={stockInfo.changePrice > 0 ? 'positive' : 'negtive'}>
-                {stockInfo.changePrice > 0 ? '+' + stockInfo.changePrice : stockInfo.changePrice}
-              </span>
-              <span className={stockInfo.changeRate > 0 ? 'positive' : 'negtive'}>
+            <div className={
+              stockInfo.changePrice > 0 ? 'stock-data positive' :
+                stockInfo.changePrice < 0 ? 'stock-data negtive' : 'stock-data'}>
+              <span className='price'>{stockInfo.price}</span>
+              <span>{stockInfo.changePrice > 0 ? '+' + stockInfo.changePrice : stockInfo.changePrice}</span>
+              <span>
                 {stockInfo.changeRate > 0 ?
                   '+' + (stockInfo.changeRate * 100).toFixed(2) + '%'
                   : (stockInfo.changeRate * 100).toFixed(2) + '%'}
@@ -146,14 +146,16 @@ export default class Sidebar extends React.Component<Prop, State> {
       this.refs.foldingBtn.classList.remove('folded')
       this.props.chartLayout.emit('sidebarchange', 'unfold')
       this.refs.container.classList.remove('folded')
-      this.state.sidebarFolded = false
-      this.setState(this.state)
+      this.setState({
+        sidebarFolded: false,
+      })
     } else {
       this.refs.foldingBtn.classList.add('folded')
       this.props.chartLayout.emit('sidebarchange', 'fold')
       this.refs.container.classList.add('folded')
-      this.state.sidebarFolded = true
-      this.setState(this.state)
+      this.setState({
+        sidebarFolded: true,
+      })
     }
   }
 
@@ -170,8 +172,9 @@ export default class Sidebar extends React.Component<Prop, State> {
     }
 
     const index = +ev.target.dataset.index
-    this.state.tabIndex = index
-    this.setState(this.state)
     this._pollManager.tabIndex = index
+    this.setState({
+      tabIndex: index,
+    })
   }
 }

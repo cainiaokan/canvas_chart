@@ -1,4 +1,5 @@
 import './index.less'
+import '../../../style/table.less'
 import * as React from 'react'
 import { NonRealtimeTools } from '../pollmanager'
 
@@ -7,12 +8,18 @@ type Prop = {
 }
 
 export default class NonRealtime extends React.Component<Prop, any> {
+
+  public shouldComponentUpdate (nextProps, nextState) {
+    const curProp = this.props
+    return curProp.nonRealtimeTools !== nextProps.nonRealtimeTools
+  }
+
   public render () {
     const nonRealtimeTools = this.props.nonRealtimeTools
     return <div className='non-realtime'>
       <h3>非实时工具</h3>
       {
-        nonRealtimeTools ? <table>
+        nonRealtimeTools ? <table className='s-table stripe'>
           <tbody>
             <tr>
               <td width='130'>上证压力支撑</td>

@@ -14,28 +14,21 @@
     border-top: 1px solid #c9cbcd;
     background: #f1f3f6;
   }
-  table {
-    line-height: 30px;
-
-    display: block;
-
-    width: 100%;
-    padding: 0 10px;
-  }
-  .indexes-display {
-    tr td:nth-child(2) {
-      text-align: right;
+  .mutation {
+    > span {
+      padding: 4px;
     }
-    tr td:nth-child(3) {
-      text-align: right;
+    &.positive > span {
+      background: #ff524f;
+    }
+    &.negtive > span {
+      background: #2bbe65;
     }
   }
-  .realtime-tools {
-    tr td:nth-child(1) {
-      text-align: left;
-    }
-    tr td:nth-child(2) {
-      text-align: right;
-    }
+  .index-table tr td:nth-child(2) {
+    color: inherit!important;
+  }
+  .index-table tr {
+    cursor: pointer;
   }
 }

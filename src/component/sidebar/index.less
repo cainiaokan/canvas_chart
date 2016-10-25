@@ -54,7 +54,6 @@
     overflow: hidden;
 
     height: 76px;
-
     .stock-data > span {
       line-height: 44px;
 
@@ -77,12 +76,18 @@
       height: 23px;
       margin-top: -4px;
 
-      content: '\0020';
       vertical-align: middle;
 
       background: url('./icon-updown-arrow.png') no-repeat scroll 0 0 transparent;
     }
-    .price.negtive:after {
+    .positive .price:after {
+      content: '\0020';
+
+      background-position: 0 0;
+    }
+    .negtive .price:after {
+      content: '\0020';
+
       background-position: 0 -24px;
     }
   }
