@@ -67,12 +67,13 @@ export default class Sidebar extends React.Component<Prop, State> {
     let tabPage = null
     switch (this.state.tabIndex) {
       case 0:
-        tabPage = <Realtime pollManager={this._pollManager} stockInfo={this._data.stockInfo}/>
+        tabPage = <Realtime stockInfo={this._data.stockInfo}
+                    capitalFlowInfo={this._data.capitalFlowInfo} />
         break
       case 1:
         tabPage = <Indexes chartLayout={chartLayout}
                     realtimeTools={this._data.realtimeTools}
-                    indexesInfo={this._data.indexesInfo}/>
+                    indexesInfo={this._data.indexesInfo} />
         break
       case 2:
         tabPage = <Financing financingInfo={this._data.financingInfo} />
@@ -160,6 +161,9 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   private switchTabPage (ev) {
+    if (ev.target.tagName.toUpperCase() !== 'LI') {
+      return
+    }
     // 如果侧边栏已经收起状态，则先展开侧边栏
     if (this.refs.container.classList.contains('folded')) {
       this.foldingBtnClickHandler()

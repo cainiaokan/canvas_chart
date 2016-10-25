@@ -3,11 +3,11 @@ import * as React from 'react'
 import { max as d3_max } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { arc as d3_arc, pie as d3_pie } from 'd3-shape'
-import PollManager, { StockInfo, CapitalFlowInfo, PollData } from '../pollmanager'
+import { StockInfo, CapitalFlowInfo } from '../pollmanager'
 
 type Prop = {
-  pollManager: PollManager
   stockInfo: StockInfo
+  capitalFlowInfo: CapitalFlowInfo
 }
 
 type State = {
@@ -25,7 +25,6 @@ export default class Realtime extends React.Component<Prop, State> {
   }
 
   private _capitalFlowInfo: CapitalFlowInfo
-  private _onData: (data: PollData) => void
 
   constructor () {
     super()
@@ -43,17 +42,17 @@ export default class Realtime extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this._onData = (data: PollData) => {
-      if (data.capitalFlowInfo && data.capitalFlowInfo !== this._capitalFlowInfo) {
-        this._capitalFlowInfo = data.capitalFlowInfo
-        setTimeout(() => this.drawChart(data.capitalFlowInfo), 200)
-      }
+    if (this.props.capitalFlowInfo) {
+      this._capitalFlowInfo = this.props.capitalFlowInfo
+      setTimeout(() => this.drawChart(this.props.capitalFlowInfo), 200)
     }
-    this.props.pollManager.addListener('data', this._onData)
   }
 
-  public componentWillUnmount () {
-    this.props.pollManager.removeListener('data', this._onData)
+  public componentWillReceiveProps (nextProps) {
+    if (nextProps.capitalFlowInfo && this._capitalFlowInfo !== nextProps.capitalFlowInfo) {
+      this._capitalFlowInfo = nextProps.capitalFlowInfo
+      this.drawChart(nextProps.capitalFlowInfo)
+    }
   }
 
   public render () {
@@ -217,9 +216,9 @@ export default class Realtime extends React.Component<Prop, State> {
 
   private switchTabPage (ev) {
     const index = +ev.target.dataset.index
-    this.setState({ tabIndex: index})
+    this.setState({ tabIndex: index })
     if (index === 1) {
-      this.drawChart(this._capitalFlowInfo)
+      this.drawChart(this.props.capitalFlowInfo)
     }
   }
 
@@ -373,6 +372,5 @@ export default class Realtime extends React.Component<Prop, State> {
 
     this.refs.capitalInNum.innerHTML = ~~(data[0] + data[1] + 0.5) + ''
     this.refs.capitalOutNum.innerHTML = ~~(data[2] + data[3] + 0.5) + ''
-
   }
 }

@@ -15,10 +15,12 @@ type State = {
 }
 
 export default class SearchBox extends React.Component<Prop, State> {
+
   public refs: {
       [key: string]: (Element)
       input: HTMLInputElement
   }
+
   private searchSymbols = _.debounce(
     keyword => {
       this.state.loading = true
@@ -80,7 +82,7 @@ export default class SearchBox extends React.Component<Prop, State> {
 
   private selectSymbolHandler (index) {
     const symbolInfo = this.state.results[index]
-    this.props.chartLayout.setSymbol(symbolInfo)
+    this.props.chartLayout.setSymbol(symbolInfo.symbol)
     this.refs.input.value = symbolInfo.symbol
   }
 
@@ -113,5 +115,4 @@ export default class SearchBox extends React.Component<Prop, State> {
       this.setState(this.state)
     }
   }
-
 }

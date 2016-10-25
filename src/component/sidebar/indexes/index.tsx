@@ -2,7 +2,6 @@ import './index.less'
 import '../../../style/table.less'
 import * as React from 'react'
 import ChartLayout from '../../../model/chartlayout'
-import { resolveSymbol } from '../../../datasource'
 import { IndexesInfo, RealtimeTools } from '../pollmanager'
 
 type State = {
@@ -168,18 +167,6 @@ export default class Indexes extends React.Component<Prop, State> {
   }
 
   private selectIndex (ev) {
-    const symbol = ev.currentTarget.dataset.symbol
-    resolveSymbol(symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            this.props.chartLayout.setSymbol({
-              symbol,
-              type: data.type,
-              description: data.description,
-              exchange: data.exchange,
-            })
-          })
-      )
+    this.props.chartLayout.setSymbol(ev.currentTarget.dataset.symbol)
   }
 }

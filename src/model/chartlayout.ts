@@ -2,7 +2,7 @@ import * as EventEmitter from 'eventemitter3'
 import * as _ from 'underscore'
 import ChartModel from './chart'
 import AxisXModel from './axisx'
-import { Datasource, StockDatasource, SymbolInfo } from '../datasource'
+import { Datasource, StockDatasource, resolveSymbol, SymbolInfo } from '../datasource'
 import { Point } from '../model/crosshair'
 import { ResolutionType, StudyType } from '../constant'
 
@@ -34,21 +34,33 @@ export default class ChartLayoutModel extends EventEmitter {
     this.emit('resolutionchange', resolution)
   }
 
-  public setSymbol (symbolInfo: SymbolInfo) {
-    const mainDatasource = this._mainDatasource
-    this._charts.forEach(chart => {
-      chart.graphs.forEach(graph => {
-        graph.datasource.clearCache()
-        graph.clearCache()
-      })
-    })
-    if (mainDatasource instanceof StockDatasource) {
-      mainDatasource.symbolInfo = symbolInfo
-    } else {
-      throw 'mainDatasource required to be an instance of StockDatasource.'
-    }
-    this._axisx.resetOffset()
-    this.emit('symbolchange', symbolInfo)
+  public setSymbol (symbol: string) {
+    resolveSymbol(symbol)
+      .then(response =>
+        response.json()
+          .then(data => {
+            const symbolInfo: SymbolInfo = {
+              symbol,
+              type: data.type,
+              description: data.description,
+              exchange: data.exchange,
+            }
+            const mainDatasource = this._mainDatasource
+            this._charts.forEach(chart => {
+              chart.graphs.forEach(graph => {
+                graph.datasource.clearCache()
+                graph.clearCache()
+              })
+            })
+            if (mainDatasource instanceof StockDatasource) {
+              mainDatasource.symbolInfo = symbolInfo
+            } else {
+              throw 'mainDatasource required to be an instance of StockDatasource.'
+            }
+            this._axisx.resetOffset()
+            this.emit('symbolchange', symbolInfo)
+          })
+      )
   }
 
   public setCursorPoint (point: Point) {
