@@ -219,8 +219,6 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private dragMoveHandler (ev: any) {
-    ev.preventDefault()
-    ev.stopPropagation()
     if (this._dragOffsetStart) {
       const pageX = this._isSupportTouch ? ev.touches[0].pageX : ev.pageX
       const axisX = this._chartLayout.axisx

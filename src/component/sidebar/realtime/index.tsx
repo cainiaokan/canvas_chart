@@ -4,8 +4,10 @@ import { max as d3_max } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { arc as d3_arc, pie as d3_pie } from 'd3-shape'
 import { StockInfo, CapitalFlowInfo } from '../pollmanager'
+import * as iScroll from '../../../vendor/iscroll'
 
 type Prop = {
+  height: number
   stockInfo: StockInfo
   capitalFlowInfo: CapitalFlowInfo
 }
@@ -22,7 +24,14 @@ export default class Realtime extends React.Component<Prop, State> {
     inOutBar: HTMLCanvasElement
     capitalInNum: HTMLElement
     capitalOutNum: HTMLElement
+    bidList: HTMLDivElement
+    stockInfo: HTMLDivElement
+    detailedInfo: HTMLDivElement
   }
+
+  private _bidListScroll
+  private _stockInfoScroll
+  private _detailedInfoScroll
 
   private _capitalFlowInfo: CapitalFlowInfo
 
@@ -34,17 +43,63 @@ export default class Realtime extends React.Component<Prop, State> {
     this.drawChart = this.drawChart.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps, nextState) {
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
     const curProp = this.props
     const curState = this.state
     return curProp.stockInfo !== nextProps.stockInfo ||
+      curProp.capitalFlowInfo !== nextProps.capitalFlowInfo ||
+      curProp.height !== nextProps.height ||
       curState.tabIndex !== nextState.tabIndex
+  }
+
+  public componentDidUpdate () {
+    if (this.refs.bidList && !this._bidListScroll) {
+      this._bidListScroll = new iScroll(this.refs.bidList, {
+        mouseWheel: true,
+        scrollbars: true,
+        fadeScrollbars: true,
+      })
+    }
+    if (this.refs.detailedInfo && !this._detailedInfoScroll) {
+      this._detailedInfoScroll = new iScroll(this.refs.detailedInfo, {
+        mouseWheel: true,
+        scrollbars: true,
+        fadeScrollbars: true,
+      })
+    }
+    if (this._bidListScroll) {
+      this._bidListScroll.refresh()
+    }
+    this._stockInfoScroll.refresh()
+    if (this._detailedInfoScroll) {
+      this._detailedInfoScroll.refresh()
+    }
   }
 
   public componentDidMount () {
     if (this.props.capitalFlowInfo) {
       this._capitalFlowInfo = this.props.capitalFlowInfo
-      setTimeout(() => this.drawChart(this.props.capitalFlowInfo), 200)
+      this.drawChart(this.props.capitalFlowInfo)
+    }
+
+    if (this.refs.bidList) {
+      this._bidListScroll = new iScroll(this.refs.bidList, {
+        mouseWheel: true,
+        scrollbars: true,
+        fadeScrollbars: true,
+      })
+    }
+    this._stockInfoScroll = new iScroll(this.refs.stockInfo, {
+      mouseWheel: true,
+      scrollbars: true,
+      fadeScrollbars: true,
+    })
+    if (this.refs.detailedInfo) {
+      this._detailedInfoScroll = new iScroll(this.refs.detailedInfo, {
+        mouseWheel: true,
+        scrollbars: true,
+        fadeScrollbars: true,
+      })
     }
   }
 
@@ -57,50 +112,56 @@ export default class Realtime extends React.Component<Prop, State> {
 
   public render () {
     const stockInfo = this.props.stockInfo
-    return <div>
+    return <div className='realtime-info'>
       {
         stockInfo && stockInfo.selling && stockInfo.buying ?
-        <div className='bid-list'>
-          <div className='caption'>
-            <b className='sold'>卖<br/><br/>盘</b>
-            <b className='buy'>买<br/><br/>盘</b>
-          </div>
-          <div className='bid'>
-            <table>
-              <tbody>
-                {
-                  stockInfo.selling.map((item, i) =>
-                    <tr>
-                      <td width='33.33%'>{5 - i}</td>
-                      <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
-                        {item[0]}
-                      </td>
-                      <td width='33.33%'>{item[1] / 100}</td>
-                    </tr>
-                  )
-                }
-              </tbody>
-            </table>
-            <hr/>
-            <table>
-              <tbody>
-                {
-                  stockInfo.buying.map((item, i) =>
-                    <tr>
-                      <td width='33.33%'>{i + 1}</td>
-                      <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
-                        {item[0]}
-                      </td>
-                      <td width='33.33%'>{item[1] / 100}</td>
-                    </tr>
-                  )
-                }
-              </tbody>
-            </table>
+        <div className='bid-list' ref='bidList' style={ {height: this.props.height * 0.3 + 'px'} }>
+          <div>
+            <div className='caption'>
+              <b className='sold'>卖<br/><br/>盘</b>
+              <b className='buy'>买<br/><br/>盘</b>
+            </div>
+            <div className='bid'>
+              <table>
+                <tbody>
+                  {
+                    stockInfo.selling.map((item, i) =>
+                      <tr>
+                        <td width='33.33%'>{5 - i}</td>
+                        <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
+                          {item[0]}
+                        </td>
+                        <td width='33.33%'>{item[1] / 100}</td>
+                      </tr>
+                    )
+                  }
+                </tbody>
+              </table>
+              <hr/>
+              <table>
+                <tbody>
+                  {
+                    stockInfo.buying.map((item, i) =>
+                      <tr>
+                        <td width='33.33%'>{i + 1}</td>
+                        <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
+                          {item[0]}
+                        </td>
+                        <td width='33.33%'>{item[1] / 100}</td>
+                      </tr>
+                    )
+                  }
+                </tbody>
+              </table>
+            </div>
           </div>
         </div> : null
       }
-      <div className='stock-info'>
+      <div className='stock-info' ref='stockInfo' style={ {
+            height: stockInfo && stockInfo.selling ?
+              this.props.height * 0.3 + 'px' :
+              this.props.height + 'px',
+          } }>
         <table>
           <tr>
             <th width='67'>昨收</th>
@@ -155,60 +216,66 @@ export default class Realtime extends React.Component<Prop, State> {
       </div>
       {
         stockInfo && stockInfo.ticks.length ?
-        <div className='detailed-info'>
-          <ul className='tab-btn-group' onClick={this.switchTabPage.bind(this)}>
-            <li className={this.state.tabIndex === 0 ? 'on' : ''} data-index='0'>明细</li>
-            <li className={this.state.tabIndex === 1 ? 'on' : ''} data-index='1'>资金</li>
-          </ul>
-          <ul className='tab-container'>
-            <li className={this.state.tabIndex === 0 ? 'trans-entry on' : 'trans-entry'}>
-              <table>
-                <tbody>
-                  {
-                    stockInfo.ticks.map(tick =>
-                      <tr>
-                        <td width='34%'>
-                          {tick.time.substring(0, 2)}:{tick.time.substring(2, 4)}:{tick.time.substring(4, 6)}
-                        </td>
-                        <td width='33%'>{tick.price}</td>
-                        <td width='33%' className={tick.type === '1' ? 'positive' : tick.type === '2' ? 'negtive' : ''}>
-                          {+tick.volume / 100}
-                        </td>
-                      </tr>
-                    )
-                  }
-                </tbody>
-              </table>
-            </li>
-            <li className={this.state.tabIndex === 1 ? 'in-out-chart on' : 'in-out-chart'}>
-              <p>单位：万元</p>
-              <div className='in-out-legend clearfix'>
-                  <div className='color-desc-1'>
-                      <div className='color-block'></div>
-                      <p>散户流入</p>
-                  </div>
-                  <div className='color-desc-2'>
-                      <div className='color-block'></div>
-                      <p>主力流入</p>
-                  </div>
-                  <div className='color-desc-4'>
-                      <div className='color-block'></div>
-                      <p>散户流出</p>
-                  </div>
-                  <div className='color-desc-3'>
-                      <div className='color-block'></div>
-                      <p>主力流出</p>
-                  </div>
-              </div>
-              <canvas ref='inOutDonut' width='248' height='128'></canvas>
-              <div className='clearfix'>
-                  <p className='capital-in'>流入<i ref='capitalInNum' className='capital-in-num'>1451</i></p>
-                  <p className='capital-out'>流出<i ref='capitalOutNum' className='capital-out-num'>1709</i></p>
-              </div>
-              <h3>最近5日主力流入</h3>
-              <canvas ref='inOutBar' width='248' height='128'></canvas>
-            </li>
-          </ul>
+        <div className='detailed-info' ref='detailedInfo' style={ {height: this.props.height * 0.4 + 'px'} }>
+          <div>
+            <ul className='tab-btn-group'
+              onClick={this.switchTabPage.bind(this)}
+              onTouchStart={this.switchTabPage.bind(this)}>
+              <li className={this.state.tabIndex === 0 ? 'on' : ''} data-index='0'>明细</li>
+              <li className={this.state.tabIndex === 1 ? 'on' : ''} data-index='1'>资金</li>
+            </ul>
+            <ul className='tab-container'>
+              <li className={this.state.tabIndex === 0 ? 'trans-entry on' : 'trans-entry'}>
+                <table>
+                  <tbody>
+                    {
+                      stockInfo.ticks.map(tick =>
+                        <tr>
+                          <td width='34%'>
+                            {tick.time.substring(0, 2)}:{tick.time.substring(2, 4)}:{tick.time.substring(4, 6)}
+                          </td>
+                          <td width='33%'>{tick.price}</td>
+                          <td width='33%'
+                            className={tick.type === '1' ? 'positive' :
+                              tick.type === '2' ? 'negtive' : ''}>
+                            {+tick.volume / 100}
+                          </td>
+                        </tr>
+                      )
+                    }
+                  </tbody>
+                </table>
+              </li>
+              <li className={this.state.tabIndex === 1 ? 'in-out-chart on' : 'in-out-chart'}>
+                <p>单位：万元</p>
+                <div className='in-out-legend clearfix'>
+                    <div className='color-desc-1'>
+                        <div className='color-block'></div>
+                        <p>散户流入</p>
+                    </div>
+                    <div className='color-desc-2'>
+                        <div className='color-block'></div>
+                        <p>主力流入</p>
+                    </div>
+                    <div className='color-desc-4'>
+                        <div className='color-block'></div>
+                        <p>散户流出</p>
+                    </div>
+                    <div className='color-desc-3'>
+                        <div className='color-block'></div>
+                        <p>主力流出</p>
+                    </div>
+                </div>
+                <canvas ref='inOutDonut' width='248' height='128'></canvas>
+                <div className='clearfix'>
+                    <p className='capital-in'>流入<i ref='capitalInNum' className='capital-in-num'>1451</i></p>
+                    <p className='capital-out'>流出<i ref='capitalOutNum' className='capital-out-num'>1709</i></p>
+                </div>
+                <h3>最近5日主力流入</h3>
+                <canvas ref='inOutBar' width='248' height='128'></canvas>
+              </li>
+            </ul>
+          </div>
         </div> : null
       }
     </div>
@@ -335,7 +402,7 @@ export default class Realtime extends React.Component<Prop, State> {
     context.textBaseline = 'middle'
     context.fillStyle = '#fff'
 
-    let total = data.reduce(function (prev, cur) {
+    const total = data.reduce(function (prev, cur) {
       return prev + cur
     }, 0)
 
@@ -343,7 +410,7 @@ export default class Realtime extends React.Component<Prop, State> {
       if (d.value / total * 100 < 3) {
         return
       }
-      let c = labelArc.centroid({
+      const c = labelArc.centroid({
         outerRadius: radius - 35,
         innerRadius: radius - 35,
         startAngle: d.startAngle,
@@ -355,7 +422,7 @@ export default class Realtime extends React.Component<Prop, State> {
 
     context.font = '26px Arial'
 
-    let addup = data[0] + data[1] - data[2] - data[3]
+    const addup = data[0] + data[1] - data[2] - data[3]
 
     if (addup > 0) {
       context.fillStyle = '#ff524f'

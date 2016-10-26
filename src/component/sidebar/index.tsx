@@ -9,6 +9,8 @@ import Financing from './financing'
 import Plates from './plates'
 import NonRealtime from './nonrealtime'
 
+const STOCK_PANEL_HEIGHT = 76
+
 type Prop = {
   chartLayout: ChartLayoutModel
   height: number
@@ -63,26 +65,30 @@ export default class Sidebar extends React.Component<Prop, State> {
     ]
     const stockInfo = this._data.stockInfo
     const chartLayout = this.props.chartLayout
+    const pageHeight = this.props.height - STOCK_PANEL_HEIGHT
 
     let tabPage = null
     switch (this.state.tabIndex) {
       case 0:
         tabPage = <Realtime stockInfo={this._data.stockInfo}
-                    capitalFlowInfo={this._data.capitalFlowInfo} />
+                    capitalFlowInfo={this._data.capitalFlowInfo}
+                    height={pageHeight} />
         break
       case 1:
         tabPage = <Indexes chartLayout={chartLayout}
+                    height={pageHeight}
                     realtimeTools={this._data.realtimeTools}
                     indexesInfo={this._data.indexesInfo} />
         break
       case 2:
-        tabPage = <Financing financingInfo={this._data.financingInfo} />
+        tabPage = <Financing height={pageHeight}
+                    financingInfo={this._data.financingInfo} />
         break
       case 3:
-        tabPage = <Plates plates={this._data.plates} />
+        tabPage = <Plates height={pageHeight} plates={this._data.plates} />
         break
       case 4:
-        tabPage = <NonRealtime nonRealtimeTools={this._data.nonRealtimeTools} />
+        tabPage = <NonRealtime height={pageHeight} nonRealtimeTools={this._data.nonRealtimeTools} />
         break
       default:
     }

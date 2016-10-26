@@ -3,6 +3,7 @@ import '../../../style/table.less'
 import * as React from 'react'
 import ChartLayout from '../../../model/chartlayout'
 import { IndexesInfo, RealtimeTools } from '../pollmanager'
+import * as iScroll from '../../../vendor/iscroll'
 
 type State = {
   highlightFinished: boolean
@@ -12,9 +13,18 @@ type Prop = {
   indexesInfo: IndexesInfo
   realtimeTools: RealtimeTools
   chartLayout: ChartLayout
+  height: number
 }
 
 export default class Indexes extends React.Component<Prop, State> {
+
+  public refs: {
+    [propName: string]: Element
+    indexes: HTMLDivElement
+  }
+
+  private _indexesScroll
+  private _isSupportTouch = 'ontouchend' in document ? true : false
 
   private _indexesInfo: IndexesInfo
   private _realtimeTools: RealtimeTools
@@ -27,11 +37,24 @@ export default class Indexes extends React.Component<Prop, State> {
     this.selectIndex = this.selectIndex.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps, nextState) {
+  public componentDidMount () {
+    this._indexesScroll = new iScroll(this.refs.indexes, {
+      mouseWheel: true,
+      scrollbars: true,
+      fadeScrollbars: true,
+    })
+  }
+
+  public componentDidUpdate () {
+    this._indexesScroll.refresh()
+  }
+
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
     const curProp = this.props
     const curState = this.state
     return curProp.indexesInfo !== nextProps.indexesInfo ||
       curProp.realtimeTools !== nextProps.realtimeTools ||
+      curProp.height !== nextProps.height ||
       curState.highlightFinished !== nextState.highlightFinished
   }
 
@@ -73,96 +96,110 @@ export default class Indexes extends React.Component<Prop, State> {
       setTimeout(() => this.setState({ highlightFinished: true}), 500)
     }
 
-    return <div className='indexes'>
-      {
-        indexesInfo ? <div>
-          <h3>股指</h3>
-          <table className='index-table s-table stripe'>
-            <tbody>
-              <tr data-symbol={'sh000001'} onClick={this.selectIndex}>
-                <td width='70'>上证指数</td>
-                <td width='70' className={`${classList.sh000001} ${mutations.sh000001}`}>
-                  <span>{indexesInfo.sh000001.price}</span>
-                </td>
-                <td width='127' className={classList.sh000001}>
-                  {(indexesInfo.sh000001.changeAmount > 0 ? '+' : '') + indexesInfo.sh000001.changeAmount}
-                  ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate}%)
+    return <div className='indexes' style={ {height: this.props.height + 'px'} } ref='indexes'>
+      <div>
+        {
+          indexesInfo ?
+          <div>
+            <h3>股指</h3>
+            <table className='index-table s-table stripe'>
+              <tbody>
+                <tr data-symbol={'sh000001'}
+                  onClick={this._isSupportTouch ? null : this.selectIndex}
+                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  <td width='70'>上证指数</td>
+                  <td width='70' className={`${classList.sh000001} ${mutations.sh000001}`}>
+                    <span>{indexesInfo.sh000001.price}</span>
+                  </td>
+                  <td width='127' className={classList.sh000001}>
+                    {(indexesInfo.sh000001.changeAmount > 0 ? '+' : '') + indexesInfo.sh000001.changeAmount}
+                    ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate}%)
+                  </td>
+                </tr>
+                <tr data-symbol={'sz399001'}
+                  onClick={this._isSupportTouch ? null : this.selectIndex}
+                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  <td>深证成指</td>
+                  <td className={`${classList.sz399001} ${mutations.sz399001}`}>
+                    <span>{indexesInfo.sz399001.price}</span>
+                  </td>
+                  <td className={classList.sz399001}>
+                    {(indexesInfo.sz399001.changeAmount > 0 ? '+' : '') + indexesInfo.sz399001.changeAmount}
+                    ({(indexesInfo.sz399001.changeRate > 0 ? '+' : '') + indexesInfo.sz399001.changeRate}%)
+                  </td>
+                </tr>
+                <tr data-symbol={'sz399300'}
+                  onClick={this._isSupportTouch ? null : this.selectIndex}
+                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  <td>沪深300</td>
+                  <td className={`${classList.sz399300} ${mutations.sz399300}`}>
+                    <span>{indexesInfo.sz399300.price}</span>
+                  </td>
+                  <td className={classList.sz399300}>
+                    {(indexesInfo.sz399300.changeAmount > 0 ? '+' : '') + indexesInfo.sz399300.changeAmount}
+                    ({(indexesInfo.sz399300.changeRate > 0 ? '+' : '') + indexesInfo.sz399300.changeRate}%)
+                  </td>
+                </tr>
+                <tr data-symbol={'sz399005'}
+                  onClick={this._isSupportTouch ? null : this.selectIndex}
+                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  <td>中小板指</td>
+                  <td className={`${classList.sz399005} ${mutations.sz399005}`}>
+                    <span>{indexesInfo.sz399005.price}</span>
+                  </td>
+                  <td className={classList.sz399005}>
+                    {(indexesInfo.sz399005.changeAmount > 0 ? '+' : '') + indexesInfo.sz399005.changeAmount}
+                    ({(indexesInfo.sz399005.changeRate > 0 ? '+' : '') + indexesInfo.sz399005.changeRate}%)
+                  </td>
+                </tr>
+                <tr data-symbol={'sz399006'}
+                  onClick={this._isSupportTouch ? null : this.selectIndex}
+                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  <td>创业板指</td>
+                  <td className={`${classList.sz399006} ${mutations.sz399006}`}>
+                    <span>{indexesInfo.sz399006.price}</span>
+                  </td>
+                  <td className={classList.sz399006}>
+                    {(indexesInfo.sz399006.changeAmount > 0 ? '+' : '') + indexesInfo.sz399006.changeAmount}
+                    ({(indexesInfo.sz399006.changeRate > 0 ? '+' : '') + indexesInfo.sz399006.changeRate}%)
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div> : null
+        }
+        {
+          realtimeTools ?
+          <div>
+            <h3>实用工具</h3>
+            <table className='s-table stripe'>
+              <tr>
+                <td width='157'>沪股通资金流入</td>
+                <td width='110' className={classList.hugutong}>
+                  {realtimeTools.hugutong[0]}
                 </td>
               </tr>
-              <tr data-symbol={'sz399001'} onClick={this.selectIndex}>
-                <td>深证成指</td>
-                <td className={`${classList.sz399001} ${mutations.sz399001}`}>
-                  <span>{indexesInfo.sz399001.price}</span>
-                </td>
-                <td className={classList.sz399001}>
-                  {(indexesInfo.sz399001.changeAmount > 0 ? '+' : '') + indexesInfo.sz399001.changeAmount}
-                  ({(indexesInfo.sz399001.changeRate > 0 ? '+' : '') + indexesInfo.sz399001.changeRate}%)
-                </td>
-              </tr>
-              <tr data-symbol={'sz399300'} onClick={this.selectIndex}>
-                <td>沪深300</td>
-                <td className={`${classList.sz399300} ${mutations.sz399300}`}>
-                  <span>{indexesInfo.sz399300.price}</span>
-                </td>
-                <td className={classList.sz399300}>
-                  {(indexesInfo.sz399300.changeAmount > 0 ? '+' : '') + indexesInfo.sz399300.changeAmount}
-                  ({(indexesInfo.sz399300.changeRate > 0 ? '+' : '') + indexesInfo.sz399300.changeRate}%)
+              <tr>
+                <td>涨跌幅超过5%个股数</td>
+                <td>
+                  <span className={`positive`}>
+                    {realtimeTools.goUpStaying[0]}
+                  </span>/
+                  <span className={`negtive`}>
+                    {realtimeTools.fallStaying[0]}
+                  </span>
                 </td>
               </tr>
-              <tr data-symbol={'sz399005'} onClick={this.selectIndex}>
-                <td>中小板指</td>
-                <td className={`${classList.sz399005} ${mutations.sz399005}`}>
-                  <span>{indexesInfo.sz399005.price}</span>
-                </td>
-                <td className={classList.sz399005}>
-                  {(indexesInfo.sz399005.changeAmount > 0 ? '+' : '') + indexesInfo.sz399005.changeAmount}
-                  ({(indexesInfo.sz399005.changeRate > 0 ? '+' : '') + indexesInfo.sz399005.changeRate}%)
+              <tr>
+                <td>急涨急跌股数</td>
+                <td className={classList.shortTermMove}>
+                  {realtimeTools.shortTermMove[0]}
                 </td>
               </tr>
-              <tr data-symbol={'sz399006'} onClick={this.selectIndex}>
-                <td>创业板指</td>
-                <td className={`${classList.sz399006} ${mutations.sz399006}`}>
-                  <span>{indexesInfo.sz399006.price}</span>
-                </td>
-                <td className={classList.sz399006}>
-                  {(indexesInfo.sz399006.changeAmount > 0 ? '+' : '') + indexesInfo.sz399006.changeAmount}
-                  ({(indexesInfo.sz399006.changeRate > 0 ? '+' : '') + indexesInfo.sz399006.changeRate}%)
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div> : null
-      }
-      {
-        realtimeTools ? <div>
-          <h3>实用工具</h3>
-          <table className='s-table stripe'>
-            <tr>
-              <td width='157'>沪股通资金流入</td>
-              <td width='110' className={classList.hugutong}>
-                {realtimeTools.hugutong[0]}
-              </td>
-            </tr>
-            <tr>
-              <td>涨跌幅超过5%个股数</td>
-              <td>
-                <span className={`positive`}>
-                  {realtimeTools.goUpStaying[0]}
-                </span>/
-                <span className={`negtive`}>
-                  {realtimeTools.fallStaying[0]}
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>急涨急跌股数</td>
-              <td className={classList.shortTermMove}>
-                {realtimeTools.shortTermMove[0]}
-              </td>
-            </tr>
-          </table>
-        </div> : null
-      }
+            </table>
+          </div> : null
+        }
+      </div>
     </div>
   }
 

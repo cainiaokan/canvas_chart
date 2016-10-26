@@ -2,9 +2,11 @@ import './index.less'
 import * as React from 'react'
 import { PlateList } from '../pollmanager'
 import { getStockListByPlate } from '../../../datasource'
+import * as iScroll from '../../../vendor/iscroll'
 
 type Prop = {
   plates: PlateList
+  height: number
 }
 
 type State = {
@@ -22,6 +24,13 @@ type StockInfo = {
 
 export default class Plates extends React.Component<Prop, State> {
 
+  public refs: {
+    [propName: string]: Element
+    plates: HTMLDivElement
+  }
+
+  private _isSupportTouch = 'ontouchend' in document ? true : false
+  private _platesScroll
   private timer = null
 
   constructor () {
@@ -33,50 +42,72 @@ export default class Plates extends React.Component<Prop, State> {
     this.selectPlate = this.selectPlate.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps, nextState) {
+  public componentDidMount () {
+    this._platesScroll = new iScroll(this.refs.plates, {
+      mouseWheel: true,
+      scrollbars: true,
+      fadeScrollbars: true,
+    })
+  }
+
+  public componentDidUpdate () {
+    this._platesScroll.refresh()
+  }
+
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
     const curProp = this.props
     const curState = this.state
     return curProp.plates !== nextProps.plates ||
+      curProp.height !== nextProps.height ||
       curState.stocks !== nextState.stocks ||
       curState.activeIndex !== nextState.activeIndex
   }
 
   public render () {
     const plates = this.props.plates
-    return plates ? <div className='plates'>
+    return plates ?
+    <div className='plates' ref='plates' style={ {height: this.props.height + 'px'} }>
+      <div>
       <h3>所属板块</h3>
-      <ul className='plate-list'>
-        {
-          plates.industry
-            .map(name => { return {name, type: 'industry'} }).
-            concat(plates.concept.map(name => { return {name, type: 'concept'} }))
-            .map((stock, i) =>
-            <li className={this.state.activeIndex === i ? 'active' : ''}>
-              <h4 data-index={i} data-type={stock.type} onClick={this.selectPlate}>{stock.name}</h4>
-              {
-                this.state.activeIndex === i ? <ul className='stocks-in-same-plate'>
-                  {
-                    this.state.stocks ? this.state.stocks.map(stockInfo => {
-                      const clazzName = stockInfo.p_change > 0 ? 'positive' : stockInfo.p_change < 0 ? 'negtive' : ''
-                      return <li>
-                        <span className='stock-name'>
-                          <b>{stockInfo.name}</b>
-                          <i>{stockInfo.code}</i>
-                        </span>
-                        <span className={clazzName + ' price'}>{stockInfo.price}</span>
-                        <span className={clazzName + ' change-rate'}>
-                          {stockInfo.p_change > 0 ? '+' + stockInfo.p_change : stockInfo.p_change}%
-                        </span>
-                      </li>
-                    }) : null
-                  }
-                </ul> : null
-              }
-            </li>
-          )
-        }
-      </ul>
-    </div> : <div className='plates'><div className='no-plates'>无板块信息</div></div>
+        <ul className='plate-list'>
+          {
+            plates.industry
+              .map(name => { return {name, type: 'industry'} }).
+              concat(plates.concept.map(name => { return {name, type: 'concept'} }))
+              .map((stock, i) =>
+              <li className={this.state.activeIndex === i ? 'active' : ''}>
+                <h4 data-index={i}
+                  data-type={stock.type}
+                  onClick={this._isSupportTouch ? null : this.selectPlate}
+                  onTouchStart={this._isSupportTouch ? this.selectPlate : null}>{stock.name}</h4>
+                {
+                  this.state.activeIndex === i ? <ul className='stocks-in-same-plate'>
+                    {
+                      this.state.stocks ? this.state.stocks.map(stockInfo => {
+                        const clazzName = stockInfo.p_change > 0 ? 'positive' : stockInfo.p_change < 0 ? 'negtive' : ''
+                        return <li>
+                          <span className='stock-name'>
+                            <b>{stockInfo.name}</b>
+                            <i>{stockInfo.code}</i>
+                          </span>
+                          <span className={clazzName + ' price'}>{stockInfo.price}</span>
+                          <span className={clazzName + ' change-rate'}>
+                            {stockInfo.p_change > 0 ? '+' + stockInfo.p_change : stockInfo.p_change}%
+                          </span>
+                        </li>
+                      }) : null
+                    }
+                  </ul> : null
+                }
+              </li>
+            )
+          }
+        </ul>
+      </div>
+    </div> :
+    <div className='plates' ref='plates' style={ {height: this.props.height + 'px'} }>
+      <div className='no-plates'>无板块信息</div>
+    </div>
   }
 
   private selectPlate (ev) {

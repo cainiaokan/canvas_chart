@@ -23,6 +23,14 @@ class Page extends React.Component<any, State> {
         width: document.documentElement.clientWidth,
       })
     }
+    document.ontouchmove = this.preventDefaultInteraction
+    document.ondblclick = this.preventDefaultInteraction
+  }
+
+  public componentWillUnmount () {
+    document.ontouchmove = null
+    document.ontouchend = null
+    window.onresize = null
   }
 
   public render () {
@@ -36,6 +44,10 @@ class Page extends React.Component<any, State> {
       shownavbar={true}
       showfooterbar={true}
       showsidebar={true} />
+  }
+
+  private preventDefaultInteraction (ev) {
+    ev.preventDefault()
   }
 }
 
