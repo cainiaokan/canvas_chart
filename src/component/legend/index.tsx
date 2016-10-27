@@ -87,7 +87,8 @@ export default class Legend extends React.Component<Prop, State> {
                 default:
                   break
               }
-              return <div className='chart-legend-line'
+              return [
+              <div className='chart-legend-line'
                 style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item main'>
                   {datasource.symbolInfo ? datasource.symbolInfo.description : 'N/A'},{resolutionText}
@@ -141,17 +142,21 @@ export default class Legend extends React.Component<Prop, State> {
                       :'N/A'
                   }
                 </div>
+                <div className='chart-legend-item'
+                style={ {display: bar && typeof bar.turnover === 'string' ? '' : 'none'} }>
+                  换手率&nbsp;{ bar && typeof bar.turnover === 'string' ? (+bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
+                </div>
+              </div>,
+              <div className='chart-legend-line'
+                style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item' style={ {display:bar ? '' : 'none'} }>
                   成交量&nbsp;{bar ? formatNumber(bar.volume) + '手' : 'N/A'}
                 </div>
                 <div className='chart-legend-item' style={ {display:bar ? '' : 'none'} }>
                   成交额&nbsp;{bar ? formatNumber(bar.amount) : 'N/A'}
                 </div>
-                <div className='chart-legend-item'
-                style={ {display: bar && typeof bar.turnover === 'string' ? '' : 'none'} }>
-                  换手率&nbsp;{ bar && typeof bar.turnover === 'string' ? (+bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
-                </div>
-              </div>
+              </div>,
+              ]
             }
           })
         }

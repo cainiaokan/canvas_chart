@@ -45,8 +45,12 @@ export default class FooterBar extends React.Component<Prop, State> {
   }
 
   private clickHandler (ev: MouseEvent) {
-    const chartLayout = this.props.chartLayout
     const dom = ev.target as HTMLElement
+
+    if (dom.tagName.toUpperCase() !== 'A') {
+      return
+    }
+    const chartLayout = this.props.chartLayout
     const oldStudy = this.state.study
     const study = dom.innerText as StudyType
     const config = studyConfig[study]

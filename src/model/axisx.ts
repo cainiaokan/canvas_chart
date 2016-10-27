@@ -161,7 +161,7 @@ export default class AxisXModel extends EventEmitter {
   }
 
   public resetOffset () {
-    this.offset = -MARGIN
-    this.barWidth = 5
+    this._offset = -MARGIN
+    this._barWidth = 5
   }
 }

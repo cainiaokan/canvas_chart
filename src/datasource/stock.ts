@@ -102,43 +102,43 @@ export class StockDatasource extends Datasource {
     let maxTimeSpan = 0
     switch (this._resolution) {
       case '1':
-        fromTime = toTime - 480 * 60 - 18 * 3600
-        maxTimeSpan = 30 * 24 * 3600
+        fromTime = toTime - (480 * 60) * 6
+        maxTimeSpan = 10 * 24 * 3600
         break
       case '5':
-        fromTime = toTime - 480 * 5 * 60 - 18 * 3600
+        fromTime = toTime - (480 * 5 * 60) * 6
         maxTimeSpan = 30 * 24 * 3600
         break
       case '15':
-        fromTime = toTime - 480 * 15 * 60 - 5 * 18 * 3600
-        maxTimeSpan = 60 * 24 * 3600
+        fromTime = toTime - (480 * 15 * 60) * 6
+        maxTimeSpan = 90 * 24 * 3600
         break
       case '30':
-        fromTime = toTime - 480 * 30 * 60 - 10 * 18 * 3600
-        maxTimeSpan = 120 * 24 * 3600
+        fromTime = toTime - (480 * 30 * 60) * 6
+        maxTimeSpan = 180 * 24 * 3600
         break
       case '60':
-        fromTime = toTime - 480 * 60 * 60 - 20 * 18 * 3600
-        maxTimeSpan = 240 * 24 * 3600
+        fromTime = toTime - (480 * 3600) * 6
+        maxTimeSpan = 360 * 24 * 3600
         break
       case 'D':
-        fromTime = toTime - 300 * 24 * 3600
-        maxTimeSpan = 365 * 24 * 3600
+        fromTime = toTime - 480 * 24 * 3600
+        maxTimeSpan = 3 * 360 * 24 * 3600
         break
       case 'W':
-        fromTime = toTime - 240 * 7 * 24 * 3600
-        maxTimeSpan = 3000 * 24 * 3600
+        fromTime = toTime - 480 * 7 * 24 * 3600
+        maxTimeSpan = 20 * 360 * 24 * 3600
         break
       case 'M':
-        fromTime = toTime - 240 * 30 * 24 * 3600
-        maxTimeSpan = 10000 * 24 * 3600
+        fromTime = toTime - 480 * 30 * 24 * 3600
+        maxTimeSpan = 100 * 360 * 24 * 3600
         break
       default:
         throw new Error('unsupport resolution')
     }
     this._requestFromTime = fromTime
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) =>
       this.loadTimeRange(fromTime, toTime)
         .then(() => {
           const requestToTime = this._plotList.first() ? this._plotList.first().time : this.now()
@@ -153,14 +153,16 @@ export class StockDatasource extends Datasource {
               .catch(reject)
           }
         })
-    })
-
+        .catch(reject)
+    )
   }
 
   public loadTimeRange (from: number, to: number): Promise<any> {
     const firstBar = this._plotList.first()
     const lastBar = this._plotList.last()
-    if (from >= to) {
+    const symbol = this._symbolInfo.symbol
+    const resolution = this._resolution
+    if (from > to) {
       throw TypeError('from must less than to.')
     }
     if (firstBar) {
@@ -171,7 +173,7 @@ export class StockDatasource extends Datasource {
       }
     }
 
-    return RPC.getStockBars(this._symbolInfo.symbol, this._resolution, from, to)
+    return RPC.getStockBars(symbol, resolution, from, to)
       .then(
         response => response.json()
           .then(data => {
@@ -195,7 +197,14 @@ export class StockDatasource extends Datasource {
               }
               stockBars.push(barData)
             })
-            this._plotList.merge(stockBars)
+            // 请求期间symbol和resolution都没发生改变，则merge
+            if (symbol.toUpperCase() === this._symbolInfo.symbol.toUpperCase() &&
+                resolution === this._resolution) {
+              this._plotList.merge(stockBars)
+            } else {
+              // 抛出异常是为了终止后续请求
+              throw new Error('response expired')
+            }
           })
       )
   }

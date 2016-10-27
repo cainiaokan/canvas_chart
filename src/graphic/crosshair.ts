@@ -21,7 +21,11 @@ export default class CrosshairRenderer {
     }
     const bar = chart.axisX.findTimeBarByX(point.x)
 
+    ctx.save()
     ctx.strokeStyle = '#333333'
+    if (ctx.setLineDash) {
+      ctx.setLineDash([3, 3])
+    }
     ctx.lineWidth = 1
     ctx.beginPath()
 
@@ -37,6 +41,7 @@ export default class CrosshairRenderer {
       ctx.stroke()
       ctx.closePath()
     }
+    ctx.restore()
   }
 
 }

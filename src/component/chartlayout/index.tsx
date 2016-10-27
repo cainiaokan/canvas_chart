@@ -47,8 +47,10 @@ type Prop  = {
 }
 
 type State = {
-  loaded: boolean,
-  sidebar: 'fold' | 'unfold',
+  loaded?: boolean,
+  sidebar?: 'fold' | 'unfold',
+  resolution?: ResolutionType,
+  study?: StudyType
 }
 
 export default class ChartLayout extends React.Component<Prop, State> {
@@ -93,6 +95,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
    */
   private _loading: boolean = false
   private _lastAnimationFrame: number
+  private _pulseUpdateTimer: number
 
   constructor () {
     super()
@@ -100,6 +103,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       sidebar: 'unfold',
       loaded: false,
     }
+    this.pulseUpdate = this.pulseUpdate.bind(this)
   }
 
   public componentWillMount () {
@@ -191,16 +195,16 @@ export default class ChartLayout extends React.Component<Prop, State> {
     const spinner = new Spinner().spin(this.refs.root)
     Promise.all([
       this.getServerTime(),
-      this.loadHistory(),
       this._chartLayoutModel.mainDatasource.resolveSymbol(),
+      this.loadHistory(),
     ])
     .then(() => {
       this.initEvents()
       this.pulseUpdate()
       spinner.stop()
-      this.state.loaded = true
-      this.setState(this.state)
+      this.setState({ loaded: true })
     })
+    .catch(console.log)
   }
 
   public initEvents () {
@@ -226,19 +230,21 @@ export default class ChartLayout extends React.Component<Prop, State> {
             })
         }
       }
-      this.fullUpdate()
+      this.reset()
+      this.setState({ resolution })
     })
-    this._chartLayoutModel.addListener('symbolchange', () => this.fullUpdate())
+    this._chartLayoutModel.addListener('symbolchange', () => {
+      this.reset()
+    })
     this._chartLayoutModel.addListener('hit', () => this.lightUpdate())
     this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
     this._chartLayoutModel.addListener('marginchange', () => this.lightUpdate())
-    this._chartLayoutModel.addListener('studychange', () => {
-      this.setState(this.state)
+    this._chartLayoutModel.addListener('studychange', study => {
+      this.setState({ study })
       this.fullUpdate()
     })
     this._chartLayoutModel.addListener('sidebarchange', folded => {
-      this.state.sidebar = folded
-      this.setState(this.state)
+      this.setState({ sidebar: folded })
     })
   }
 
@@ -309,6 +315,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
     ))
   }
 
+  public reset () {
+    this._loading = false
+    this.stopPulseUpdate()
+    this.loadHistory()
+      .then(this.pulseUpdate)
+  }
+
   /**
    * 加载更多数据
    */
@@ -316,7 +329,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     const mainDatasource = this._chartLayoutModel.mainDatasource
     // 主数据源若没有更多的话，停止加载更多
     if (!mainDatasource.hasMore || this._loading) {
-      return
+      return Promise.resolve()
     }
 
     this._loading = true
@@ -355,14 +368,18 @@ export default class ChartLayout extends React.Component<Prop, State> {
               .value()
           )
           .then(() => {
+            resolve()
             // 加载完成后立即重绘
             this.fullUpdate()
             this._loading = false
-            resolve()
           })
-          .catch(reject)
-      )
-      .catch(reject)
+          .catch(ex => {
+            this._loading = false
+          })
+        )
+        .catch(ex => {
+          this._loading = false
+        })
     })
   }
 
@@ -370,6 +387,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
     const mainDatasource = this._chartLayoutModel.mainDatasource
     const datasources = []
     const reqs = []
+
+    if (!mainDatasource.loaded()) {
+      return
+    }
 
     this._chartLayoutModel.charts.forEach(chart => {
       chart.graphs.forEach(graph => {
@@ -393,13 +414,17 @@ export default class ChartLayout extends React.Component<Prop, State> {
     .then(() => {
       // 加载完成后立即重绘
       this.fullUpdate()
+      const delay = mainDatasource.pulseInterval < 10 ? 10 : mainDatasource.pulseInterval
       if (mainDatasource.pulseInterval) {
-        setTimeout(
-          () => this.pulseUpdate(),
-          (mainDatasource.pulseInterval < 10 ? 10 : mainDatasource.pulseInterval) * 1000
-        )
+        this._pulseUpdateTimer = setTimeout(this.pulseUpdate, delay * 1000)
       }
     })
+    // 如果出错则30秒后再次刷新
+    .catch(() => this._pulseUpdateTimer = setTimeout(this.pulseUpdate, 30000))
+  }
+
+  public stopPulseUpdate () {
+    clearTimeout(this._pulseUpdateTimer)
   }
 
   public render () {
@@ -451,13 +476,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
             axis={this._chartLayoutModel.axisx}
             height={AXIS_X_HEIGHT}
             width={availWidth - AXIS_Y_WIDTH} />
-        </div>
+        </div>s
         {
-          this.state.loaded && this.props.showsidebar ?
-            <Sidebar chartLayout={this._chartLayoutModel}
-              width={this.state.sidebar === 'unfold' ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
-              height={this.props.height} /> : null
-            }
+          this.props.showsidebar ?
+          <Sidebar chartLayout={this._chartLayoutModel}
+            width={this.state.sidebar === 'unfold' ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
+            height={this.props.height} /> : null
+          }
         }
         {
           this.props.showfooterbar ?

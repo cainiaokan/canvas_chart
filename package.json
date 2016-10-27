@@ -13,7 +13,6 @@
     "d3-shape": "^1.0.3",
     "es6-promise": "3.2.1",
     "eventemitter3": "^1.2.0",
-    "iscroll": "^5.2.0",
     "isomorphic-fetch": "^2.2.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
