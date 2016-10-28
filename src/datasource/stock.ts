@@ -102,35 +102,35 @@ export class StockDatasource extends Datasource {
     let maxTimeSpan = 0
     switch (this._resolution) {
       case '1':
-        fromTime = toTime - (480 * 60) * 6
+        fromTime = toTime - (loadNum * 60) * 6
         maxTimeSpan = 10 * 24 * 3600
         break
       case '5':
-        fromTime = toTime - (480 * 5 * 60) * 6
+        fromTime = toTime - (loadNum * 5 * 60) * 6
         maxTimeSpan = 30 * 24 * 3600
         break
       case '15':
-        fromTime = toTime - (480 * 15 * 60) * 6
+        fromTime = toTime - (loadNum * 15 * 60) * 6
         maxTimeSpan = 90 * 24 * 3600
         break
       case '30':
-        fromTime = toTime - (480 * 30 * 60) * 6
+        fromTime = toTime - (loadNum * 30 * 60) * 6
         maxTimeSpan = 180 * 24 * 3600
         break
       case '60':
-        fromTime = toTime - (480 * 3600) * 6
+        fromTime = toTime - (loadNum * 3600) * 6
         maxTimeSpan = 360 * 24 * 3600
         break
       case 'D':
-        fromTime = toTime - 480 * 24 * 3600
+        fromTime = toTime - loadNum * 24 * 3600
         maxTimeSpan = 3 * 360 * 24 * 3600
         break
       case 'W':
-        fromTime = toTime - 480 * 7 * 24 * 3600
+        fromTime = toTime - loadNum * 7 * 24 * 3600
         maxTimeSpan = 20 * 360 * 24 * 3600
         break
       case 'M':
-        fromTime = toTime - 480 * 30 * 24 * 3600
+        fromTime = toTime - loadNum * 30 * 24 * 3600
         maxTimeSpan = 100 * 360 * 24 * 3600
         break
       default:

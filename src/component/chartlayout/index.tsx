@@ -91,10 +91,18 @@ export default class ChartLayout extends React.Component<Prop, State> {
   private _chartLayoutModel: ChartLayoutModel
   /**
    * 用于标记chart正在加载中，避免重复加载
-   * @type {[type]}
+   * @type {boolean}
    */
   private _loading: boolean = false
+  /**
+   * 上一帧动画调度回调
+   * @type {number}
+   */
   private _lastAnimationFrame: number
+  /**
+   * 搏动更新定时器
+   * @type {number}
+   */
   private _pulseUpdateTimer: number
 
   constructor () {
@@ -249,7 +257,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   /**
-   * 重新绘制chart
+   * 全刷新
    */
   public fullUpdate () {
     const axisX = this._chartLayoutModel.axisx
@@ -276,6 +284,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     })
   }
 
+  /**
+   * 轻量级刷新
+   */
   public lightUpdate () {
     // 取消上一帧动画的调度，避免重复计算
     if (this._lastAnimationFrame) {
@@ -283,7 +294,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
 
     this._lastAnimationFrame = requestAnimationFrame(() => {
-      this._chartLayoutModel.axisx.draw()
+      this._chartLayoutModel.axisx.draw(false)
       this._chartLayoutModel.charts.forEach(chart => {
         if (!chart.axisY.range) {
           chart.axisY.range = chart.getRangeY()
@@ -292,12 +303,15 @@ export default class ChartLayout extends React.Component<Prop, State> {
           chart.draw()
         }
         chart.crosshair.draw()
-        chart.axisY.draw()
+        chart.axisY.draw(false)
       })
       this._lastAnimationFrame = null
     })
   }
 
+  /**
+   * 获取服务器时间
+   */
   public getServerTime (): Promise<any> {
     return new Promise((resolve, reject) => getServerTime().then(response =>
       response.text()
@@ -315,11 +329,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
     ))
   }
 
+  /**
+   * 重置chart
+   */
   public reset () {
     this._loading = false
     this.stopPulseUpdate()
     this.loadHistory()
-      .then(this.pulseUpdate)
+      // .then(this.pulseUpdate)
   }
 
   /**
@@ -368,10 +385,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
               .value()
           )
           .then(() => {
-            resolve()
             // 加载完成后立即重绘
             this.fullUpdate()
             this._loading = false
+            resolve()
           })
           .catch(ex => {
             this._loading = false
@@ -383,6 +400,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     })
   }
 
+  /**
+   * 搏动更新
+   */
   public pulseUpdate () {
     const mainDatasource = this._chartLayoutModel.mainDatasource
     const datasources = []
@@ -423,6 +443,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     .catch(() => this._pulseUpdateTimer = setTimeout(this.pulseUpdate, 30000))
   }
 
+  /**
+   * 停止搏动更新
+   */
   public stopPulseUpdate () {
     clearTimeout(this._pulseUpdateTimer)
   }

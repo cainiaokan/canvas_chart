@@ -40,6 +40,30 @@ export default class HistogramChartRenderer extends BaseChart {
     return isPointInRect(x0, y0, x1, y1, x2, y2)
   }
 
+  public calcRangeY (): YRange {
+    const bars = this.plotModel.getVisibleBars()
+
+    if (!bars.length) {
+      return null
+    }
+
+    const range: YRange = {
+      max: -Number.MAX_VALUE,
+      min: Number.MAX_VALUE,
+    }
+
+    return bars.reduce((prev, cur) => {
+      const bar = cur
+      if (bar[PLOT_DATA.VALUE] < prev.min) {
+        prev.min = bar[PLOT_DATA.VALUE]
+      }
+      if (bar[PLOT_DATA.VALUE] > prev.max) {
+        prev.max = bar[PLOT_DATA.VALUE]
+      }
+      return prev
+    }, range)
+  }
+
   public draw (): void {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
@@ -77,29 +101,5 @@ export default class HistogramChartRenderer extends BaseChart {
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
 
     return axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
-  }
-
-  protected calcRangeY (): YRange {
-    const bars = this.plotModel.getVisibleBars()
-
-    if (!bars.length) {
-      return null
-    }
-
-    const range: YRange = {
-      max: -Number.MAX_VALUE,
-      min: Number.MAX_VALUE,
-    }
-
-    return bars.reduce((prev, cur) => {
-      const bar = cur
-      if (bar[PLOT_DATA.VALUE] < prev.min) {
-        prev.min = bar[PLOT_DATA.VALUE]
-      }
-      if (bar[PLOT_DATA.VALUE] > prev.max) {
-        prev.max = bar[PLOT_DATA.VALUE]
-      }
-      return prev
-    }, range)
   }
 }

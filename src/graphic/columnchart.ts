@@ -80,6 +80,30 @@ export default class ColumnChartRenderer extends BaseChart {
     }
   }
 
+  public calcRangeY (): YRange {
+    const bars = this.plotModel.getVisibleBars()
+
+    if (!bars.length) {
+      return null
+    }
+
+    const range: YRange = {
+      max: -Number.MAX_VALUE,
+      min: Number.MAX_VALUE,
+    }
+
+    return bars.reduce((prev, cur) => {
+      const data = cur
+      if (data[PLOT_DATA.VOLUME] > prev.max) {
+        prev.max = data[PLOT_DATA.VOLUME]
+      }
+      if (data[PLOT_DATA.VOLUME] < prev.min) {
+        prev.min = data[PLOT_DATA.VOLUME]
+      }
+      return prev
+    }, range)
+  }
+
   public draw () {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
@@ -162,29 +186,5 @@ export default class ColumnChartRenderer extends BaseChart {
     } else {
       return ~~axisY.getYByValue(bar[PLOT_DATA.VOLUME], rangeY)
     }
-  }
-
-  protected calcRangeY (): YRange {
-    const bars = this.plotModel.getVisibleBars()
-
-    if (!bars.length) {
-      return null
-    }
-
-    const range: YRange = {
-      max: -Number.MAX_VALUE,
-      min: Number.MAX_VALUE,
-    }
-
-    return bars.reduce((prev, cur) => {
-      const data = cur
-      if (data[PLOT_DATA.VOLUME] > prev.max) {
-        prev.max = data[PLOT_DATA.VOLUME]
-      }
-      if (data[PLOT_DATA.VOLUME] < prev.min) {
-        prev.min = data[PLOT_DATA.VOLUME]
-      }
-      return prev
-    }, range)
   }
 }

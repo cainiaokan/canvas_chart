@@ -55,6 +55,30 @@ export default class MountainChartRenderer extends BaseChart {
     return distance1 < HIT_TEST_TOLERANCE || distance2 < HIT_TEST_TOLERANCE
   }
 
+  public calcRangeY (): YRange {
+    const bars = this.plotModel.getVisibleBars()
+
+    if (!bars.length) {
+      return null
+    }
+
+    const range: YRange = {
+      max: -Number.MAX_VALUE,
+      min: Number.MAX_VALUE,
+    }
+
+    return bars.reduce((prev, cur) => {
+      const bar = cur
+      if (bar[PLOT_DATA.VALUE] < prev.min) {
+        prev.min = bar[PLOT_DATA.VALUE]
+      }
+      if (bar[PLOT_DATA.VALUE] > prev.max) {
+        prev.max = bar[PLOT_DATA.VALUE]
+      }
+      return prev
+    }, range)
+  }
+
   public draw (): void {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
@@ -110,29 +134,5 @@ export default class MountainChartRenderer extends BaseChart {
     const axisY = chart.axisY
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     return ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
-  }
-
-  protected calcRangeY (): YRange {
-    const bars = this.plotModel.getVisibleBars()
-
-    if (!bars.length) {
-      return null
-    }
-
-    const range: YRange = {
-      max: -Number.MAX_VALUE,
-      min: Number.MAX_VALUE,
-    }
-
-    return bars.reduce((prev, cur) => {
-      const bar = cur
-      if (bar[PLOT_DATA.VALUE] < prev.min) {
-        prev.min = bar[PLOT_DATA.VALUE]
-      }
-      if (bar[PLOT_DATA.VALUE] > prev.max) {
-        prev.max = bar[PLOT_DATA.VALUE]
-      }
-      return prev
-    }, range)
   }
 }

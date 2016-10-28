@@ -50,6 +50,29 @@ export default class CandleChartRenderer extends BaseChart {
     )
   }
 
+  public calcRangeY (): YRange {
+    const bars = this.plotModel.getVisibleBars()
+
+    if (!bars.length) {
+      return null
+    }
+
+    const range: YRange = {
+      max: -Number.MAX_VALUE,
+      min: Number.MAX_VALUE,
+    }
+
+    return bars.reduce((prev, cur) => {
+      if (cur[PLOT_DATA.HIGH] > prev.max) {
+        prev.max = cur[PLOT_DATA.HIGH]
+      }
+      if (cur[PLOT_DATA.LOW] < prev.min) {
+        prev.min = cur[PLOT_DATA.LOW]
+      }
+      return prev
+    }, range)
+  }
+
   public draw () {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
@@ -100,28 +123,5 @@ export default class CandleChartRenderer extends BaseChart {
     const close = bar[PLOT_DATA.CLOSE]
     const open = bar[PLOT_DATA.OPEN]
     return ~~axisY.getYByValue(Math.abs(close - (close - open) / 2), rangeY)
-  }
-
-  protected calcRangeY (): YRange {
-    const bars = this.plotModel.getVisibleBars()
-
-    if (!bars.length) {
-      return null
-    }
-
-    const range: YRange = {
-      max: -Number.MAX_VALUE,
-      min: Number.MAX_VALUE,
-    }
-
-    return bars.reduce((prev, cur) => {
-      if (cur[PLOT_DATA.HIGH] > prev.max) {
-        prev.max = cur[PLOT_DATA.HIGH]
-      }
-      if (cur[PLOT_DATA.LOW] < prev.min) {
-        prev.min = cur[PLOT_DATA.LOW]
-      }
-      return prev
-    }, range)
   }
 }

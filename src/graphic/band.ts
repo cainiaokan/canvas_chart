@@ -65,11 +65,7 @@ export default class BandRenderer extends BaseChart {
     ctx.globalAlpha = 1
   }
 
-  protected getSelectionYByBar (bar: any[]): number {
-    return null
-  }
-
-  protected calcRangeY (): YRange {
+  public calcRangeY (): YRange {
     const bars = this.plotModel.getVisibleBars()
 
     if (!bars.length) {
@@ -91,5 +87,9 @@ export default class BandRenderer extends BaseChart {
       }
       return prev
     }, range)
+  }
+
+  protected getSelectionYByBar (bar: any[]): number {
+    return null
   }
 }

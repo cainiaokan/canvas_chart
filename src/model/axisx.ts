@@ -19,7 +19,7 @@ export interface ITimeBar {
 
 const MARGIN = 50
 export const MAX_BAR_WIDTH = 30
-export const MIN_BAR_WIDTH = 1
+export const MIN_BAR_WIDTH = 2
 
 export default class AxisXModel extends EventEmitter {
 
@@ -58,8 +58,14 @@ export default class AxisXModel extends EventEmitter {
   }
 
   set barWidth (width: number) {
-    this._barWidth = width
-    this.emit('barwidthchange', width)
+    if (width < MIN_BAR_WIDTH) {
+      this._barWidth = MIN_BAR_WIDTH
+    } else if (width > MAX_BAR_WIDTH) {
+      this._barWidth = MAX_BAR_WIDTH
+    } else {
+      this._barWidth = width
+    }
+    this.emit('barwidthchange', this._barWidth)
   }
 
   get offset (): number {
@@ -67,8 +73,14 @@ export default class AxisXModel extends EventEmitter {
   }
 
   set offset (offset: number) {
-    this._offset = offset
-    this.emit('offsetchange', offset)
+    if (offset < -MARGIN) {
+      this._offset = -MARGIN
+    } else if (offset > this.getMaxOffset()) {
+      this._offset = this.getMaxOffset()
+    } else {
+      this._offset = offset
+    }
+    this.emit('offsetchange', this._offset)
   }
 
   get datasource (): Datasource {
@@ -132,15 +144,6 @@ export default class AxisXModel extends EventEmitter {
     return this._visibleTimeBars = timeBars
   }
 
-  get maxOffset (): number {
-    const offset = (this._datasource.loaded() - 0.5) * this._barWidth - this._size.width + MARGIN
-    return offset > 0 ? offset : 0
-  }
-
-  get minOffset (): number {
-    return -MARGIN
-  }
-
   public draw (clearCache = true): void {
     if (clearCache) {
       this._visibleTimeBars = null
@@ -162,6 +165,10 @@ export default class AxisXModel extends EventEmitter {
 
   public resetOffset () {
     this._offset = -MARGIN
-    this._barWidth = 5
+  }
+
+  private getMaxOffset (): number {
+    const offset = (this._datasource.loaded() - 0.5) * this._barWidth - this._size.width + MARGIN
+    return offset > 0 ? offset : 0
   }
 }

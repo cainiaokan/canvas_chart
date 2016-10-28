@@ -112,8 +112,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     <span>{indexesInfo.sh000001.price}</span>
                   </td>
                   <td width='127' className={classList.sh000001}>
-                    {(indexesInfo.sh000001.changeAmount > 0 ? '+' : '') + indexesInfo.sh000001.changeAmount}
-                    ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate}%)
+                    {(indexesInfo.sh000001.changeAmount > 0 ? '+' : '') + indexesInfo.sh000001.changeAmount.toFixed(2)}
+                    ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
                 <tr data-symbol={'sz399001'}
@@ -124,8 +124,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     <span>{indexesInfo.sz399001.price}</span>
                   </td>
                   <td className={classList.sz399001}>
-                    {(indexesInfo.sz399001.changeAmount > 0 ? '+' : '') + indexesInfo.sz399001.changeAmount}
-                    ({(indexesInfo.sz399001.changeRate > 0 ? '+' : '') + indexesInfo.sz399001.changeRate}%)
+                    {(indexesInfo.sz399001.changeAmount > 0 ? '+' : '') + indexesInfo.sz399001.changeAmount.toFixed(2)}
+                    ({(indexesInfo.sz399001.changeRate > 0 ? '+' : '') + indexesInfo.sz399001.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
                 <tr data-symbol={'sz399300'}
@@ -136,8 +136,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     <span>{indexesInfo.sz399300.price}</span>
                   </td>
                   <td className={classList.sz399300}>
-                    {(indexesInfo.sz399300.changeAmount > 0 ? '+' : '') + indexesInfo.sz399300.changeAmount}
-                    ({(indexesInfo.sz399300.changeRate > 0 ? '+' : '') + indexesInfo.sz399300.changeRate}%)
+                    {(indexesInfo.sz399300.changeAmount > 0 ? '+' : '') + indexesInfo.sz399300.changeAmount.toFixed(2)}
+                    ({(indexesInfo.sz399300.changeRate > 0 ? '+' : '') + indexesInfo.sz399300.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
                 <tr data-symbol={'sz399005'}
@@ -148,8 +148,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     <span>{indexesInfo.sz399005.price}</span>
                   </td>
                   <td className={classList.sz399005}>
-                    {(indexesInfo.sz399005.changeAmount > 0 ? '+' : '') + indexesInfo.sz399005.changeAmount}
-                    ({(indexesInfo.sz399005.changeRate > 0 ? '+' : '') + indexesInfo.sz399005.changeRate}%)
+                    {(indexesInfo.sz399005.changeAmount > 0 ? '+' : '') + indexesInfo.sz399005.changeAmount.toFixed(2)}
+                    ({(indexesInfo.sz399005.changeRate > 0 ? '+' : '') + indexesInfo.sz399005.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
                 <tr data-symbol={'sz399006'}
@@ -160,8 +160,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     <span>{indexesInfo.sz399006.price}</span>
                   </td>
                   <td className={classList.sz399006}>
-                    {(indexesInfo.sz399006.changeAmount > 0 ? '+' : '') + indexesInfo.sz399006.changeAmount}
-                    ({(indexesInfo.sz399006.changeRate > 0 ? '+' : '') + indexesInfo.sz399006.changeRate}%)
+                    {(indexesInfo.sz399006.changeAmount > 0 ? '+' : '') + indexesInfo.sz399006.changeAmount.toFixed(2)}
+                    ({(indexesInfo.sz399006.changeRate > 0 ? '+' : '') + indexesInfo.sz399006.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
               </tbody>

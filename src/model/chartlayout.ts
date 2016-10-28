@@ -48,8 +48,8 @@ export default class ChartLayoutModel extends EventEmitter {
             const mainDatasource = this._mainDatasource
             this._charts.forEach(chart => {
               chart.graphs.forEach(graph => {
-                graph.datasource.clearCache()
                 graph.clearCache()
+                graph.datasource.clearCache()
               })
             })
             if (mainDatasource instanceof StockDatasource) {

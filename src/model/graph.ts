@@ -124,7 +124,7 @@ abstract class GraphModel {
 
   public getRangeY (): YRange {
     return this._plots.reduce((range: YRange, plot: PlotModel) => {
-      const r = plot.graphic.getRangeY()
+      const r = plot.graphic.calcRangeY()
       if (!r) {
         return range
       }
@@ -245,6 +245,7 @@ abstract class GraphModel {
   }
 
   public clearCache () {
+    this._visibleBars = null
     this._cache = {}
   }
 
