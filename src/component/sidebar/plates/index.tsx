@@ -72,8 +72,8 @@ export default class Plates extends React.Component<Prop, State> {
         <ul className='plate-list'>
           {
             plates.industry
-              .map(name => { return {name, type: 'industry'} }).
-              concat(plates.concept.map(name => { return {name, type: 'concept'} }))
+              .map(name => ({name, type: 'industry'}))
+              .concat(plates.concept.map(name => { return {name, type: 'concept'} }))
               .map((stock, i) =>
               <li className={this.state.activeIndex === i ? 'active' : ''}>
                 <h4 data-index={i}

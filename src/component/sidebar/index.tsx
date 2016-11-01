@@ -47,7 +47,7 @@ export default class Sidebar extends React.Component<Prop, State> {
     this._pollManager.start()
     this._pollManager.on('data', data => {
       this._data = data
-      this.setState(this.state)
+      this.forceUpdate()
     })
     this.props.chartLayout.addListener('symbolchange', symbolInfo => {
       this._pollManager.symbolInfo = symbolInfo

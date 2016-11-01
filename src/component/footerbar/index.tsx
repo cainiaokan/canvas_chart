@@ -117,6 +117,6 @@ export default class FooterBar extends React.Component<Prop, State> {
       this.state.study = study
     }
     // 刷新视图
-    this.setState(this.state)
+    this.forceUpdate()
   }
 }

@@ -9,9 +9,9 @@ type Prop = {
 }
 
 type State = {
-  focus: boolean
-  loading: boolean,
-  results: Array<SymbolInfo>
+  focus?: boolean
+  loading?: boolean,
+  results?: Array<SymbolInfo>
 }
 
 export default class SearchBox extends React.Component<Prop, State> {
@@ -23,15 +23,16 @@ export default class SearchBox extends React.Component<Prop, State> {
 
   private searchSymbols = _.debounce(
     keyword => {
-      this.state.loading = true
-      this.setState(this.state)
+      this.setState({
+        loading: true,
+      })
       return (this.props.chartLayout.mainDatasource as StockDatasource)
         .searchSymbols(keyword)
         .then(symbols => {
-          const state = this.state
-          state.results = symbols
-          state.loading = false
-          this.setState(state)
+          this.setState({
+            loading: false,
+            results: symbols,
+          })
         })
     }, 300)
 
@@ -90,15 +91,15 @@ export default class SearchBox extends React.Component<Prop, State> {
     const el = this.refs.input
     el.selectionStart = 0
     el.selectionEnd = el.value.length
-    this.state.focus = true
-    this.state.results = null
-    this.setState(this.state)
+    this.setState({
+      focus: true,
+      results: null,
+    })
   }
 
   private inputBlurHandler () {
     setTimeout(() => {
-      this.state.focus = false
-      this.setState(this.state)
+      this.setState({ focus: false })
     }, 300)
   }
 
@@ -111,8 +112,7 @@ export default class SearchBox extends React.Component<Prop, State> {
     if (keyword.length) {
       this.searchSymbols(keyword)
     } else {
-      this.state.results = null
-      this.setState(this.state)
+      this.setState({ results: null })
     }
   }
 }

@@ -234,14 +234,16 @@ export class StockDatasource extends Datasource {
           response
             .json()
             .then(data =>
-              resolve(data.map(symbol => {
-                return {
-                  description: symbol.description,
-                  exchange: symbol.exchange,
-                  symbol: symbol.symbol,
-                  type: symbol.type,
-                }
-              }))
+              resolve(
+                data.map(
+                  symbol => ({
+                    description: symbol.description,
+                    exchange: symbol.exchange,
+                    symbol: symbol.symbol,
+                    type: symbol.type,
+                  })
+                )
+              )
             )
         )
     )

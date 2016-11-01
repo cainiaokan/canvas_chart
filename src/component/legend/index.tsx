@@ -10,19 +10,10 @@ type Prop = {
   chartModel: ChartModel
 }
 
-type State = {
-  update?: boolean
-  hit?: boolean
-}
-
-export default class Legend extends React.Component<Prop, State> {
+export default class Legend extends React.Component<Prop, any> {
 
   constructor (proportion: number) {
     super()
-    this.state = {
-      update: false,
-      hit: false,
-    }
     this.updateView = this.updateView.bind(this)
   }
 
@@ -205,6 +196,6 @@ export default class Legend extends React.Component<Prop, State> {
   }
 
   private updateView () {
-    this.setState({ update: true })
+    this.forceUpdate()
   }
 }

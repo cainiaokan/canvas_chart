@@ -1,7 +1,7 @@
 import './style/common.css'
 import './style/grid.less'
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import { render } from 'react-dom'
 import { ResolutionType } from './constant'
 
 import ChartLayout from './component/chartlayout'
@@ -54,7 +54,7 @@ class Page extends React.Component<any, State> {
   }
 }
 
-ReactDOM.render(
+render(
   <Page />,
   document.getElementById('chart_container')
 )

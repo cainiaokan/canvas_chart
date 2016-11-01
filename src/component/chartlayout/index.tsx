@@ -212,7 +212,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
       spinner.stop()
       this.setState({ loaded: true })
     })
-    .catch(console.log)
   }
 
   public initEvents () {
@@ -238,11 +237,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
             })
         }
       }
-      this.reset()
+      this.resetChart()
       this.setState({ resolution })
     })
     this._chartLayoutModel.addListener('symbolchange', () => {
-      this.reset()
+      this.resetChart()
     })
     this._chartLayoutModel.addListener('hit', () => this.lightUpdate())
     this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
@@ -313,30 +312,30 @@ export default class ChartLayout extends React.Component<Prop, State> {
    * 获取服务器时间
    */
   public getServerTime (): Promise<any> {
-    return new Promise((resolve, reject) => getServerTime().then(response =>
-      response.text()
-        .then(timeStr => {
-          const timeDiff = ~~(Date.now() / 1000) - (+timeStr)
-          const datasources = []
-          this._chartLayoutModel.charts.forEach(chart => {
-            chart.graphs.forEach(graph => {
-              datasources.push(graph.datasource)
+    return getServerTime()
+      .then(
+        response => response.text()
+          .then(timeStr => {
+            const timeDiff = ~~(Date.now() / 1000) - (+timeStr)
+            const datasources = []
+            this._chartLayoutModel.charts.forEach(chart => {
+              chart.graphs.forEach(graph => {
+                datasources.push(graph.datasource)
+              })
             })
+            datasources.forEach(dt => dt.timeDiff = timeDiff)
           })
-          datasources.forEach(dt => dt.timeDiff = timeDiff)
-          resolve()
-        })
-    ))
+      )
   }
 
   /**
    * 重置chart
    */
-  public reset () {
+  public resetChart () {
     this._loading = false
     this.stopPulseUpdate()
     this.loadHistory()
-      // .then(this.pulseUpdate)
+      .then(this.pulseUpdate)
   }
 
   /**
@@ -499,7 +498,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
             axis={this._chartLayoutModel.axisx}
             height={AXIS_X_HEIGHT}
             width={availWidth - AXIS_Y_WIDTH} />
-        </div>s
+        </div>
         {
           this.props.showsidebar ?
           <Sidebar chartLayout={this._chartLayoutModel}
