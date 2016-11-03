@@ -245,7 +245,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     })
     this._chartLayoutModel.addListener('hit', () => this.lightUpdate())
     this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
-    this._chartLayoutModel.addListener('marginchange', () => this.lightUpdate())
+    this._chartLayoutModel.addListener('barmarginchange', () => this.lightUpdate())
     this._chartLayoutModel.addListener('studychange', study => {
       this.setState({ study })
       this.fullUpdate()
@@ -301,8 +301,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
         if (!chart.isValid) {
           chart.draw()
         }
-        chart.crosshair.draw()
-        chart.axisY.draw(false)
+        if (!chart.crosshair.isValid) {
+          chart.crosshair.draw()
+        }
+        chart.axisY.draw()
       })
       this._lastAnimationFrame = null
     })

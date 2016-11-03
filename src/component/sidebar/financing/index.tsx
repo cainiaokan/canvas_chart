@@ -30,7 +30,7 @@ export default class Financing extends React.Component<Prop, any> {
     this._financingScroll.refresh()
   }
 
-  public shouldComponentUpdate (nextProps, nextState) {
+  public shouldComponentUpdate (nextProps: Prop, nextState: any) {
     const curProp = this.props
     return curProp.financingInfo !== nextProps.financingInfo
   }

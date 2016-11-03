@@ -373,7 +373,7 @@ export const studyConfig: StudyConfig = {
       {
         shape: 'line',
         style: {
-          color: 'rgba( 60, 120, 216, 1)',
+          color: 'rgba(60, 120, 216, 1)',
         },
       },
     ],

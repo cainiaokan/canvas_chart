@@ -1,12 +1,13 @@
 import './index.less'
 import '../../../style/table.less'
+
 import * as React from 'react'
+import * as iScroll from '../../../vendor/iscroll'
 import ChartLayout from '../../../model/chartlayout'
 import { IndexesInfo, RealtimeTools } from '../pollmanager'
-import * as iScroll from '../../../vendor/iscroll'
 
 type State = {
-  highlightFinished: boolean
+  highlightFinished?: boolean
 }
 
 type Prop = {
@@ -182,10 +183,10 @@ export default class Indexes extends React.Component<Prop, State> {
               <tr>
                 <td>涨跌幅超过5%个股数</td>
                 <td>
-                  <span className={`positive`}>
+                  <span className='positive'>
                     {realtimeTools.goUpStaying[0]}
                   </span>/
-                  <span className={`negtive`}>
+                  <span className='negtive'>
                     {realtimeTools.fallStaying[0]}
                   </span>
                 </td>

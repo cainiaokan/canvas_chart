@@ -186,6 +186,6 @@ export function REF (c: number, n: number, attr: Attr): number {
   if (c - 1 < 0) {
     return null
   } else {
-   return get(c - 1, n, datasource, adapter)
+    return get(c - 1, n, datasource, adapter)
   }
 }

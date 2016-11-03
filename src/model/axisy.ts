@@ -51,7 +51,7 @@ export default class AxisYModel extends EventEmitter {
     const height = this._size.height
     this._margin = height - 2 * margin >= 1 ? margin - height * MARGIN_RATIO : (height - 1) / 2
     this._isValid = false
-    this._chart.chartLayout.emit('marginchange')
+    this._chart.chartLayout.emit('barmarginchange')
   }
 
   get isValid (): boolean {
@@ -105,12 +105,9 @@ export default class AxisYModel extends EventEmitter {
     return (this._size.height - margin - value) * diff1 / height + range.min
   }
 
-  public draw (clearCache = true): void {
-    if (clearCache) {
-      this._tickmark.clearTickmarks()
-    }
+  public draw (): void {
+    this._tickmark.clearTickmarks()
     this._isValid = true
     this._graphic.draw()
   }
-
 }
