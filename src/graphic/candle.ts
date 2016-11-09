@@ -89,29 +89,42 @@ export default class CandleChartRenderer extends BaseChart {
     const candleWidth = barWidth * 0.6
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
 
-    ctx.lineWidth = 2
+    ctx.save()
+    ctx.translate(0.5, 0)
+    ctx.lineWidth = 1
 
-    for (let i = 0, bar, len = bars.length, x, y, isUp, color; i < len; i++) {
+    for (let i = 0, bar, len = bars.length, isUp, color; i < len; i++) {
       bar = bars[i]
       isUp = bar[PLOT_DATA.CLOSE] > bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
       ctx.strokeStyle = color
       ctx.fillStyle = color
       ctx.beginPath()
-      ctx.moveTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.HIGH], rangeY))
-      ctx.lineTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.LOW], rangeY))
+      ctx.moveTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.HIGH], rangeY))
+      ctx.lineTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.LOW], rangeY))
       ctx.stroke()
-      x = bar[PLOT_DATA.X] - candleWidth / 2
-      y = axisY.getYByValue(isUp ? bar[PLOT_DATA.CLOSE] : bar[PLOT_DATA.OPEN], rangeY)
+    }
+
+    ctx.translate(-0.5, 0)
+    for (let i = 0, bar, len = bars.length, x, y, isUp, color; i < len; i++) {
+      bar = bars[i]
+      isUp = bar[PLOT_DATA.CLOSE] > bar[PLOT_DATA.OPEN]
+      color = isUp ? this.style.color : this.style.colorDown
+      ctx.strokeStyle = color
+      ctx.fillStyle = color
+      x = ~~(bar[PLOT_DATA.X] - candleWidth / 2 + 0.5)
+      y = ~~axisY.getYByValue(isUp ? bar[PLOT_DATA.CLOSE] : bar[PLOT_DATA.OPEN], rangeY)
       ctx.fillRect(
         x,
         y,
-        candleWidth,
-        Math.abs(
+        ~~candleWidth,
+        ~~Math.abs(
           axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY) - y
         )
       )
     }
+
+    ctx.restore()
   }
 
   protected getSelectionYByBar (bar: any[]): number {

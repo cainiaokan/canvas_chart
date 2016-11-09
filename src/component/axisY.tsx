@@ -14,7 +14,6 @@ export default class AxisY extends React.Component<Prop, any> {
   private _axis: AxisYModel
   private _dragMarginStart: boolean
   private _dragPosY: number
-  private _isSupportTouch = 'ontouchend' in document ? true : false
 
   constructor () {
     super()
@@ -42,23 +41,17 @@ export default class AxisY extends React.Component<Prop, any> {
   }
 
   public componentDidMount () {
-    if (this._isSupportTouch) {
-      document.addEventListener('touchmove', this.mouseMoveHandler)
-      document.addEventListener('touchend', this.mouseUpHandler)
-    } else {
-      document.addEventListener('mousemove', this.mouseMoveHandler)
-      document.addEventListener('mouseup', this.mouseUpHandler)
-    }
+    document.addEventListener('touchmove', this.mouseMoveHandler)
+    document.addEventListener('touchend', this.mouseUpHandler)
+    document.addEventListener('mousemove', this.mouseMoveHandler)
+    document.addEventListener('mouseup', this.mouseUpHandler)
   }
 
   public componentWillUnmount () {
-    if (this._isSupportTouch) {
-      document.removeEventListener('touchmove', this.mouseMoveHandler)
-      document.removeEventListener('touchend', this.mouseUpHandler)
-    } else {
-      document.removeEventListener('mousemove', this.mouseMoveHandler)
-      document.removeEventListener('mouseup', this.mouseUpHandler)
-    }
+    document.removeEventListener('touchmove', this.mouseMoveHandler)
+    document.removeEventListener('touchend', this.mouseUpHandler)
+    document.removeEventListener('mousemove', this.mouseMoveHandler)
+    document.removeEventListener('mouseup', this.mouseUpHandler)
   }
 
   public render () {
@@ -73,15 +66,15 @@ export default class AxisY extends React.Component<Prop, any> {
             this._axis.ctx = el.getContext('2d')
           }
         }} width={width} height={height}
-        onMouseDown={!this._isSupportTouch ? this.mouseDownHandler.bind(this) : null}
-        onTouchStart={this._isSupportTouch ? this.mouseDownHandler.bind(this) : null}></canvas>
+        onMouseDown={this.mouseDownHandler.bind(this)}
+        onTouchStart={this.mouseDownHandler.bind(this)}></canvas>
       </div>
     )
   }
 
   private mouseDownHandler (ev: any) {
     this._dragMarginStart = true
-    if (this._isSupportTouch) {
+    if (ev.touches) {
       this._dragPosY = ev.touches[0].pageY
     } else {
       this._dragPosY = ev.pageY
@@ -91,7 +84,7 @@ export default class AxisY extends React.Component<Prop, any> {
   private mouseMoveHandler (ev: any) {
     if (this._dragMarginStart) {
       const axisY = this._axis
-      const pageY = this._isSupportTouch ? ev.touches[0].pageY : ev.pageY
+      const pageY = ev.touches ? ev.touches[0].pageY : ev.pageY
       const margin = axisY.margin
       const newMargin = margin -
         (pageY - this._dragPosY)

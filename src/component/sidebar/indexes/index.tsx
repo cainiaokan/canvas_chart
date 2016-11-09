@@ -25,8 +25,6 @@ export default class Indexes extends React.Component<Prop, State> {
   }
 
   private _indexesScroll
-  private _isSupportTouch = 'ontouchend' in document ? true : false
-
   private _indexesInfo: IndexesInfo
   private _realtimeTools: RealtimeTools
 
@@ -106,8 +104,8 @@ export default class Indexes extends React.Component<Prop, State> {
             <table className='index-table s-table stripe'>
               <tbody>
                 <tr data-symbol={'sh000001'}
-                  onClick={this._isSupportTouch ? null : this.selectIndex}
-                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  onClick={this.selectIndex}
+                  onTouchStart={this.selectIndex}>
                   <td width='70'>上证指数</td>
                   <td width='70' className={`${classList.sh000001} ${mutations.sh000001}`}>
                     <span>{indexesInfo.sh000001.price}</span>
@@ -118,8 +116,8 @@ export default class Indexes extends React.Component<Prop, State> {
                   </td>
                 </tr>
                 <tr data-symbol={'sz399001'}
-                  onClick={this._isSupportTouch ? null : this.selectIndex}
-                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  onClick={this.selectIndex}
+                  onTouchStart={this.selectIndex}>
                   <td>深证成指</td>
                   <td className={`${classList.sz399001} ${mutations.sz399001}`}>
                     <span>{indexesInfo.sz399001.price}</span>
@@ -130,8 +128,8 @@ export default class Indexes extends React.Component<Prop, State> {
                   </td>
                 </tr>
                 <tr data-symbol={'sz399300'}
-                  onClick={this._isSupportTouch ? null : this.selectIndex}
-                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  onClick={this.selectIndex}
+                  onTouchStart={this.selectIndex}>
                   <td>沪深300</td>
                   <td className={`${classList.sz399300} ${mutations.sz399300}`}>
                     <span>{indexesInfo.sz399300.price}</span>
@@ -142,8 +140,8 @@ export default class Indexes extends React.Component<Prop, State> {
                   </td>
                 </tr>
                 <tr data-symbol={'sz399005'}
-                  onClick={this._isSupportTouch ? null : this.selectIndex}
-                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  onClick={this.selectIndex}
+                  onTouchStart={this.selectIndex}>
                   <td>中小板指</td>
                   <td className={`${classList.sz399005} ${mutations.sz399005}`}>
                     <span>{indexesInfo.sz399005.price}</span>
@@ -154,8 +152,8 @@ export default class Indexes extends React.Component<Prop, State> {
                   </td>
                 </tr>
                 <tr data-symbol={'sz399006'}
-                  onClick={this._isSupportTouch ? null : this.selectIndex}
-                  onTouchStart={this._isSupportTouch ? this.selectIndex : null}>
+                  onClick={this.selectIndex}
+                  onTouchStart={this.selectIndex}>
                   <td>创业板指</td>
                   <td className={`${classList.sz399006} ${mutations.sz399006}`}>
                     <span>{indexesInfo.sz399006.price}</span>

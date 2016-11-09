@@ -1,5 +1,3 @@
-/// <reference path="../typings/spin/spin.d.ts" />
-
 /**
  * Copyright (c) 2011-2014 Felix Gnass
  * Licensed under the MIT license

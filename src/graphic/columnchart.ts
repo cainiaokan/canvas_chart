@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
-import { isPointInRect } from '../util'
+import { isPointInRect, getCanvasHeight } from '../util'
 
 enum PLOT_DATA {
   X = 0,
@@ -37,7 +37,7 @@ export default class ColumnChartRenderer extends BaseChart {
     }
     const point = chart.crosshair.point
     const width = axisX.barWidth
-    const height = parseInt(ctx.canvas.style.height)
+    const height = getCanvasHeight(ctx.canvas)
     const histogramBase = this.style.histogramBase
     const scale = this.style.scale || 1
     const margin = axisY.margin
@@ -116,13 +116,16 @@ export default class ColumnChartRenderer extends BaseChart {
     const chart = graph.chart
     const ctx = chart.ctx
     const axisY = chart.axisY
-    const height = parseInt(ctx.canvas.style.height)
+    const height = ~~getCanvasHeight(ctx.canvas)
     const barWidth = chart.axisX.barWidth
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const style = this.style
     const margin = axisY.margin
     const scale = style.scale || 1
     const histogramBase = style.histogramBase
+
+    let lastBarX = 0
+    let lastBarY = 0
 
     ctx.lineWidth = 1
     ctx.globalAlpha = 0.6
@@ -131,35 +134,56 @@ export default class ColumnChartRenderer extends BaseChart {
 
     for (let i = 0, bar, len = bars.length, x, y, y1; i < len; i++) {
       bar = bars[i]
-      x = bar[PLOT_DATA.X] - barWidth / 2
+      x = ~~(bar[PLOT_DATA.X] - barWidth / 2 + 0.5)
       y1 = ~~axisY.getYByValue(bar[PLOT_DATA.VOLUME], rangeY)
 
+      // 如果设置了基准线baseline
       if (typeof histogramBase === 'number') {
-        y = ~~y1
-        y1 = axisY.getYByValue(histogramBase, rangeY)
+        y = y1
+        y1 = ~~axisY.getYByValue(histogramBase, rangeY)
         ctx.fillStyle = y - y1 > 0 ? style.colorDown : style.color
-        ctx.fillRect(x, y, barWidth, y1 - y)
-        ctx.moveTo(x, y1)
-        ctx.lineTo(x, y)
+        if (lastBarX > 0) {
+          ctx.fillRect(lastBarX, y, barWidth + x - lastBarX, y1 - y)
+          ctx.moveTo(lastBarX, lastBarY)
+          ctx.lineTo(lastBarX, y)
+        } else {
+          ctx.fillRect(x, y, barWidth, y1 - y)
+          ctx.moveTo(x, y1)
+          ctx.lineTo(x, y)
+        }
         ctx.lineTo(x + barWidth, y)
         ctx.lineTo(x + barWidth, y1)
       } else if (typeof style.scale === 'number') {
         ctx.fillStyle = bar[PLOT_DATA.IS_DOWN] ? style.colorDown : style.color
         y = ~~(height - (height - y1 - margin) * scale)
-        ctx.fillRect(x, y, barWidth, height - y)
-        ctx.moveTo(x, height)
-        ctx.lineTo(x, y)
+        if (lastBarX > 0) {
+          ctx.fillRect(lastBarX, y, barWidth + x - lastBarX, height - y)
+          ctx.moveTo(lastBarX, lastBarY)
+          ctx.lineTo(lastBarX, y)
+        } else {
+          ctx.fillRect(x, y, barWidth, height - y)
+          ctx.moveTo(x, height)
+          ctx.lineTo(x, y)
+        }
         ctx.lineTo(x + barWidth, y)
         ctx.lineTo(x + barWidth, height)
       } else {
         ctx.fillStyle = bar[PLOT_DATA.IS_DOWN] ? style.colorDown : style.color
         y = y1
-        ctx.fillRect(x, y, barWidth, height - y)
-        ctx.moveTo(x, height)
-        ctx.lineTo(x, y)
+        if (lastBarX > 0) {
+          ctx.fillRect(lastBarX, y, barWidth + x - lastBarX, height - y)
+          ctx.moveTo(lastBarX, lastBarY)
+          ctx.lineTo(lastBarX, y)
+        } else {
+          ctx.fillRect(x, y, barWidth, height - y)
+          ctx.moveTo(x, height)
+          ctx.lineTo(x, y)
+        }
         ctx.lineTo(x + barWidth, y)
         ctx.lineTo(x + barWidth, height)
       }
+      lastBarX = x + barWidth
+      lastBarY = y
     }
 
     ctx.stroke()
@@ -172,7 +196,7 @@ export default class ColumnChartRenderer extends BaseChart {
     const chart = graph.chart
     const ctx = chart.ctx
     const axisY = chart.axisY
-    const height = parseInt(ctx.canvas.style.height)
+    const height = getCanvasHeight(ctx.canvas)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const margin = axisY.margin
     const style = this.style

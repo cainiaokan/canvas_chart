@@ -78,18 +78,18 @@ export default class HistogramChartRenderer extends BaseChart {
     const axisY = chart.axisY
     const axisX = chart.axisX
     // 宽度为bar宽度的一半
-    const width = axisX.barWidth * 0.5
+    const width = ~~(axisX.barWidth * 0.5)
     const style = this.style
     const histogramBase = style.histogramBase
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-    const base = axisY.getYByValue(histogramBase, rangeY)
+    const base = ~~axisY.getYByValue(histogramBase, rangeY)
 
     for (let i = 0, len = bars.length, data, x, y; i < len; i++) {
       data = bars[i]
       x = data[PLOT_DATA.X]
-      y = axisY.getYByValue(data[PLOT_DATA.VALUE], rangeY)
+      y = ~~axisY.getYByValue(data[PLOT_DATA.VALUE], rangeY)
       ctx.fillStyle = data[PLOT_DATA.VALUE] > histogramBase ? style.color : style.colorDown
-      ctx.fillRect(x - width / 2, y, width, base - y)
+      ctx.fillRect(~~(x - width / 2), y, width, base - y)
     }
   }
 

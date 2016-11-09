@@ -29,7 +29,6 @@ export default class Plates extends React.Component<Prop, State> {
     plates: HTMLDivElement
   }
 
-  private _isSupportTouch = 'ontouchend' in document ? true : false
   private _platesScroll
   private timer = null
 
@@ -78,8 +77,8 @@ export default class Plates extends React.Component<Prop, State> {
               <li className={this.state.activeIndex === i ? 'active' : ''}>
                 <h4 data-index={i}
                   data-type={stock.type}
-                  onClick={this._isSupportTouch ? null : this.selectPlate}
-                  onTouchStart={this._isSupportTouch ? this.selectPlate : null}>{stock.name}</h4>
+                  onClick={this.selectPlate}
+                  onTouchStart={this.selectPlate}>{stock.name}</h4>
                 {
                   this.state.activeIndex === i ? <ul className='stocks-in-same-plate'>
                     {

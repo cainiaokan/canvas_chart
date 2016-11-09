@@ -91,6 +91,8 @@ export default class LineChartRenderer extends BaseChart {
     const axisY = chart.axisY
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
 
+    ctx.save()
+    ctx.translate(0.5, 0.5)
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
     ctx.beginPath()
@@ -107,6 +109,7 @@ export default class LineChartRenderer extends BaseChart {
     }
 
     ctx.stroke()
+    ctx.restore()
   }
 
   protected getSelectionYByBar (bar: any[]): number {

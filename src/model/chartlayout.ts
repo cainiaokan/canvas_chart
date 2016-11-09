@@ -2,12 +2,14 @@ import * as EventEmitter from 'eventemitter3'
 import * as _ from 'underscore'
 import ChartModel from './chart'
 import AxisXModel from './axisx'
-import { Datasource, StockDatasource, resolveSymbol, SymbolInfo } from '../datasource'
+import StudyModel from './study'
+import CrosshairModel from './crosshair'
+import AxisYModel from './axisy'
+import { Datasource, StockDatasource, resolveSymbol, SymbolInfo, studyConfig } from '../datasource'
 import { Point } from '../model/crosshair'
 import { ResolutionType, StudyType } from '../constant'
 
 export default class ChartLayoutModel extends EventEmitter {
-  public _study: StudyType
 
   private _charts: ChartModel[]
   private _axisx: AxisXModel
@@ -16,7 +18,6 @@ export default class ChartLayoutModel extends EventEmitter {
   constructor () {
     super()
     this._charts = []
-    this._study = null
   }
 
   public setResolution (resolution: ResolutionType) {
@@ -68,13 +69,60 @@ export default class ChartLayoutModel extends EventEmitter {
     this.emit('cursormove')
   }
 
-  set study (study: StudyType) {
-    this._study = study
+  public addStudy (study: StudyType) {
+    const config = studyConfig[study]
+    if (config.isPrice) {
+      const studyModel = new StudyModel(
+        this.mainDatasource,
+        this.mainChart,
+        study
+      )
+      this.mainChart.graphs.push(studyModel)
+    } else {
+      const mainDatasource = this.mainDatasource
+      const crosshair = new CrosshairModel(this)
+      const axisX = this.axisx
+      const axisY = new AxisYModel(mainDatasource, crosshair)
+      const chart = new ChartModel(
+        this,
+        mainDatasource,
+        axisX, axisY,
+        crosshair,
+        config.isPrice
+      )
+      const studyModel = new StudyModel(
+        this.mainDatasource,
+        chart,
+        study
+      )
+
+      axisY.chart = chart
+      crosshair.chart = chart
+
+      chart.graphs = [studyModel]
+      this.charts.push(chart)
+    }
+
     this.emit('studychange')
   }
 
-  get study (): StudyType {
-    return this._study
+  public removeStudy (study: StudyType) {
+    this.charts
+      .forEach((chart, i) => {
+        if (chart.graphs.some((graph, j) => {
+          if (graph instanceof StudyModel && graph.studyType === study) {
+            chart.graphs.splice(j, 1)
+            return true
+          } else {
+            return false
+          }
+        })) {
+          if (!chart.graphs.length) {
+            this.charts.splice(i, 1)
+          }
+          this.emit('studychange')
+        }
+      })
   }
 
   set charts (charts: ChartModel[]) {

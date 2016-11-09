@@ -1,4 +1,5 @@
 import './style/common.css'
+
 import * as React from 'react'
 import { render } from 'react-dom'
 
@@ -24,7 +25,6 @@ class Page extends React.Component<any, State> {
       })
     }
     document.ontouchmove = this.preventDefaultInteraction
-    document.ondblclick = this.preventDefaultInteraction
   }
 
   public componentWillUnmount () {

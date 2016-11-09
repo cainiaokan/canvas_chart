@@ -1,5 +1,5 @@
 import './index.less'
-import Spinner = require('spin.js')
+import * as Spinner from '../../vendor/spin.js'
 import * as React from 'react'
 import * as _ from 'underscore'
 import Chart from '../chart'
@@ -48,7 +48,7 @@ type Prop  = {
 
 type State = {
   loaded?: boolean,
-  sidebar?: 'fold' | 'unfold',
+  sidebarFolded?: boolean,
   resolution?: ResolutionType,
   study?: StudyType
 }
@@ -108,7 +108,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   constructor () {
     super()
     this.state = {
-      sidebar: 'unfold',
+      sidebarFolded: false,
       loaded: false,
     }
     this.pulseUpdate = this.pulseUpdate.bind(this)
@@ -200,7 +200,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    const spinner = new Spinner().spin(this.refs.root)
+    const spinner = new Spinner({}).spin(this.refs.root)
     Promise.all([
       this.getServerTime(),
       this._chartLayoutModel.mainDatasource.resolveSymbol(),
@@ -251,7 +251,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.fullUpdate()
     })
     this._chartLayoutModel.addListener('sidebarchange', folded => {
-      this.setState({ sidebar: folded })
+      this.setState({ sidebarFolded: folded })
+      setTimeout(() => this.fullUpdate(), 50)
     })
   }
 
@@ -458,7 +459,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     let availHeight = this.props.height - AXIS_X_HEIGHT - 12
 
     if (this.props.showsidebar) {
-      availWidth -= this.state.sidebar === 'unfold' ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
+      availWidth -= !this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
     }
     if (this.props.shownavbar) {
       availHeight -= NAVBAR_HEIGHT
@@ -504,9 +505,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
         {
           this.props.showsidebar ?
           <Sidebar chartLayout={this._chartLayoutModel}
-            width={this.state.sidebar === 'unfold' ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
+            folded={this.state.sidebarFolded}
+            width={!this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
             height={this.props.height} /> : null
-          }
         }
         {
           this.props.showfooterbar ?

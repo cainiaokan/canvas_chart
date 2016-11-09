@@ -19,7 +19,7 @@ export interface ITimeBar {
 
 const MARGIN = 50
 export const MAX_BAR_WIDTH = 30
-export const MIN_BAR_WIDTH = 2
+export const MIN_BAR_WIDTH = 5
 
 export default class AxisXModel extends EventEmitter {
 
@@ -27,7 +27,7 @@ export default class AxisXModel extends EventEmitter {
 
   private _size: ISize
 
-  private _barWidth: number = 5
+  private _barWidth: number = 8
   private _offset: number = -MARGIN
   private _datasource: Datasource
   private _crosshair: CrosshairModel

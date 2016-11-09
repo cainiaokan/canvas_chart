@@ -52,3 +52,11 @@ export function isPointInRect (x0, y0, x1, y1, x2, y2) {
   return (x0 >= Math.min(x1, x2)) && (x0 <= Math.max(x1, x2)) &&
          (y0 >= Math.min(y1, y2)) && (y0 <= Math.max(y1, y2))
 }
+
+export function getCanvasHeight (canvas: HTMLCanvasElement) {
+  return canvas.style.height ? parseInt(canvas.style.height) : canvas.height
+}
+
+export function getCanvasWidth (canvas: HTMLCanvasElement) {
+  return canvas.style.width ? parseInt(canvas.style.width) : canvas.width
+}

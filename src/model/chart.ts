@@ -161,9 +161,7 @@ export default class ChartModel extends EventEmitter {
 
   public draw () {
     // 首先绘制背景色
-    const ctx = this._ctx
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, this.size.width, this.size.height)
+    this.drawBg()
     // 如果是主chart就绘制趣炒股水印
     if (this._isMain) {
       this._watermark.draw()
@@ -174,5 +172,13 @@ export default class ChartModel extends EventEmitter {
     this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
 
     this._crosshair.draw()
+  }
+
+  private drawBg () {
+    const ctx = this._ctx
+    ctx.save()
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, this.size.width, this.size.height)
+    ctx.restore()
   }
 }

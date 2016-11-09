@@ -13,11 +13,14 @@ export default class AxisXRenderer {
     const timeBars = axis.getVisibleTimeBars()
     const cursorPoint = axis.crosshair.point
 
-    ctx.save()
-    ctx.translate(0, 0.5)
     ctx.fillStyle = '#ffffff'
+    ctx.strokeStyle = '#000000'
+    ctx.lineWidth = 1
+
+    ctx.save()
+    ctx.translate(0.5, 0.5)
+
     ctx.fillRect(0, 0, axis.size.width, axis.size.height)
-    ctx.lineWidth = 2
     ctx.beginPath()
     ctx.moveTo(0, 0)
     ctx.lineTo(axis.size.width, 0)
@@ -30,8 +33,8 @@ export default class AxisXRenderer {
 
     for (let i = 0, len = tickmarks.length; i < len; i++) {
       const tickmark = tickmarks[i]
-      ctx.moveTo(tickmark.x, 0)
-      ctx.lineTo(tickmark.x, 5)
+      ctx.moveTo(~~tickmark.x, 0)
+      ctx.lineTo(~~tickmark.x, 5)
       ctx.fillText(tickmark.time, tickmark.x, 20)
     }
     ctx.stroke()

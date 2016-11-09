@@ -14,15 +14,17 @@ export default class AxisYRenderer {
     const cursorPoint = axis.crosshair.point
     const hover = axis.crosshair.chart.hover
 
-    ctx.save()
     ctx.fillStyle = '#ffffff'
     ctx.strokeStyle = '#000000'
-    ctx.lineWidth = 2
+    ctx.lineWidth = 1
+
+    ctx.save()
+
     ctx.fillRect(0, 0, axis.size.width, axis.size.height)
-    ctx.translate(-0.5, 0)
+    ctx.translate(0.5, 0.5)
     ctx.beginPath()
-    ctx.moveTo(1, 0)
-    ctx.lineTo(1, axis.size.height)
+    ctx.moveTo(0, 0)
+    ctx.lineTo(0, axis.size.height)
 
     ctx.font = '12px ans-serif'
     ctx.fillStyle = 'black'
@@ -32,8 +34,8 @@ export default class AxisYRenderer {
 
     for (let i = 0, len = tickmarks.length; i < len; i++) {
       const tickmark = tickmarks[i]
-      ctx.moveTo(0, tickmark.y)
-      ctx.lineTo(5, tickmark.y)
+      ctx.moveTo(0, ~~tickmark.y)
+      ctx.lineTo(5, ~~tickmark.y)
       ctx.fillText(tickmark.value.toFixed(2).toString(), 10, tickmark.y + 5)
     }
     ctx.closePath()

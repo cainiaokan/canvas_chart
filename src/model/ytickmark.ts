@@ -72,7 +72,7 @@ export default class YTickMark {
    * 计算合适的刻度距离，以便展示的美观性
    * @param {number} span 数值间距
    */
-  private normalizeTickSpan (span: number) {
+  private normalizeTickSpan (span: number): number {
     let array = span + ''
     let carry = 0
     let arr = []

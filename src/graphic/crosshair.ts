@@ -23,6 +23,8 @@ export default class CrosshairRenderer {
 
     ctx.save()
     ctx.strokeStyle = '#333333'
+    ctx.translate(0.5, 0.5)
+
     if (ctx.setLineDash) {
       ctx.setLineDash([3, 3])
     }
@@ -30,14 +32,14 @@ export default class CrosshairRenderer {
     ctx.beginPath()
 
     if (bar) {
-      ctx.moveTo(bar.x, 0)
-      ctx.lineTo(bar.x, height)
+      ctx.moveTo(~~bar.x, 0)
+      ctx.lineTo(~~bar.x, ~~height)
       ctx.stroke()
     }
 
     if (chart.hover && chart.axisY.range) {
-      ctx.moveTo(0, point.y)
-      ctx.lineTo(width, point.y)
+      ctx.moveTo(0, ~~point.y)
+      ctx.lineTo(~~width, ~~point.y)
       ctx.stroke()
       ctx.closePath()
     }
