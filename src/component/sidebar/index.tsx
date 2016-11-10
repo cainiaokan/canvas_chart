@@ -150,12 +150,12 @@ export default class Sidebar extends React.Component<Prop, State> {
   private foldingBtnClickHandler () {
     if (this.refs.foldingBtn.classList.contains('folded')) {
       this.refs.foldingBtn.classList.remove('folded')
-      this.props.chartLayout.emit('sidebarchange', false)
       this.refs.container.classList.remove('folded')
+      this.props.chartLayout.emit('sidebarchange', false)
     } else {
       this.refs.foldingBtn.classList.add('folded')
-      this.props.chartLayout.emit('sidebarchange', true)
       this.refs.container.classList.add('folded')
+      this.props.chartLayout.emit('sidebarchange', true)
     }
   }
 

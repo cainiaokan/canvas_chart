@@ -64,6 +64,25 @@ export default class ChartLayoutModel extends EventEmitter {
       )
   }
 
+  public setRight (right: number) {
+    const datasources: Datasource[] = []
+    this._charts.forEach(chart => {
+      chart.graphs.forEach(graph => {
+        graph.clearCache()
+        graph.datasource.clearCache()
+        datasources.push(graph.datasource)
+      })
+    })
+    // 批量设置数据源的解析度
+    _.unique(datasources).forEach(datasource => {
+      if (datasource instanceof StockDatasource) {
+        datasource.right = right
+      }
+    })
+    this._axisx.resetOffset()
+    this.emit('rightchange', right)
+  }
+
   public setCursorPoint (point: Point) {
     this.charts.forEach(ch => ch.crosshair.point = point)
     this.emit('cursormove')

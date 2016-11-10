@@ -149,6 +149,7 @@ export default class ChartModel extends EventEmitter {
         this._graphs[i].hover = false
       } else if (this._graphs[i].hitTest(select)) {
         hit = true
+        break
       }
     }
     this._chartLayout.emit('hit', hit)

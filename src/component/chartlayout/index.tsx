@@ -44,12 +44,14 @@ type Prop  = {
   shownavbar?: boolean
   showsidebar?: boolean
   showfooterbar?: boolean
+  right?: 0 | 1 | 2
 }
 
 type State = {
   loaded?: boolean,
   sidebarFolded?: boolean,
   resolution?: ResolutionType,
+  symbolType?: string,
   study?: StudyType
 }
 
@@ -69,6 +71,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     to: React.PropTypes.number,
     type: React.PropTypes.oneOf(['snapshot', 'realtime']),
     width: React.PropTypes.number.isRequired,
+    right: React.PropTypes.oneOf([0, 1, 2]),
   }
 
   public static defaultProps = {
@@ -81,6 +84,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     shownavbar: true,
     showsidebar: true,
     type: 'realtime',
+    right: 1,
   }
 
   public refs: {
@@ -110,6 +114,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this.state = {
       sidebarFolded: false,
       loaded: false,
+      symbolType: '',
     }
     this.pulseUpdate = this.pulseUpdate.bind(this)
   }
@@ -124,7 +129,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public prepareMainChart () {
-    const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution)
+    const mainDatasource = new StockDatasource(this.props.symbol, this.props.resolution, this.props.right)
     const crosshair = new CrosshairModel(this._chartLayoutModel)
     const axisX = new AxisXModel(mainDatasource, crosshair)
     const axisY = new AxisYModel(mainDatasource, crosshair)
@@ -210,7 +215,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.initEvents()
       this.pulseUpdate()
       spinner.stop()
-      this.setState({ loaded: true })
+      if (this._chartLayoutModel.mainDatasource instanceof StockDatasource) {
+        this.setState({
+          loaded: true,
+          symbolType: this._chartLayoutModel.mainDatasource.symbolInfo.type,
+        })
+      } else {
+        this.setState({ loaded: true })
+      }
     })
   }
 
@@ -240,7 +252,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.resetChart()
       this.setState({ resolution })
     })
-    this._chartLayoutModel.addListener('symbolchange', () => {
+    this._chartLayoutModel.addListener('symbolchange', symbolInfo => {
+      this.resetChart()
+      this.setState({ symbolType: symbolInfo.type })
+    })
+    this._chartLayoutModel.addListener('rightchange', () => {
       this.resetChart()
     })
     this._chartLayoutModel.addListener('hit', () => this.lightUpdate())
@@ -493,7 +509,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
         style={ {height: this.props.height + 'px',width: this.props.width + 'px'} }>
         {
           this.props.shownavbar ?
-            <Navbar resolution={this.props.resolution} chartLayout={this._chartLayoutModel} /> : null
+            <Navbar resolution={this.props.resolution}
+                    chartLayout={this._chartLayoutModel}
+                    symbolType={this.state.symbolType}
+                    right={this.props.right} /> : null
         }
         <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }>
           {chartLines}

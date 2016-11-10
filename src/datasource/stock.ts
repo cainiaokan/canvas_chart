@@ -34,13 +34,16 @@ export class StockDatasource extends Datasource {
    */
   private _symbolInfo: SymbolInfo
 
+  private _right: number
+
   /**
    * @constructor
    * @param {string} symbol     股票代码
    * @param {string} resolution 解析度
    */
-  constructor (symbol: string, resolution: ResolutionType, timeDiff: number = 0) {
+  constructor (symbol: string, resolution: ResolutionType, right: number, timeDiff: number = 0) {
     super(resolution, timeDiff)
+    this._right = right
     this._symbolInfo = {
       symbol,
       type: 'stock',
@@ -48,6 +51,14 @@ export class StockDatasource extends Datasource {
       description: '',
     }
     this._plotList = new PlotList<IStockBar>()
+  }
+
+  get right (): number {
+    return this._right
+  }
+
+  set right (right: number) {
+    this._right = right
   }
 
   get symbolInfo (): SymbolInfo {
@@ -162,6 +173,7 @@ export class StockDatasource extends Datasource {
     const lastBar = this._plotList.last()
     const symbol = this._symbolInfo.symbol
     const resolution = this._resolution
+    const right = this._right
     if (from > to) {
       throw TypeError('from must less than to.')
     }
@@ -173,7 +185,7 @@ export class StockDatasource extends Datasource {
       }
     }
 
-    return RPC.getStockBars(symbol, resolution, from, to)
+    return RPC.getStockBars(symbol, resolution, right, from, to)
       .then(
         response => response.json()
           .then(data => {

@@ -45,6 +45,7 @@ export default class Chart extends React.Component<Prop, State> {
     }
     this.dragMoveHandler = this.dragMoveHandler.bind(this)
     this.mouseUpHandler = this.mouseUpHandler.bind(this)
+    this.hitHandler = this.hitHandler.bind(this)
   }
 
   public componentWillMount() {
@@ -66,11 +67,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this._chartLayout.addListener('hit', hover => {
-      if (this._chartLayout.hoverChart === this._chart) {
-        this.refs.plot.style.cursor = hover ? 'pointer' : 'crosshair'
-      }
-    })
+    this._chartLayout.addListener('hit', this.hitHandler)
     document.addEventListener('touchmove', this.dragMoveHandler)
     document.addEventListener('touchend', this.mouseUpHandler)
     document.addEventListener('mousemove', this.dragMoveHandler)
@@ -78,6 +75,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
+    this._chartLayout.removeListener('hit', this.hitHandler)
     document.removeEventListener('touchmove', this.dragMoveHandler)
     document.removeEventListener('touchend', this.mouseUpHandler)
     document.removeEventListener('mousemove', this.dragMoveHandler)
@@ -141,6 +139,12 @@ export default class Chart extends React.Component<Prop, State> {
       </div>
       <AxisY axis={this._chart.axisY} chartLayout={this._chartLayout} height={height} width={AXIS_Y_WIDTH} />
     </div>
+  }
+
+  private hitHandler (hover: boolean) {
+    if (this._chartLayout.hoverChart === this._chart) {
+      this.refs.plot.style.cursor = hover ? 'pointer' : 'crosshair'
+    }
   }
 
   private mouseEnterHandler () {
