@@ -64,30 +64,38 @@ export default class Sidebar extends React.Component<Prop, State> {
     ]
     const stockInfo = this._data.stockInfo
     const chartLayout = this.props.chartLayout
-    const pageHeight = this.props.height - STOCK_PANEL_HEIGHT
+    const height = this.props.height - STOCK_PANEL_HEIGHT
+    const width = this.props.width - 2
 
     let tabPage = null
     switch (this.state.tabIndex) {
       case 0:
         tabPage = <Realtime stockInfo={this._data.stockInfo}
-                    capitalFlowInfo={this._data.capitalFlowInfo}
-                    height={pageHeight} />
+                            capitalFlowInfo={this._data.capitalFlowInfo}
+                            width={width}
+                            height={height} />
         break
       case 1:
         tabPage = <Indexes chartLayout={chartLayout}
-                    height={pageHeight}
-                    realtimeTools={this._data.realtimeTools}
-                    indexesInfo={this._data.indexesInfo} />
+                           width={width}
+                           height={height}
+                           realtimeTools={this._data.realtimeTools}
+                           indexesInfo={this._data.indexesInfo} />
         break
       case 2:
-        tabPage = <Financing height={pageHeight}
-                    financingInfo={this._data.financingInfo} />
+        tabPage = <Financing width={width}
+                             height={height}
+                             financingInfo={this._data.financingInfo} />
         break
       case 3:
-        tabPage = <Plates height={pageHeight} plates={this._data.plates} />
+        tabPage = <Plates width={width}
+                          height={height}
+                          plates={this._data.plates} />
         break
       case 4:
-        tabPage = <NonRealtime height={pageHeight} nonRealtimeTools={this._data.nonRealtimeTools} />
+        tabPage = <NonRealtime width={width}
+                               height={height}
+                               nonRealtimeTools={this._data.nonRealtimeTools} />
         break
       default:
     }

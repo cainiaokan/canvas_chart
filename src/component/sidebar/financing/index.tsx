@@ -6,6 +6,7 @@ import * as iScroll from '../../../vendor/iscroll'
 
 type Prop = {
   financingInfo: FinancingInfo
+  width: number
   height: number
 }
 
@@ -32,7 +33,8 @@ export default class Financing extends React.Component<Prop, any> {
 
   public shouldComponentUpdate (nextProps: Prop, nextState: any) {
     const curProp = this.props
-    return curProp.financingInfo !== nextProps.financingInfo
+    return curProp.financingInfo !== nextProps.financingInfo ||
+           curProp.width !== nextProps.width
   }
 
   public render () {

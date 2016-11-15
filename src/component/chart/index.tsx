@@ -205,9 +205,11 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private mouseUpHandler (ev) {
-    if (this._dragOffsetStart && ev.touches) {
-      if (Date.now() - this._lastMoveTime < 250 && Math.abs(this._v) > .1) {
-        this.momentumMove(this._v)
+    if (this._dragOffsetStart) {
+      if (ev.touches) {
+        if (Date.now() - this._lastMoveTime < 250 && Math.abs(this._v) > .1) {
+          this.momentumMove(this._v)
+        }
       }
     }
     this._dragOffsetStart = false

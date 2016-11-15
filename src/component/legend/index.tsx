@@ -17,6 +17,11 @@ export default class Legend extends React.Component<Prop, any> {
     this.updateView = this.updateView.bind(this)
   }
 
+  public componentShouldUpdate (nextProps: Prop) {
+    const curProp = this.props
+    return curProp.chartModel !== nextProps.chartModel
+  }
+
   public componentDidMount () {
     this.props.chartModel.chartLayout.addListener('cursormove', this.updateView)
     this.props.chartModel.chartLayout.addListener('hit', this.updateView)

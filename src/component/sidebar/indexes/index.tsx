@@ -14,6 +14,7 @@ type Prop = {
   indexesInfo: IndexesInfo
   realtimeTools: RealtimeTools
   chartLayout: ChartLayout
+  width: number
   height: number
 }
 
@@ -53,6 +54,7 @@ export default class Indexes extends React.Component<Prop, State> {
     const curState = this.state
     return curProp.indexesInfo !== nextProps.indexesInfo ||
       curProp.realtimeTools !== nextProps.realtimeTools ||
+      curProp.width !== nextProps.width ||
       curProp.height !== nextProps.height ||
       curState.highlightFinished !== nextState.highlightFinished
   }

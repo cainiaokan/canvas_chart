@@ -13,8 +13,6 @@ type Prop = {
 }
 
 type State = {
-  resolution?: string
-  right?: number
 }
 
 const studyLabels = ['分时', '日K', '5分钟', '15分钟', '30分钟', '60分钟', '周K', '月K']
@@ -37,6 +35,14 @@ export default class Navbar extends React.Component<Prop, State> {
     }
   }
 
+  public componentShouldUpdate (nextProps: Prop) {
+    const curProp = this.props
+    return curProp.chartLayout !== nextProps.chartLayout ||
+           curProp.resolution !== nextProps.resolution ||
+           curProp.symbolType !== nextProps.symbolType ||
+           curProp.right !== nextProps.right
+  }
+
   public render () {
     return (
       <div className='chart-navbar'>
@@ -45,7 +51,7 @@ export default class Navbar extends React.Component<Prop, State> {
           {
             studyValues.map((val, index) => {
               let className = 'btn'
-              if (this.state.resolution === val) {
+              if (this.props.resolution === val) {
                 className += ' active'
               }
               return <button className={className} value={val}>{studyLabels[index]}</button>
@@ -59,7 +65,7 @@ export default class Navbar extends React.Component<Prop, State> {
           {
             rightValues.map((val, index) => {
               let className = 'btn'
-              if (this.state.right === val) {
+              if (this.props.right === val) {
                 className += ' active'
               }
               return <button className={className} value={val}>{rightLabels[index]}</button>
@@ -73,17 +79,15 @@ export default class Navbar extends React.Component<Prop, State> {
 
   private resolutionSelectHandler (ev) {
     const resolution = ev.target.value
-    if (this.state.resolution !== resolution) {
+    if (this.props.resolution !== resolution) {
       this.props.chartLayout.setResolution(resolution)
-      this.setState({ resolution })
     }
   }
 
   private rightSelectHandler (ev) {
     const right = +ev.target.value
-    if (this.state.right !== right) {
+    if (this.props.right !== right) {
       this.props.chartLayout.setRight(right)
-      this.setState({ right })
     }
   }
 }

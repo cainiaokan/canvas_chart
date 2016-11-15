@@ -20,6 +20,10 @@ export default class ChartLayoutModel extends EventEmitter {
     this._charts = []
   }
 
+  /**
+   * 设置解析度
+   * @param {ResolutionType} resolution
+   */
   public setResolution (resolution: ResolutionType) {
     const datasources: Datasource[] = []
     this._charts.forEach(chart => {
@@ -35,6 +39,10 @@ export default class ChartLayoutModel extends EventEmitter {
     this.emit('resolutionchange', resolution)
   }
 
+  /**
+   * 设置股票标示
+   * @param {string} symbol [description]
+   */
   public setSymbol (symbol: string) {
     resolveSymbol(symbol)
       .then(response =>
@@ -64,6 +72,10 @@ export default class ChartLayoutModel extends EventEmitter {
       )
   }
 
+  /**
+   * 设置除权、复权
+   * @param {number} right 0: 除权 1: 前复权
+   */
   public setRight (right: number) {
     const datasources: Datasource[] = []
     this._charts.forEach(chart => {
@@ -83,11 +95,19 @@ export default class ChartLayoutModel extends EventEmitter {
     this.emit('rightchange', right)
   }
 
+  /**
+   * 设置指针位置
+   * @param {Point} point
+   */
   public setCursorPoint (point: Point) {
     this.charts.forEach(ch => ch.crosshair.point = point)
     this.emit('cursormove')
   }
 
+  /**
+   * 增加指标
+   * @param {StudyType} study
+   */
   public addStudy (study: StudyType) {
     const config = studyConfig[study]
     if (config.isPrice) {
@@ -125,6 +145,10 @@ export default class ChartLayoutModel extends EventEmitter {
     this.emit('studychange')
   }
 
+  /**
+   * 移除指标
+   * @param {StudyType} study
+   */
   public removeStudy (study: StudyType) {
     this.charts
       .forEach((chart, i) => {

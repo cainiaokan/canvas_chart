@@ -6,7 +6,7 @@
   "author": "Louie Lang",
   "email": "cainiaokan@gmail.com",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "d3": "^4.2.8",
     "d3-array": "^1.0.1",
     "d3-scale": "^1.0.3",
@@ -16,9 +16,7 @@
     "isomorphic-fetch": "^2.2.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
-    "underscore": "^1.8.3"
-  },
-  "devDependencies": {
+    "underscore": "^1.8.3",
     "@types/d3": "^3.5.36",
     "@types/d3-array": "^1.0.5",
     "@types/d3-scale": "^1.0.4",
@@ -48,7 +46,7 @@
   "scripts": {
     "dev": "node ./dev.js",
     "clean": "rm -rf dist",
-    "dist": "npm run clean && webpack -p",
+    "build": "webpack -p",
     "deploy": "scp -r dist/* himalayas@chart.quchaogu.com:/data/server/web/chart_web/webroot",
     "test": "echo \"Error: no test specified\" && exit 1"
   }

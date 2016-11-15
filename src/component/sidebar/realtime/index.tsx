@@ -7,6 +7,7 @@ import { StockInfo, CapitalFlowInfo } from '../pollmanager'
 import * as iScroll from '../../../vendor/iscroll'
 
 type Prop = {
+  width: number
   height: number
   stockInfo: StockInfo
   capitalFlowInfo: CapitalFlowInfo
@@ -48,6 +49,7 @@ export default class Realtime extends React.Component<Prop, State> {
     const curState = this.state
     return curProp.stockInfo !== nextProps.stockInfo ||
       curProp.capitalFlowInfo !== nextProps.capitalFlowInfo ||
+      curProp.width !== nextProps.width ||
       curProp.height !== nextProps.height ||
       curState.tabIndex !== nextState.tabIndex
   }

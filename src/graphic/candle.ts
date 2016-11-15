@@ -84,11 +84,11 @@ export default class CandleChartRenderer extends BaseChart {
     const graph = plot.graph
     const chart = graph.chart
     const ctx = chart.ctx
+    const axisX = chart.axisX
     const axisY = chart.axisY
-    const barWidth = chart.axisX.barWidth
-    const candleWidth = barWidth * 0.6
+    const barWidth = ~~axisX.barWidth % 2 === 1 ? ~~axisX.barWidth : ~~axisX.barWidth - 1
+    const candleWidth = ~~(barWidth * 0.6)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-
     ctx.save()
     ctx.translate(0.5, 0)
     ctx.lineWidth = 1
@@ -104,7 +104,7 @@ export default class CandleChartRenderer extends BaseChart {
       ctx.lineTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.LOW], rangeY))
       ctx.stroke()
     }
-
+    // 避免绘制的蜡烛方块出现模糊，因此对齐坐标系避免出现像素扩展的情况发生
     ctx.translate(-0.5, 0)
     for (let i = 0, bar, len = bars.length, x, y, isUp, color; i < len; i++) {
       bar = bars[i]

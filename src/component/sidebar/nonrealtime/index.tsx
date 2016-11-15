@@ -6,6 +6,7 @@ import * as iScroll from '../../../vendor/iscroll'
 
 type Prop = {
   nonRealtimeTools: NonRealtimeTools
+  width: number
   height: number
 }
 
@@ -33,6 +34,7 @@ export default class NonRealtime extends React.Component<Prop, any> {
   public shouldComponentUpdate (nextProps: Prop, nextState: any) {
     const curProp = this.props
     return curProp.nonRealtimeTools !== nextProps.nonRealtimeTools ||
+      curProp.width !== nextProps.width ||
       curProp.height !== nextProps.height
   }
 
