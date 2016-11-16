@@ -45,6 +45,13 @@ export default class SearchBox extends React.Component<Prop, State> {
     }
   }
 
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+    const curState = this.state
+    return curState.focus !== nextState.focus ||
+           curState.loading !== nextState.loading ||
+           curState.results !== nextState.results
+  }
+
   public render () {
     const state = this.state
     return (

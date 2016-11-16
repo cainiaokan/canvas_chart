@@ -16,10 +16,6 @@ const toolsList = [
 ]
 
 export default class ToolBox extends React.Component<Prop, State> {
-  public refs: {
-    [propName: string]: any
-  }
-
   constructor () {
     super()
     this.state = {
@@ -28,9 +24,8 @@ export default class ToolBox extends React.Component<Prop, State> {
     }
   }
 
-  public componentShouldUpdate (nextProps: Prop) {
-    const curProp = this.props
-    return curProp.chartLayout !== nextProps.chartLayout
+  public componentShouldUpdate () {
+    return false
   }
 
   public render () {

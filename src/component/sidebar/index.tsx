@@ -40,6 +40,14 @@ export default class Sidebar extends React.Component<Prop, State> {
     }
   }
 
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+    const curProps = this.props
+    return curProps.folded !== nextProps.folded ||
+           curProps.height !== nextProps.height ||
+           curProps.width !== nextProps.width ||
+           this.state.tabIndex !== nextState.tabIndex
+  }
+
   public componentWillMount () {
     const datasource = this.props.chartLayout.mainDatasource as StockDatasource
     this._pollManager = new PollManager(datasource.symbolInfo, 0)
@@ -159,11 +167,11 @@ export default class Sidebar extends React.Component<Prop, State> {
     if (this.refs.foldingBtn.classList.contains('folded')) {
       this.refs.foldingBtn.classList.remove('folded')
       this.refs.container.classList.remove('folded')
-      this.props.chartLayout.emit('sidebarchange', false)
+      this.props.chartLayout.emit('sidebarfoldstatechange', false)
     } else {
       this.refs.foldingBtn.classList.add('folded')
       this.refs.container.classList.add('folded')
-      this.props.chartLayout.emit('sidebarchange', true)
+      this.props.chartLayout.emit('sidebarfoldstatechange', true)
     }
   }
 

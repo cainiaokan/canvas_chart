@@ -37,8 +37,7 @@ export default class Navbar extends React.Component<Prop, State> {
 
   public componentShouldUpdate (nextProps: Prop) {
     const curProp = this.props
-    return curProp.chartLayout !== nextProps.chartLayout ||
-           curProp.resolution !== nextProps.resolution ||
+    return curProp.resolution !== nextProps.resolution ||
            curProp.symbolType !== nextProps.symbolType ||
            curProp.right !== nextProps.right
   }

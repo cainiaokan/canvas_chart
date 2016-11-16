@@ -17,9 +17,8 @@ export default class Legend extends React.Component<Prop, any> {
     this.updateView = this.updateView.bind(this)
   }
 
-  public componentShouldUpdate (nextProps: Prop) {
-    const curProp = this.props
-    return curProp.chartModel !== nextProps.chartModel
+  public componentShouldUpdate () {
+    return false
   }
 
   public componentDidMount () {

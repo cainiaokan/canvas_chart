@@ -23,6 +23,10 @@ export default class Indicator extends React.Component<Prop, State> {
     }
   }
 
+  public componentShouldUpdate (nextProps: Prop) {
+    return false
+  }
+
   public componentWillMount() {
     this._chart = this.props.chart
   }

@@ -59,6 +59,10 @@ export default class FullScreen extends React.Component<any, any> {
     }
   }
 
+  public shouldComponentUpdate () {
+    return false
+  }
+
   public render () {
     return (
       <a ref='btn' className='full-screen' title='全屏/取消'

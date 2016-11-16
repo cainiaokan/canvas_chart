@@ -275,7 +275,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.setState({ study })
       this.fullUpdate()
     })
-    this._chartLayoutModel.addListener('sidebarchange', folded => {
+    this._chartLayoutModel.addListener('sidebarfoldstatechange', folded => {
       this.setState({ sidebarFolded: folded })
       setTimeout(() => this.fullUpdate(), 50)
     })
