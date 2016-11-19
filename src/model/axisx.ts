@@ -152,12 +152,42 @@ export default class AxisXModel extends EventEmitter {
     this._graphic.draw()
   }
 
+  // TODO 后续应该改为可以查找超过当前可见区域的x，跟getXByTime方法一样
   public findTimeBarByX (x: number): ITimeBar {
     const timeBars = this.getVisibleTimeBars()
     for (let i = 0, len = timeBars.length; i < len; i++) {
       const bar = timeBars[i]
       if (Math.abs(x - bar.x) <= this._barWidth / 2) {
         return bar
+      }
+    }
+    return null
+  }
+
+  public getXByTime (time: number): number {
+    let indexLeft
+    let indexRight
+
+    const timeBars = this.getVisibleTimeBars()
+    const firstBar = timeBars[0]
+    const lastBar = timeBars[timeBars.length - 1]
+
+    if (firstBar.time > time) {
+      indexLeft = this.datasource.search(time)
+      indexRight = this.datasource.search(firstBar.time)
+      return firstBar.x - this._barWidth * (indexRight - indexLeft)
+    }
+
+    if (lastBar.time < time) {
+      indexLeft = this.datasource.search(lastBar.time)
+      indexRight = this.datasource.search(time)
+      return lastBar.x + this._barWidth * (indexRight - indexLeft)
+    }
+
+    for (let i = 0, len = timeBars.length; i < len; i++) {
+      const bar = timeBars[i]
+      if (bar.time === time) {
+        return bar.x
       }
     }
     return null

@@ -14,7 +14,6 @@ export default class CrosshairRenderer {
     const point = model.point
     const height = ctx.canvas.height
     const width = ctx.canvas.width
-    ctx.clearRect(0, 0, width, height)
 
     if (!point) {
       return

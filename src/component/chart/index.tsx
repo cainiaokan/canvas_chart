@@ -25,8 +25,6 @@ export default class Chart extends React.Component<Prop, State> {
     plot: HTMLDivElement
   }
 
-  private _chart: ChartModel
-  private _chartLayout: ChartLayout
   private _dragOffsetStart: boolean
   private _pinchHorzStart: boolean
   private _pinchVertStart: boolean
@@ -48,26 +46,8 @@ export default class Chart extends React.Component<Prop, State> {
     this.hitHandler = this.hitHandler.bind(this)
   }
 
-  public componentWillMount() {
-    this._chart = this.props.chart
-    this._chartLayout = this.props.chartLayout
-    this._chart.size = {
-      height: this.props.height,
-      width: this.props.width,
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: Prop) {
-    this._chart = nextProps.chart
-    this._chartLayout = nextProps.chartLayout
-    this._chart.size = {
-      height: nextProps.height,
-      width: nextProps.width,
-    }
-  }
-
   public componentDidMount () {
-    this._chartLayout.addListener('hit', this.hitHandler)
+    this.props.chartLayout.addListener('hit', this.hitHandler)
     document.addEventListener('touchmove', this.dragMoveHandler)
     document.addEventListener('touchend', this.mouseUpHandler)
     document.addEventListener('mousemove', this.dragMoveHandler)
@@ -75,26 +55,16 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
-    this._chartLayout.removeListener('hit', this.hitHandler)
+    this.props.chartLayout.removeListener('hit', this.hitHandler)
     document.removeEventListener('touchmove', this.dragMoveHandler)
     document.removeEventListener('touchend', this.mouseUpHandler)
     document.removeEventListener('mousemove', this.dragMoveHandler)
     document.removeEventListener('mouseup', this.mouseUpHandler)
   }
 
-  public componentDidUpdate () {
-    const size = this._chart.size
-    const width = this.props.width
-    const height = this.props.height
-    if (size.width !== width || size.height !== height) {
-      this._chart.size = {
-        height: height,
-        width: width,
-      }
-    }
-  }
-
   public render () {
+    const chartLayout = this.props.chartLayout
+    const chart = this.props.chart
     const width = ~~this.props.width - AXIS_Y_WIDTH
     const height = ~~this.props.height
 
@@ -108,12 +78,12 @@ export default class Chart extends React.Component<Prop, State> {
             width: width + 'px',
           }
         }>
-        <Legend chartModel={this._chart} />
+        <Legend chartModel={chart} />
         <canvas ref={el => {
           if (el) {
             el.height = height
             el.width = width
-            this._chart.ctx = el.getContext('2d')
+            chart.ctx = el.getContext('2d')
           }
         }} width={width} height={height}></canvas>
         <canvas ref={
@@ -121,7 +91,7 @@ export default class Chart extends React.Component<Prop, State> {
               if (el) {
                 el.height = height
                 el.width = width
-                this._chart.topCtx = el.getContext('2d')
+                chart.topCtx = el.getContext('2d')
               }
             }
           } width={width} height={height}
@@ -134,60 +104,75 @@ export default class Chart extends React.Component<Prop, State> {
           >
         </canvas>
         {
-          this._chart.isMain ? <Indicator chart={this._chart} /> : null
+          chart.isMain ? <Indicator chart={chart} /> : null
         }
       </div>
-      <AxisY axis={this._chart.axisY} chartLayout={this._chartLayout} height={height} width={AXIS_Y_WIDTH} />
+      <AxisY axis={chart.axisY} chartLayout={chartLayout} height={height} width={AXIS_Y_WIDTH} />
     </div>
   }
 
   private hitHandler (hover: boolean) {
-    if (this._chartLayout.hoverChart === this._chart) {
+    if (this.props.chartLayout.hoverChart === this.props.chart) {
       this.refs.plot.style.cursor = hover ? 'pointer' : 'crosshair'
     }
   }
 
   private mouseEnterHandler () {
-    this._chart.hover = true
+    this.props.chart.hover = true
   }
 
   private mouseLeaveHandler () {
-    this._chart.hover = false
-    this._chart.graphs.forEach(graph => graph.hover = false)
-    this._chartLayout.setCursorPoint(null)
+    this.props.chart.hover = false
+    this.props.chart.graphs.forEach(graph => graph.hover = false)
+    this.props.chartLayout.setCursorPoint(null)
   }
 
   private mouseDownHandler (ev: any) {
-    // 选中当前chart
-    this._chartLayout.charts
-      .forEach(chart =>
-        chart.graphs.filter(graph => graph.selected)
-          .forEach(graph => graph.selected = false)
-      )
+    const chartLayout = this.props.chartLayout
+    const chart = this.props.chart
+    const curPoint = chart.crosshair.point
+
+    if (chartLayout.selectedDrawingTool) {
+      chartLayout.drawingToolBegin(chart)
+      chartLayout.drawingToolSetVertex(curPoint)
+      if (chartLayout.editingDrawingTool.isFinished()) {
+        chartLayout.drawingToolEnd(chart)
+      }
+      return
+    } else if (chartLayout.editingDrawingTool) {
+      chartLayout.drawingToolSetVertex(curPoint)
+      if (chartLayout.editingDrawingTool.isFinished()) {
+        chart.tools.push(chartLayout.editingDrawingTool)
+        chartLayout.drawingToolEnd(chart)
+      }
+      return
+    }
+
+    // 取消所有graph的选中态
+    chartLayout.charts.forEach(
+      ch => chart.graphs
+             .filter(graph => graph.selected)
+             .forEach(graph => graph.selected = false)
+    )
+
     if (ev.touches) {
       // 手势拖拽
       if (ev.touches.length === 1) {
         this._dragOffsetStart = true
-        const offset = clientOffset(ev.target as HTMLElement)
-        const x = ev.touches[0].clientX
-        const y = ev.touches[0].clientY
-        this._chartLayout.charts.forEach(chart => chart.hover = false)
-        this._chartLayout.charts.forEach(chart => chart.graphs.forEach(graph => graph.hover = false))
-        this._chart.hover = true
-        this._dragPosX = x
-        this._chartLayout.setCursorPoint({
-          x: x - offset.offsetLeft,
-          y: y - offset.offsetTop,
-        })
-        this._lastMovePosition = x
+        chartLayout.charts.forEach(ch => ch.hover = false)
+        chartLayout.charts.forEach(ch => ch.graphs.forEach(graph => graph.hover = false))
+        chart.hover = true
+        this._dragPosX = curPoint.x
+        this._lastMovePosition = curPoint.x
         this._lastMoveTime = Date.now()
         this.stopMomentum()
+        chartLayout.setCursorPoint(curPoint)
       // 缩放
       } else if (ev.touches.length === 2) {
         const offsetHorz = Math.abs(ev.touches[0].clientX - ev.touches[1].clientX)
         const offsetVert = Math.abs(ev.touches[0].clientY - ev.touches[1].clientY)
         this._dragOffsetStart = false
-        this._chartLayout.setCursorPoint(null)
+        chartLayout.setCursorPoint(null)
         if (offsetHorz >= offsetVert) {
           this._pinchHorzStart = true
           this._pinchOffset = offsetHorz
@@ -201,7 +186,7 @@ export default class Chart extends React.Component<Prop, State> {
       this._dragOffsetStart = true
       this._dragPosX = ev.pageX
     }
-    this._chart.hitTest(true)
+    chart.hitTest(true)
   }
 
   private mouseUpHandler (ev) {
@@ -220,7 +205,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private momentumMove (v: number): void {
-    const axisX = this._chartLayout.axisx
+    const axisX = this.props.chartLayout.axisx
     this._momentumTimer = setTimeout(() => {
       if (Math.abs(v) > .1) {
         axisX.offset += v * 60
@@ -235,9 +220,6 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private mouseMoveHandler (ev: any): void {
-    if (this._pinchHorzStart || this._pinchVertStart) {
-      return this._chartLayout.setCursorPoint(null)
-    }
     const offset = clientOffset(ev.target as HTMLElement)
     const point = ev.touches ? {
         x: ev.touches[0].clientX - offset.offsetLeft,
@@ -247,14 +229,23 @@ export default class Chart extends React.Component<Prop, State> {
         x: ev.clientX - offset.offsetLeft,
         y: ev.clientY - offset.offsetTop,
       }
-    this._chartLayout.setCursorPoint(point)
-    this._chart.hitTest()
+
+    if (this._pinchHorzStart || this._pinchVertStart) {
+      this.props.chartLayout.setCursorPoint(null)
+      return
+    }
+
+    this.props.chartLayout.setCursorPoint(point)
+
+    if (!this.props.chartLayout.editingDrawingTool) {
+      this.props.chart.hitTest()
+    }
   }
 
   private dragMoveHandler (ev: any): void {
     if (this._dragOffsetStart) {
       const pageX = ev.touches ? ev.touches[0].pageX : ev.pageX
-      const axisX = this._chartLayout.axisx
+      const axisX = this.props.chartLayout.axisx
       const curOffset = axisX.offset
       const newOffset = curOffset + pageX - this._dragPosX
       axisX.offset = newOffset
@@ -265,7 +256,7 @@ export default class Chart extends React.Component<Prop, State> {
         this._lastMoveTime = Date.now()
       }
     } else if (this._pinchHorzStart) {
-      const axisX = this._chartLayout.axisx
+      const axisX = this.props.chartLayout.axisx
       const newOffset = Math.abs(ev.touches[1].pageX - ev.touches[0].pageX)
       const curBarWidth = axisX.barWidth
       const newBarWidth = curBarWidth + (newOffset - this._pinchOffset) / 100
@@ -273,7 +264,7 @@ export default class Chart extends React.Component<Prop, State> {
       axisX.barWidth = newBarWidth
       axisX.offset *= axisX.barWidth / curBarWidth
     } else if (this._pinchVertStart) {
-      const axisY = this._chartLayout.hoverChart.axisY
+      const axisY = this.props.chartLayout.hoverChart.axisY
       const newOffset = Math.abs(ev.touches[1].pageY - ev.touches[0].pageY)
       const newMargin = axisY.margin + (this._pinchOffset - newOffset)
       this._pinchOffset = newOffset

@@ -51,10 +51,13 @@ export default class Sidebar extends React.Component<Prop, State> {
   public componentWillMount () {
     const datasource = this.props.chartLayout.mainDatasource as StockDatasource
     this._pollManager = new PollManager(datasource.symbolInfo, 0)
-    this._pollManager.start()
     this._pollManager.on('data', data => {
       this._data = data
       this.forceUpdate()
+    })
+    this.props.chartLayout.addListener('symbolresolved', symbolInfo => {
+      this._pollManager.symbolInfo = symbolInfo
+      this._pollManager.start()
     })
     this.props.chartLayout.addListener('symbolchange', symbolInfo => {
       this._pollManager.symbolInfo = symbolInfo

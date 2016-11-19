@@ -1,6 +1,8 @@
 import './index.less'
 import * as React from 'react'
 import ChartLayoutModel from '../../model/chartlayout'
+import BaseToolRenderer from '../../graphic/basetool'
+import LineToolRenderer from '../../graphic/linetool'
 
 type Prop = {
   chartLayout: ChartLayoutModel
@@ -18,6 +20,7 @@ const toolsList = [
 export default class ToolBox extends React.Component<Prop, State> {
   constructor () {
     super()
+    this.resetTool = this.resetTool.bind(this)
     this.state = {
       selectedIndex: -1,
       selectedIndex2: 0,
@@ -26,6 +29,14 @@ export default class ToolBox extends React.Component<Prop, State> {
 
   public componentShouldUpdate () {
     return false
+  }
+
+  public componentDidMount () {
+    this.props.chartLayout.addListener('drawingtoolend', this.resetTool)
+  }
+
+  public componentDidUnmount () {
+    this.props.chartLayout.removeListener('drawingtoolend',  this.resetTool)
   }
 
   public render () {
@@ -54,6 +65,25 @@ export default class ToolBox extends React.Component<Prop, State> {
         selectedIndex: index,
         selectedIndex2: 0,
       })
+      this.props.chartLayout.selectedDrawingTool = this.getDrawingToolByName(toolsList[index][0])
     }
+  }
+
+  private getDrawingToolByName (toolName: string): BaseToolRenderer {
+    switch (toolName) {
+      case 'chart-tools-trend-line':
+        return new LineToolRenderer()
+      case 'chart-tools-trend-angle':
+        return null
+      default:
+        throw 'Can\'t find any drawing tool match name ' + toolName
+    }
+  }
+
+  private resetTool () {
+    this.setState({
+      selectedIndex: -1,
+      selectedIndex2: 0,
+    })
   }
 }

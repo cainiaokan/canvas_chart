@@ -201,6 +201,10 @@ export default class PollManager extends EventEmitter {
     this._symbolInfo = symbolInfo
   }
 
+  get symbolInfo (): SymbolInfo {
+    return this._symbolInfo
+  }
+
   set tabIndex (tabIndex: number) {
     if (tabIndex === this._tabIndex) {
       return
@@ -219,7 +223,9 @@ export default class PollManager extends EventEmitter {
     switch (tabIndex) {
       case 0:
         if (!this._timers.capitalFlowInfo) {
-          this.pollCapitalFlow()
+          if (this.symbolInfo.type === 'stock') {
+            this.pollCapitalFlow()
+          }
         }
         break
       case 1:
@@ -253,7 +259,9 @@ export default class PollManager extends EventEmitter {
     this.pollStockInfo()
     switch (this._tabIndex) {
       case 0:
-        this.pollCapitalFlow()
+        if (this.symbolInfo.type === 'stock') {
+          this.pollCapitalFlow()
+        }
         break
       case 1:
         this.pollIndexesInfo()

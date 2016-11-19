@@ -5,6 +5,7 @@ import AxisXModel from './axisx'
 import AxisYModel, { YRange } from './axisy'
 import CrosshairModel from './crosshair'
 import GraphModel from './graph'
+import BaseToolRenderer from '../graphic/basetool'
 import GridRenderer from '../graphic/grid'
 import WaterMarkRenerer from '../graphic/watermark'
 
@@ -18,6 +19,7 @@ export default class ChartModel extends EventEmitter {
 
   private _chartLayout: ChartLayout
   private _graphs: GraphModel[]
+  private _tools: BaseToolRenderer[]
   private _datasource: Datasource
   private _axisX: AxisXModel
   private _axisY: AxisYModel
@@ -46,6 +48,8 @@ export default class ChartModel extends EventEmitter {
     this._isPrice = isPrice
     this._isMain = isMain
     this._grid = new GridRenderer(this)
+    this._graphs = []
+    this._tools = []
     if (isMain) {
       this._watermark = new WaterMarkRenerer(this)
     }
@@ -59,8 +63,8 @@ export default class ChartModel extends EventEmitter {
     return this._graphs
   }
 
-  set graphs (graphs: GraphModel[]) {
-    this._graphs = graphs
+  get tools (): BaseToolRenderer[] {
+    return this._tools
   }
 
   get size (): Size {
@@ -156,7 +160,8 @@ export default class ChartModel extends EventEmitter {
   }
 
   get isValid (): boolean {
-    return this._graphs.every(graph => graph.isValid) && this.axisY.isValid
+    return this._graphs.every(graph => graph.isValid) &&
+           this.axisY.isValid
   }
 
   public draw () {
@@ -166,19 +171,24 @@ export default class ChartModel extends EventEmitter {
     if (this._isMain) {
       this._watermark.draw()
     }
+    // 绘制网格
     this._grid.draw()
-
+    // 先绘制没有hover的图形
     this._graphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
+    // 后绘制hover的图形，这样hover的图形就不会被其他图形遮挡
     this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
-
-    this._crosshair.draw()
+    // 绘制画图工具
+    this._tools.forEach(tool => tool.draw())
+    // 绘制游标
+    // this._crosshair.draw()
   }
 
   private drawBg () {
     const ctx = this._ctx
+    const canvas = ctx.canvas
     ctx.save()
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, this.size.width, this.size.height)
+    canvas.width = canvas.width
     ctx.restore()
   }
 }

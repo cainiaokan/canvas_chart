@@ -5,11 +5,14 @@ import AxisXModel from './axisx'
 import StudyModel from './study'
 import CrosshairModel from './crosshair'
 import AxisYModel from './axisy'
+import BaseToolRender from '../graphic/basetool'
 import { Datasource, StockDatasource, resolveSymbol, SymbolInfo, studyConfig } from '../datasource'
 import { Point } from '../model/crosshair'
 import { ResolutionType, StudyType } from '../constant'
 
 export default class ChartLayoutModel extends EventEmitter {
+  public selectedDrawingTool: BaseToolRender
+  public editingDrawingTool: BaseToolRender
 
   private _charts: ChartModel[]
   private _axisx: AxisXModel
@@ -138,7 +141,7 @@ export default class ChartLayoutModel extends EventEmitter {
       axisY.chart = chart
       crosshair.chart = chart
 
-      chart.graphs = [studyModel]
+      chart.graphs.push(studyModel)
       this.charts.push(chart)
     }
 
@@ -166,6 +169,23 @@ export default class ChartLayoutModel extends EventEmitter {
           this.emit('studychange')
         }
       })
+  }
+
+  public drawingToolBegin (chart: ChartModel) {
+    this.editingDrawingTool = this.selectedDrawingTool
+    this.selectedDrawingTool = null
+    this.editingDrawingTool.setChart(chart)
+    this.emit('drawingtoolbegin')
+  }
+
+  public drawingToolSetVertex (point: {x: number, y: number}) {
+    this.editingDrawingTool.addVertex(point)
+    this.emit('drawingtoolsetvertex')
+  }
+
+  public drawingToolEnd (chart: ChartModel) {
+    this.editingDrawingTool = null
+    this.emit('drawingtoolend')
   }
 
   set charts (charts: ChartModel[]) {

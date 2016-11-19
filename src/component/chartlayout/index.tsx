@@ -109,6 +109,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
    * @type {number}
    */
   private _lastAnimationFrame: number
+  private _lastLightAnimationFrame: number
   /**
    * 搏动更新定时器
    * @type {number}
@@ -123,6 +124,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
       symbolType: '',
     }
     this.pulseUpdate = this.pulseUpdate.bind(this)
+    this.fullUpdate = this.fullUpdate.bind(this)
+    this.lightUpdate = this.lightUpdate.bind(this)
   }
 
   public componentWillMount () {
@@ -156,7 +159,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.axisx = axisX
     this._chartLayoutModel.mainDatasource = mainDatasource
 
-    chart.graphs = [
+    chart.graphs.push(
       new StudyModel(
         mainDatasource,
         chart,
@@ -166,7 +169,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
           color: 'red',
           lineWidth: 1,
         }]
-      ),
+      ))
+
+    chart.graphs.push(
       new StudyModel(
         mainDatasource,
         chart,
@@ -176,7 +181,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
           color: 'blue',
           lineWidth: 1,
         }]
-      ),
+      ))
+
+    chart.graphs.push(
       new StudyModel(
         mainDatasource,
         chart,
@@ -186,7 +193,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
           color: 'purple',
           lineWidth: 1,
         }]
-      ),
+      ))
+
+    chart.graphs.push(
       new StudyModel(
         mainDatasource,
         chart,
@@ -196,19 +205,23 @@ export default class ChartLayout extends React.Component<Prop, State> {
           color: 'green',
           lineWidth: 1,
         }]
-      ),
+      ))
+
+    chart.graphs.push(
       new StudyModel(
         mainDatasource,
         chart,
         'VOLUME'
-      ),
+      ))
+
+    chart.graphs.push(
       new StockModel(
         mainDatasource,
         chart,
         this.state.resolution === '1' && this.props.shape === 'candle' ? 'line' : this.props.shape,
         { lineWidth: 2 }
-      ),
-    ]
+      ))
+
     this._chartLayoutModel.charts.push(chart)
   }
 
@@ -224,6 +237,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.pulseUpdate()
       spinner.stop()
       if (this._chartLayoutModel.mainDatasource instanceof StockDatasource) {
+        this._chartLayoutModel.emit('symbolresolved', this._chartLayoutModel.mainDatasource.symbolInfo)
         this.setState({
           loaded: true,
           symbolType: this._chartLayoutModel.mainDatasource.symbolInfo.type,
@@ -235,9 +249,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public initEvents () {
-    this._chartLayoutModel.axisx.addListener('resize', () => this.fullUpdate())
-    this._chartLayoutModel.axisx.addListener('offsetchange', () => this.fullUpdate())
-    this._chartLayoutModel.axisx.addListener('barwidthchange', () => this.fullUpdate())
+    this._chartLayoutModel.axisx.addListener('resize', this.fullUpdate)
+    this._chartLayoutModel.axisx.addListener('offsetchange', this.fullUpdate)
+    this._chartLayoutModel.axisx.addListener('barwidthchange', this.fullUpdate)
     this._chartLayoutModel.addListener('resolutionchange', resolution => {
       // 股票类型时，分时图显示线形图，其他显示蜡烛图
       if (this._chartLayoutModel.mainDatasource instanceof StockDatasource && this.props.shape === 'candle') {
@@ -268,17 +282,19 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.resetChart()
       this.setState({ right})
     })
-    this._chartLayoutModel.addListener('hit', () => this.lightUpdate())
-    this._chartLayoutModel.addListener('cursormove', () => this.lightUpdate())
-    this._chartLayoutModel.addListener('barmarginchange', () => this.lightUpdate())
+    this._chartLayoutModel.addListener('hit', this.lightUpdate)
+    this._chartLayoutModel.addListener('cursormove', this.lightUpdate)
+    this._chartLayoutModel.addListener('barmarginchange', this.lightUpdate)
     this._chartLayoutModel.addListener('studychange', study => {
       this.setState({ study })
       this.fullUpdate()
     })
     this._chartLayoutModel.addListener('sidebarfoldstatechange', folded => {
       this.setState({ sidebarFolded: folded })
-      setTimeout(() => this.fullUpdate(), 50)
+      setTimeout(this.fullUpdate, 50)
     })
+    this._chartLayoutModel.addListener('drawingtoolsetvertex', this.lightUpdate)
+    this._chartLayoutModel.addListener('drawingtoolend', this.fullUpdate)
   }
 
   /**
@@ -304,6 +320,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
         chart.axisY.range = chart.getRangeY()
         chart.axisY.draw()
         chart.draw()
+        // chart.topCtx.canvas.width = chart.topCtx.canvas.width
+        // chart.crosshair.draw()
       })
       this._lastAnimationFrame = null
     })
@@ -314,11 +332,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
    */
   public lightUpdate () {
     // 取消上一帧动画的调度，避免重复计算
-    if (this._lastAnimationFrame) {
-      cancelAnimationFrame(this._lastAnimationFrame)
+    if (this._lastLightAnimationFrame) {
+      cancelAnimationFrame(this._lastLightAnimationFrame)
     }
 
-    this._lastAnimationFrame = requestAnimationFrame(() => {
+    this._lastLightAnimationFrame = requestAnimationFrame(() => {
       this._chartLayoutModel.axisx.draw(false)
       this._chartLayoutModel.charts.forEach(chart => {
         if (!chart.axisY.range) {
@@ -328,11 +346,15 @@ export default class ChartLayout extends React.Component<Prop, State> {
           chart.draw()
         }
         if (!chart.crosshair.isValid) {
+          chart.topCtx.canvas.width = chart.topCtx.canvas.width
+          if (this._chartLayoutModel.editingDrawingTool) {
+            this._chartLayoutModel.editingDrawingTool.draw()
+          }
           chart.crosshair.draw()
         }
         chart.axisY.draw()
       })
-      this._lastAnimationFrame = null
+      this._lastLightAnimationFrame = null
     })
   }
 

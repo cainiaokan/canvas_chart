@@ -20,7 +20,7 @@ export default class AxisYRenderer {
 
     ctx.save()
 
-    ctx.fillRect(0, 0, axis.size.width, axis.size.height)
+    ctx.canvas.width = ctx.canvas.width
     ctx.translate(0.5, 0.5)
     ctx.beginPath()
     ctx.moveTo(0, 0)
