@@ -319,9 +319,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this._chartLayoutModel.charts.forEach(chart => {
         chart.axisY.range = chart.getRangeY()
         chart.axisY.draw()
+        chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
         chart.draw()
-        // chart.topCtx.canvas.width = chart.topCtx.canvas.width
-        // chart.crosshair.draw()
+        chart.crosshair.draw()
       })
       this._lastAnimationFrame = null
     })
@@ -346,7 +346,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
           chart.draw()
         }
         if (!chart.crosshair.isValid) {
-          chart.topCtx.canvas.width = chart.topCtx.canvas.width
+          chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
+          if (this._chartLayoutModel.creatingDrawingTool) {
+            this._chartLayoutModel.creatingDrawingTool.draw()
+          }
           if (this._chartLayoutModel.editingDrawingTool) {
             this._chartLayoutModel.editingDrawingTool.draw()
           }

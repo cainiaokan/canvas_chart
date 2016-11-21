@@ -12,6 +12,7 @@ import { ResolutionType, StudyType } from '../constant'
 
 export default class ChartLayoutModel extends EventEmitter {
   public selectedDrawingTool: BaseToolRender
+  public creatingDrawingTool: BaseToolRender
   public editingDrawingTool: BaseToolRender
 
   private _charts: ChartModel[]
@@ -28,16 +29,13 @@ export default class ChartLayoutModel extends EventEmitter {
    * @param {ResolutionType} resolution
    */
   public setResolution (resolution: ResolutionType) {
-    const datasources: Datasource[] = []
-    this._charts.forEach(chart => {
-      chart.graphs.forEach(graph => {
-        graph.clearCache()
-        graph.datasource.clearCache()
-        datasources.push(graph.datasource)
-      })
-    })
+    this.clearCharts()
     // 批量设置数据源的解析度
-    _.unique(datasources).forEach(datasource => datasource.resolution = resolution)
+    _.unique(
+      this._charts.reduce((datasources, chart) =>
+        datasources.concat(chart.graphs.map(graph => graph.datasource)
+      ), [])
+    ).forEach(datasource => datasource.resolution = resolution)
     this._axisx.resetOffset()
     this.emit('resolutionchange', resolution)
   }
@@ -58,12 +56,7 @@ export default class ChartLayoutModel extends EventEmitter {
               exchange: data.exchange,
             }
             const mainDatasource = this._mainDatasource
-            this._charts.forEach(chart => {
-              chart.graphs.forEach(graph => {
-                graph.clearCache()
-                graph.datasource.clearCache()
-              })
-            })
+            this.clearCharts()
             if (mainDatasource instanceof StockDatasource) {
               mainDatasource.symbolInfo = symbolInfo
             } else {
@@ -81,13 +74,7 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public setRight (right: number) {
     const datasources: Datasource[] = []
-    this._charts.forEach(chart => {
-      chart.graphs.forEach(graph => {
-        graph.clearCache()
-        graph.datasource.clearCache()
-        datasources.push(graph.datasource)
-      })
-    })
+    this.clearCharts()
     // 批量设置数据源的解析度
     _.unique(datasources).forEach(datasource => {
       if (datasource instanceof StockDatasource) {
@@ -172,20 +159,39 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   public drawingToolBegin (chart: ChartModel) {
-    this.editingDrawingTool = this.selectedDrawingTool
+    this.creatingDrawingTool = this.selectedDrawingTool
     this.selectedDrawingTool = null
-    this.editingDrawingTool.setChart(chart)
+    this.creatingDrawingTool.setChart(chart)
     this.emit('drawingtoolbegin')
   }
 
   public drawingToolSetVertex (point: {x: number, y: number}) {
-    this.editingDrawingTool.addVertex(point)
+    this.creatingDrawingTool.addVertex(point)
     this.emit('drawingtoolsetvertex')
   }
 
   public drawingToolEnd (chart: ChartModel) {
-    this.editingDrawingTool = null
+    this.creatingDrawingTool = null
     this.emit('drawingtoolend')
+  }
+
+  public drawingToolEditBegin () {
+    this.editingDrawingTool.isEditing = true
+  }
+
+  public drawingToolEditEnd () {
+    this.editingDrawingTool.isEditing = false
+    this.editingDrawingTool = null
+  }
+
+  private clearCharts () {
+    this._charts.forEach(chart => {
+      chart.tools.length = 0
+      chart.graphs.forEach(graph => {
+        graph.clearCache()
+        graph.datasource.clearCache()
+      })
+    })
   }
 
   set charts (charts: ChartModel[]) {

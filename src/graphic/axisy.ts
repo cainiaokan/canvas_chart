@@ -10,6 +10,7 @@ export default class AxisYRenderer {
   public draw () {
     const axis = this._axis
     const ctx = axis.ctx
+    const canvas = ctx.canvas
     const axisY = axis
     const cursorPoint = axis.crosshair.point
     const hover = axis.crosshair.chart.hover
@@ -20,7 +21,7 @@ export default class AxisYRenderer {
 
     ctx.save()
 
-    ctx.canvas.width = ctx.canvas.width
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.translate(0.5, 0.5)
     ctx.beginPath()
     ctx.moveTo(0, 0)

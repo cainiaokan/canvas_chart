@@ -148,6 +148,13 @@ export default class ChartModel extends EventEmitter {
 
   public hitTest (select = false): boolean  {
     let hit = false
+    for (let i = this._tools.length - 1; i >= 0; i--) {
+      if (hit) {
+        this._tools[i].hover = false
+      } else if (this._tools[i].isNowVisible() && this._tools[i].hitTest(select)) {
+        hit = true
+      }
+    }
     for (let i = this._graphs.length - 1; i >= 0; i--) {
       if (hit) {
         this._graphs[i].hover = false
@@ -161,6 +168,7 @@ export default class ChartModel extends EventEmitter {
 
   get isValid (): boolean {
     return this._graphs.every(graph => graph.isValid) &&
+           this._tools.every(tool => tool.isValid) &&
            this.axisY.isValid
   }
 
@@ -177,10 +185,8 @@ export default class ChartModel extends EventEmitter {
     this._graphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
     // 后绘制hover的图形，这样hover的图形就不会被其他图形遮挡
     this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
-    // 绘制画图工具
-    this._tools.forEach(tool => tool.draw())
-    // 绘制游标
-    // this._crosshair.draw()
+    // 绘制当前可见的画图工具
+    this._tools.filter(tool => tool.isNowVisible()).forEach(tool => tool.draw())
   }
 
   private drawBg () {
@@ -188,7 +194,7 @@ export default class ChartModel extends EventEmitter {
     const canvas = ctx.canvas
     ctx.save()
     ctx.fillStyle = '#ffffff'
-    canvas.width = canvas.width
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.restore()
   }
 }

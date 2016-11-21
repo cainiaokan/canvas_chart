@@ -20,13 +20,13 @@ export default class AxisXRenderer {
     ctx.save()
     ctx.translate(0.5, 0.5)
 
-    ctx.canvas.width = ctx.canvas.width
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     ctx.beginPath()
     ctx.moveTo(0, 0)
     ctx.lineTo(axis.size.width, 0)
     ctx.stroke()
     ctx.font = '12px ans-serif'
-    ctx.fillStyle = 'black'
+    ctx.fillStyle = '#000000'
     ctx.textAlign = 'center'
 
     const tickmarks = axis.tickmark.getTickMarksByTimeBars(timeBars)
