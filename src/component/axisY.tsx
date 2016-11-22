@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { SUPPORT_TOUCH, MOVE_EVENT, END_EVENT } from '../constant'
 import ChartLayout from '../model/chartlayout'
 import AxisYModel from '../model/axisy'
 
@@ -18,6 +19,7 @@ export default class AxisY extends React.Component<Prop, any> {
   constructor () {
     super()
     this._dragMarginStart = false
+    this.mouseDownHandler = this.mouseDownHandler.bind(this)
     this.mouseMoveHandler = this.mouseMoveHandler.bind(this)
     this.mouseUpHandler = this.mouseUpHandler.bind(this)
   }
@@ -41,22 +43,30 @@ export default class AxisY extends React.Component<Prop, any> {
   }
 
   public componentDidMount () {
-    document.addEventListener('touchmove', this.mouseMoveHandler)
-    document.addEventListener('touchend', this.mouseUpHandler)
-    document.addEventListener('mousemove', this.mouseMoveHandler)
-    document.addEventListener('mouseup', this.mouseUpHandler)
+    document.addEventListener(MOVE_EVENT, this.mouseMoveHandler)
+    document.addEventListener(END_EVENT, this.mouseUpHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener('touchmove', this.mouseMoveHandler)
-    document.removeEventListener('touchend', this.mouseUpHandler)
-    document.removeEventListener('mousemove', this.mouseMoveHandler)
-    document.removeEventListener('mouseup', this.mouseUpHandler)
+    document.removeEventListener(MOVE_EVENT, this.mouseMoveHandler)
+    document.removeEventListener(END_EVENT, this.mouseUpHandler)
   }
 
   public render () {
     const width = this.props.width
     const height = this.props.height
+
+    let eventHandlers
+    if (SUPPORT_TOUCH) {
+      eventHandlers = {
+        onTouchStart: this.mouseDownHandler,
+      }
+    } else {
+      eventHandlers = {
+        onMouseDown: this.mouseDownHandler,
+      }
+    }
+
     return (
       <div className='chart-axisy' style={ {height: height + 'px', width: width + 'px'} }>
         <canvas ref={el => {
@@ -65,9 +75,7 @@ export default class AxisY extends React.Component<Prop, any> {
             el.width = this.props.width
             this._axis.ctx = el.getContext('2d')
           }
-        }} width={width} height={height}
-        onMouseDown={this.mouseDownHandler.bind(this)}
-        onTouchStart={this.mouseDownHandler.bind(this)}></canvas>
+        }} width={width} height={height} {...eventHandlers}></canvas>
       </div>
     )
   }

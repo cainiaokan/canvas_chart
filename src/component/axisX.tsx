@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { SUPPORT_TOUCH, MOVE_EVENT, END_EVENT } from '../constant'
 import ChartLayout from '../model/chartlayout'
 import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../model/axisx'
 
@@ -18,6 +19,7 @@ export default class AxisX extends React.Component<Prop, any> {
   constructor () {
     super()
     this.mouseMoveHandler = this.mouseMoveHandler.bind(this)
+    this.mouseDownHandler = this.mouseDownHandler.bind(this)
     this.mouseUpHandler = this.mouseUpHandler.bind(this)
   }
 
@@ -40,27 +42,34 @@ export default class AxisX extends React.Component<Prop, any> {
   }
 
   public componentDidMount () {
-    document.addEventListener('touchmove', this.mouseMoveHandler)
-    document.addEventListener('touchend', this.mouseUpHandler)
-    document.addEventListener('mousemove', this.mouseMoveHandler)
-    document.addEventListener('mouseup', this.mouseUpHandler)
+    document.addEventListener(MOVE_EVENT, this.mouseMoveHandler)
+    document.addEventListener(END_EVENT, this.mouseUpHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener('touchmove', this.mouseMoveHandler)
-    document.removeEventListener('touchend', this.mouseUpHandler)
-    document.removeEventListener('mousemove', this.mouseMoveHandler)
-    document.removeEventListener('mouseup', this.mouseUpHandler)
+    document.removeEventListener(MOVE_EVENT, this.mouseMoveHandler)
+    document.removeEventListener(END_EVENT, this.mouseUpHandler)
   }
 
   public render () {
     const width = this.props.width
     const height = this.props.height
+
+    let eventHandlers
+
+    if (SUPPORT_TOUCH) {
+      eventHandlers = {
+        onTouchStart: this.mouseDownHandler,
+      }
+    } else {
+      eventHandlers = {
+        onMouseDown: this.mouseDownHandler,
+      }
+    }
+
     return (
       <div className='chart-line'>
         <div className='chart-axisx'
-          onMouseDown={this.mouseDownHandler.bind(this)}
-          onTouchStart={this.mouseDownHandler.bind(this)}
           style={ {height: height, width: width} }>
           <canvas ref={el => {
             if (el) {
@@ -68,7 +77,7 @@ export default class AxisX extends React.Component<Prop, any> {
               el.width = width
               this._axis.ctx = el.getContext('2d')
             }
-          }} width={width} height={height}></canvas>
+          }} width={width} height={height} {...eventHandlers}></canvas>
         </div>
       </div>
     )

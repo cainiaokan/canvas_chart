@@ -293,7 +293,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.setState({ sidebarFolded: folded })
       setTimeout(this.fullUpdate, 50)
     })
-    this._chartLayoutModel.addListener('drawingtoolsetvertex', this.lightUpdate)
+    this._chartLayoutModel.addListener('drawingtoolbegin', this.lightUpdate)
     this._chartLayoutModel.addListener('drawingtoolend', this.fullUpdate)
   }
 
@@ -319,8 +319,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this._chartLayoutModel.charts.forEach(chart => {
         chart.axisY.range = chart.getRangeY()
         chart.axisY.draw()
-        chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
         chart.draw()
+        chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
         chart.crosshair.draw()
       })
       this._lastAnimationFrame = null
@@ -345,16 +345,19 @@ export default class ChartLayout extends React.Component<Prop, State> {
         if (!chart.isValid) {
           chart.draw()
         }
-        if (!chart.crosshair.isValid) {
-          chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
-          if (this._chartLayoutModel.creatingDrawingTool) {
-            this._chartLayoutModel.creatingDrawingTool.draw()
-          }
-          if (this._chartLayoutModel.editingDrawingTool) {
-            this._chartLayoutModel.editingDrawingTool.draw()
-          }
-          chart.crosshair.draw()
+        // 清空画布
+        chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
+        // 绘制创建中的工具图形
+        if (this._chartLayoutModel.creatingDrawingTool &&
+            this._chartLayoutModel.creatingDrawingTool.chart === chart) {
+          this._chartLayoutModel.creatingDrawingTool.draw()
         }
+        // 绘制编辑中的工具图形
+        if (this._chartLayoutModel.editingDrawingTool &&
+            this._chartLayoutModel.editingDrawingTool.chart === chart) {
+          this._chartLayoutModel.editingDrawingTool.draw()
+        }
+        chart.crosshair.draw()
         chart.axisY.draw()
       })
       this._lastLightAnimationFrame = null

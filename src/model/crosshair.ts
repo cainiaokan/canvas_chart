@@ -13,11 +13,9 @@ export default class CrosshairModel extends EventEmitter {
   private _graphic: CrosshairRenderer
   private _chartLayout: ChartLayout
   private _chart: ChartModel
-  private _isValid: boolean
 
   constructor (chartLayout: ChartLayout) {
     super()
-    this._isValid = false
     this._chartLayout = chartLayout
     this._graphic = new CrosshairRenderer(this)
   }
@@ -32,12 +30,7 @@ export default class CrosshairModel extends EventEmitter {
         point.x !== this._point.x ||
         point.y !== this._point.y) {
       this._point = point
-      this._isValid = false
     }
-  }
-
-  get isValid (): boolean {
-    return this._isValid
   }
 
   get graphic (): CrosshairRenderer {
@@ -53,7 +46,6 @@ export default class CrosshairModel extends EventEmitter {
   }
 
   public draw () {
-    this._isValid = true
     this.graphic.draw()
   }
 }

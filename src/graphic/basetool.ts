@@ -59,6 +59,14 @@ abstract class BaseToolRenderer {
     return this._vertexes
   }
 
+  get chart () {
+    return this._chart
+  }
+
+  set chart (chart: ChartModel) {
+    this._chart = chart
+  }
+
   public abstract isFinished (): boolean
 
   public isNowVisible () {
@@ -71,10 +79,6 @@ abstract class BaseToolRenderer {
     )
   }
 
-  public setChart (chart: ChartModel) {
-    this._chart = chart
-  }
-
   public getContext () {
     return !this._isEditing && this.isFinished() ? this._chart.ctx : this._chart.topCtx
   }
@@ -83,7 +87,9 @@ abstract class BaseToolRenderer {
    * 获取当前的指针位置
    */
   public getCursor () {
-    return this._lastCursorPoint = this._chart.crosshair.point || this._lastCursorPoint
+    return this._lastCursorPoint = this._chart.hover ?
+           this._chart.crosshair.point || this._lastCursorPoint :
+           this._lastCursorPoint
   }
 
   public addVertex (point: {x: number, y: number}) {

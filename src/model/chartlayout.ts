@@ -161,7 +161,7 @@ export default class ChartLayoutModel extends EventEmitter {
   public drawingToolBegin (chart: ChartModel) {
     this.creatingDrawingTool = this.selectedDrawingTool
     this.selectedDrawingTool = null
-    this.creatingDrawingTool.setChart(chart)
+    this.creatingDrawingTool.chart = chart
     this.emit('drawingtoolbegin')
   }
 
