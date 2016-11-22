@@ -277,13 +277,13 @@ export default class Chart extends React.Component<Prop, State> {
     const chart = this.props.chart
     const offset = clientOffset(chart.topCtx.canvas)
     const point = ev.touches ? {
-        x: ev.touches[0].pageX - offset.offsetLeft,
-        y: ev.touches[0].pageY - offset.offsetTop,
-      } :
-      {
-        x: ev.pageX - offset.offsetLeft,
-        y: ev.pageY - offset.offsetTop,
-      }
+      x: ev.touches[0].pageX - offset.offsetLeft,
+      y: ev.touches[0].pageY - offset.offsetTop,
+    } :
+    {
+      x: ev.pageX - offset.offsetLeft,
+      y: ev.pageY - offset.offsetTop,
+    }
 
     if (this._pinchHorzStart || this._pinchVertStart) {
       chartLayout.setCursorPoint(null)
@@ -327,7 +327,11 @@ export default class Chart extends React.Component<Prop, State> {
         const offsetIndex = datasource.search(curBar.time) - datasource.search(oldBar.time)
         const offsetValue = axisY.getValueByY(point.y - offset.offsetTop, range) -
                             axisY.getValueByY(this._dragPosY - offset.offsetTop, range)
-        tool.moveAsWhole(offsetIndex, offsetValue)
+        if (tool.hitVertexIndex === -1) {
+          tool.moveAsWhole(offsetIndex, offsetValue)
+        } else {
+          tool.moveVertex(offsetIndex, offsetValue)
+        }
         this._dragPosX = point.x
         this._dragPosY = point.y
       }

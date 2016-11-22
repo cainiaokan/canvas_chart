@@ -1,5 +1,5 @@
 import BaseToolRenderer from './basetool'
-import { TOUCH_TEST_TOLERANCE } from '../constant'
+import { HIT_TEST_TOLERANCE } from '../constant'
 import { pointToSegDist } from '../util'
 
 export default class LineToolRenderer extends BaseToolRenderer {
@@ -56,7 +56,16 @@ export default class LineToolRenderer extends BaseToolRenderer {
 
     let distance = pointToSegDist(x0, y0, x1, y1, x2, y2)
 
-    return distance < TOUCH_TEST_TOLERANCE
+    return distance < HIT_TEST_TOLERANCE
+  }
+
+  public moveVertex (offsetIndex: number, offsetValue: number) {
+    const chart = this._chart
+    const datasource = chart.datasource
+    const vertex = this._vertexes[this._hitVertexIndex]
+
+    vertex.time = datasource.barAt(datasource.search(vertex.time) + offsetIndex).time
+    vertex.value += offsetValue
   }
 
   public isFinished (): boolean {

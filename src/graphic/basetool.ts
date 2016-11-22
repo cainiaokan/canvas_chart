@@ -1,4 +1,5 @@
 import ChartModel from '../model/chart'
+import { HIT_TEST_TOLERANCE } from '../constant'
 
 type Vertex = { time: number, value: number }
 abstract class BaseToolRenderer {
@@ -7,6 +8,7 @@ abstract class BaseToolRenderer {
   protected _isEditing: boolean
   protected _lastCursorPoint: { x: number, y: number }
   protected _vertexes: Vertex[]
+  protected _hitVertexIndex: number = -1
   protected _hover: boolean
   protected _selected: boolean
 
@@ -57,6 +59,10 @@ abstract class BaseToolRenderer {
 
   get vertexes (): Vertex[] {
     return this._vertexes
+  }
+
+  get hitVertexIndex (): number {
+    return this._hitVertexIndex
   }
 
   get chart () {
@@ -161,10 +167,27 @@ abstract class BaseToolRenderer {
   }
 
   public hitTest (select: boolean): boolean {
-    const isHit = this.hitTestTool()
+    let isHit = false
+    let hitVertexIndex = -1
+    const chart = this._chart
+    const point = chart.crosshair.point
+    this._hitVertexIndex = -1
+    isHit = this._vertexes.some((vertex, idx) => {
+      if (this.hitTestVertex(vertex, point)) {
+        hitVertexIndex = idx
+        return true
+      } else {
+        return false
+      }
+    })
+    if (!isHit) {
+      isHit = this.hitTestTool()
+    } else {
+      this._hitVertexIndex = hitVertexIndex
+    }
     if (select) {
       if (isHit) {
-        this._chart.chartLayout.editingDrawingTool = this
+        chart.chartLayout.editingDrawingTool = this
       }
       return this.selected = isHit
     } else {
@@ -180,9 +203,27 @@ abstract class BaseToolRenderer {
     this._isValid = true
   }
 
+  public abstract moveVertex (offsetIndex: number, offsetValue): void
+
   protected abstract drawTool (ctx: CanvasRenderingContext2D): void
 
   protected abstract hitTestTool (): boolean
+
+  private hitTestVertex (vertex: Vertex, point: {x: number, y: number}): boolean {
+    const chart = this._chart
+    const axisX = chart.axisX
+    const axisY = chart.axisY
+    const x = axisX.getXByTime(vertex.time)
+    const y = axisY.getYByValue(vertex.value, axisY.range)
+    if (
+        Math.sqrt(
+          Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2)
+        ) < HIT_TEST_TOLERANCE) {
+      return true
+    } else {
+      return false
+    }
+  }
 }
 
 export default BaseToolRenderer
