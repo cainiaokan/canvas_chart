@@ -15,6 +15,7 @@ export default class ChartLayoutModel extends EventEmitter {
   public creatingDrawingTool: BaseToolRender
   public editingDrawingTool: BaseToolRender
 
+  private _defaultCursor: 'crosshair' | 'default'
   private _charts: ChartModel[]
   private _axisx: AxisXModel
   private _mainDatasource: Datasource
@@ -22,6 +23,42 @@ export default class ChartLayoutModel extends EventEmitter {
   constructor () {
     super()
     this._charts = []
+  }
+
+  set charts (charts: ChartModel[]) {
+    this._charts = charts
+  }
+
+  get charts (): ChartModel[] {
+    return this._charts
+  }
+
+  set axisx (axisx: AxisXModel) {
+    this._axisx = axisx
+  }
+
+  get axisx (): AxisXModel {
+    return this._axisx
+  }
+
+  get mainChart (): ChartModel {
+    return this._charts.filter(chart => chart.isMain)[0] || null
+  }
+
+  set mainDatasource (datasource: Datasource) {
+    this._mainDatasource = datasource
+  }
+
+  get mainDatasource (): Datasource {
+    return this._mainDatasource
+  }
+
+  get hoverChart () {
+    return this._charts.filter(chart => chart.hover)[0] || null
+  }
+
+  get defaultCursor (): 'crosshair' | 'default' {
+    return this._defaultCursor
   }
 
   /**
@@ -95,6 +132,15 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
+   * 设置默认的指针样式
+   * @param {'default' | 'crosshair'} cursor 指针样式
+   */
+  public setDefaultCursor (cursor: 'default' | 'crosshair') {
+    this._defaultCursor = cursor
+    this.emit('defaultcursorchange', cursor)
+  }
+
+  /**
    * 增加指标
    * @param {StudyType} study
    */
@@ -141,7 +187,7 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public removeStudy (study: StudyType) {
     this.charts
-      .forEach((chart, i) => {
+      .some((chart, i) => {
         if (chart.graphs.some((graph, j) => {
           if (graph instanceof StudyModel && graph.studyType === study) {
             chart.graphs.splice(j, 1)
@@ -154,6 +200,9 @@ export default class ChartLayoutModel extends EventEmitter {
             this.charts.splice(i, 1)
           }
           this.emit('studychange')
+          return true
+        } else {
+          return false
         }
       })
   }
@@ -166,7 +215,17 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   public drawingToolSetVertex (point: {x: number, y: number}) {
-    this.creatingDrawingTool.addVertex(point)
+    const chart = this.creatingDrawingTool.chart
+    const curBar = chart.axisX.findTimeBarByX(point.x)
+
+    if (!curBar) {
+      return
+    }
+
+    const time = curBar.time
+    const value = chart.axisY.getValueByY(point.y)
+
+    this.creatingDrawingTool.addVertex({ time, value })
     this.emit('drawingtoolsetvertex')
   }
 
@@ -192,37 +251,5 @@ export default class ChartLayoutModel extends EventEmitter {
         graph.datasource.clearCache()
       })
     })
-  }
-
-  set charts (charts: ChartModel[]) {
-    this._charts = charts
-  }
-
-  get charts (): ChartModel[] {
-    return this._charts
-  }
-
-  set axisx (axisx: AxisXModel) {
-    this._axisx = axisx
-  }
-
-  get axisx (): AxisXModel {
-    return this._axisx
-  }
-
-  get mainChart (): ChartModel {
-    return this._charts.filter(chart => chart.isMain)[0] || null
-  }
-
-  set mainDatasource (datasource: Datasource) {
-    this._mainDatasource = datasource
-  }
-
-  get mainDatasource (): Datasource {
-    return this._mainDatasource
-  }
-
-  get hoverChart () {
-    return this._charts.filter(chart => chart.hover)[0] || null
   }
 }

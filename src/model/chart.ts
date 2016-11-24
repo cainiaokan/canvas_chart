@@ -9,13 +9,12 @@ import BaseToolRenderer from '../graphic/basetool'
 import GridRenderer from '../graphic/grid'
 import WaterMarkRenerer from '../graphic/watermark'
 
-type Size = {
-  width: number,
-  height: number
-}
-
 export default class ChartModel extends EventEmitter {
   public hover: boolean
+  public width: number
+  public height: number
+  public ctx: CanvasRenderingContext2D
+  public topCtx: CanvasRenderingContext2D
 
   private _chartLayout: ChartLayout
   private _graphs: GraphModel[]
@@ -24,9 +23,6 @@ export default class ChartModel extends EventEmitter {
   private _axisX: AxisXModel
   private _axisY: AxisYModel
   private _crosshair: CrosshairModel
-  private _size: Size
-  private _ctx: CanvasRenderingContext2D
-  private _topCtx: CanvasRenderingContext2D
   private _grid: GridRenderer
   private _watermark: WaterMarkRenerer
   private _isPrice: boolean
@@ -67,14 +63,6 @@ export default class ChartModel extends EventEmitter {
     return this._tools
   }
 
-  get size (): Size {
-    return this._size
-  }
-
-  set size (size: Size) {
-    this._size = size
-  }
-
   get datasource (): Datasource {
     return this._datasource
   }
@@ -103,20 +91,10 @@ export default class ChartModel extends EventEmitter {
     return this._isMain
   }
 
-  get ctx (): CanvasRenderingContext2D {
-    return this._ctx
-  }
-
-  set ctx (ctx: CanvasRenderingContext2D) {
-    this._ctx = ctx
-  }
-
-  get topCtx (): CanvasRenderingContext2D {
-    return this._topCtx
-  }
-
-  set topCtx (ctx: CanvasRenderingContext2D) {
-    this._topCtx = ctx
+  get isValid (): boolean {
+    return this._graphs.every(graph => graph.isValid) &&
+           this._tools.every(tool => tool.isValid) &&
+           this.axisY.isValid
   }
 
   public getRangeY (): YRange {
@@ -166,12 +144,6 @@ export default class ChartModel extends EventEmitter {
     return hit
   }
 
-  get isValid (): boolean {
-    return this._graphs.every(graph => graph.isValid) &&
-           this._tools.every(tool => tool.isValid) &&
-           this.axisY.isValid
-  }
-
   public draw () {
     // 首先绘制背景色
     this.drawBg()
@@ -189,12 +161,20 @@ export default class ChartModel extends EventEmitter {
     this._tools.filter(tool => tool.isNowVisible()).forEach(tool => tool.draw())
   }
 
+  public clearTopCanvas () {
+    const ctx = this.topCtx
+    const width = this.width
+    const height = this.height
+
+    ctx.clearRect(0, 0, width, height)
+  }
+
   private drawBg () {
-    const ctx = this._ctx
-    const canvas = ctx.canvas
+    const ctx = this.ctx
+
     ctx.save()
-    ctx.fillStyle = '#ffffff'
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = '#fff'
+    ctx.fillRect(0, 0, this.width, this.height)
     ctx.restore()
   }
 }

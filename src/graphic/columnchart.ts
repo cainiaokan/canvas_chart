@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
-import { isPointInRect, getCanvasHeight } from '../util'
+import { isPointInRect } from '../util'
 
 enum PLOT_DATA {
   X = 0,
@@ -37,7 +37,7 @@ export default class ColumnChartRenderer extends BaseChart {
     }
     const point = chart.crosshair.point
     const width = axisX.barWidth
-    const height = getCanvasHeight(ctx.canvas)
+    const height = chart.height
     const histogramBase = this.style.histogramBase
     const scale = this.style.scale || 1
     const margin = axisY.margin
@@ -116,7 +116,7 @@ export default class ColumnChartRenderer extends BaseChart {
     const chart = graph.chart
     const ctx = chart.ctx
     const axisY = chart.axisY
-    const height = ~~getCanvasHeight(ctx.canvas)
+    const height = ~~chart.height
     const barWidth = chart.axisX.barWidth
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const style = this.style
@@ -194,9 +194,8 @@ export default class ColumnChartRenderer extends BaseChart {
     const plot = this.plotModel
     const graph = plot.graph
     const chart = graph.chart
-    const ctx = chart.ctx
     const axisY = chart.axisY
-    const height = getCanvasHeight(ctx.canvas)
+    const height = chart.height
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const margin = axisY.margin
     const style = this.style

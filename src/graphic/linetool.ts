@@ -59,16 +59,16 @@ export default class LineToolRenderer extends BaseToolRenderer {
     return distance < HIT_TEST_TOLERANCE
   }
 
-  public moveVertex (offsetIndex: number, offsetValue: number) {
+  public isFinished (): boolean {
+    return this._vertexes.length === 2
+  }
+
+  protected moveVertex (offsetIndex: number, offsetValue: number) {
     const chart = this._chart
     const datasource = chart.datasource
     const vertex = this._vertexes[this._hitVertexIndex]
 
     vertex.time = datasource.barAt(datasource.search(vertex.time) + offsetIndex).time
     vertex.value += offsetValue
-  }
-
-  public isFinished (): boolean {
-    return this._vertexes.length === 2
   }
 }

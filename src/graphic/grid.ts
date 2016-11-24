@@ -1,5 +1,4 @@
 import ChartModel from '../model/chart'
-import { getCanvasHeight, getCanvasWidth } from '../util'
 
 export default class GridRenderer {
   private _chart: ChartModel
@@ -13,8 +12,8 @@ export default class GridRenderer {
     const ctx = chart.ctx
     const axisX = chart.axisX
     const axisY = chart.axisY
-    const width = ~~getCanvasWidth(ctx.canvas)
-    const height = ~~getCanvasHeight(ctx.canvas)
+    const width = ~~chart.width
+    const height = ~~chart.height
 
     let tickmarks
     let tickmark

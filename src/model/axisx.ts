@@ -7,11 +7,6 @@ import XTickMark from './xtickmark'
 // const weekdays = [1, 2, 3, 4, 5]
 // const openHours = [9, 30, 11, 30, 13, 0, 15, 0]
 
-interface ISize {
-  width: number,
-  height: number
-}
-
 export interface ITimeBar {
   time: number
   x: number
@@ -24,8 +19,8 @@ export const MIN_BAR_WIDTH = 5
 export default class AxisXModel extends EventEmitter {
 
   public ctx: CanvasRenderingContext2D
-
-  private _size: ISize
+  public width: number
+  public height: number
 
   private _barWidth: number = 8
   private _offset: number = -MARGIN
@@ -34,6 +29,7 @@ export default class AxisXModel extends EventEmitter {
   private _graphic: AxisXRenderer
   private _tickmark: XTickMark
   private _visibleTimeBars: ITimeBar[]
+  private _isValid: boolean = false
 
   constructor (
     datasource: Datasource, crosshair: CrosshairModel) {
@@ -42,15 +38,6 @@ export default class AxisXModel extends EventEmitter {
     this._crosshair = crosshair
     this._tickmark = new XTickMark(this)
     this._graphic = new AxisXRenderer(this)
-  }
-
-  get size (): ISize {
-    return this._size
-  }
-
-  set size (size: ISize) {
-    this._size = size
-    this.emit('resize', size)
   }
 
   get barWidth (): number {
@@ -65,7 +52,12 @@ export default class AxisXModel extends EventEmitter {
     } else {
       this._barWidth = width
     }
+    this._isValid = false
     this.emit('barwidthchange', this._barWidth)
+  }
+
+  get isValid (): boolean {
+    return this._isValid
   }
 
   get offset (): number {
@@ -80,6 +72,7 @@ export default class AxisXModel extends EventEmitter {
     } else {
       this._offset = offset
     }
+    this._isValid = false
     this.emit('offsetchange', this._offset)
   }
 
@@ -105,7 +98,7 @@ export default class AxisXModel extends EventEmitter {
     }
 
     const datasource = this._datasource
-    const width = this._size.width
+    const width = this.width
     const barWidth = this._barWidth
     const barSize = datasource.loaded()
     const offset = this._offset
@@ -144,12 +137,22 @@ export default class AxisXModel extends EventEmitter {
     return this._visibleTimeBars = timeBars
   }
 
-  public draw (clearCache = true): void {
-    if (clearCache) {
+  public draw (useCache = false) {
+    const ctx = this.ctx
+    const width = this.width
+    const height = this.height
+
+    if (!useCache) {
       this._visibleTimeBars = null
       this._tickmark.clearTickmarks()
     }
+
+    ctx.save()
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, width, height)
     this._graphic.draw()
+    ctx.restore()
+    this._isValid = true
   }
 
   // TODO 后续应该改为可以查找超过当前可见区域的x，跟getXByTime方法一样
@@ -198,7 +201,7 @@ export default class AxisXModel extends EventEmitter {
   }
 
   private getMaxOffset (): number {
-    const offset = (this._datasource.loaded() - 0.5) * this._barWidth - this._size.width + MARGIN
+    const offset = (this._datasource.loaded() - 0.5) * this._barWidth - this.width + MARGIN
     return offset > 0 ? offset : 0
   }
 }

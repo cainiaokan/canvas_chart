@@ -21,7 +21,7 @@ export default class FooterBar extends React.Component<Prop, State> {
     }
   }
 
-  public componentShouldUpdate (nextProps: Prop) {
+  public shouldComponentUpdate (nextProps: Prop) {
     const curProp = this.props
     return curProp.chartLayout !== nextProps.chartLayout ||
            curProp.width !== nextProps.width ||

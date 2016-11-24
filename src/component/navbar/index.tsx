@@ -1,6 +1,6 @@
 import './index.less'
 import * as React from 'react'
-import { ResolutionType } from '../../constant'
+import { ResolutionType, SUPPORT_TOUCH } from '../../constant'
 import SearchBox from './searchbox'
 import FullScreen from './fullscreen'
 import ChartLayoutModel from '../../model/chartlayout'
@@ -35,7 +35,7 @@ export default class Navbar extends React.Component<Prop, State> {
     }
   }
 
-  public componentShouldUpdate (nextProps: Prop) {
+  public shouldComponentUpdate (nextProps: Prop) {
     const curProp = this.props
     return curProp.resolution !== nextProps.resolution ||
            curProp.symbolType !== nextProps.symbolType ||
@@ -57,7 +57,9 @@ export default class Navbar extends React.Component<Prop, State> {
             })
           }
         </div>
-        <FullScreen />
+        {
+          !SUPPORT_TOUCH ? <FullScreen /> : null
+        }
         {
           this.props.symbolType === 'stock' ?
           <div className='chart-btn-group right-btn-group' onClick={this.rightSelectHandler.bind(this)}>

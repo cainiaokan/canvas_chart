@@ -12,8 +12,8 @@ export default class CrosshairRenderer {
     const chart = model.chart
     const ctx = chart.topCtx
     const point = model.point
-    const height = ctx.canvas.height
-    const width = ctx.canvas.width
+    const height = chart.height
+    const width = chart.width
 
     if (!point) {
       return

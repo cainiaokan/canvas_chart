@@ -2,6 +2,7 @@ import ChartModel from '../model/chart'
 import { HIT_TEST_TOLERANCE } from '../constant'
 
 type Vertex = { time: number, value: number }
+
 abstract class BaseToolRenderer {
   protected _chart: ChartModel
   protected _isValid: boolean
@@ -98,11 +99,8 @@ abstract class BaseToolRenderer {
            this._lastCursorPoint
   }
 
-  public addVertex (point: {x: number, y: number}) {
-    this._vertexes.push({
-      time: this._chart.axisX.findTimeBarByX(point.x).time,
-      value: this._chart.axisY.getValueByY(point.y, this._chart.axisY.range),
-    })
+  public addVertex (vertex: Vertex) {
+    this._vertexes.push(vertex)
   }
 
   public drawVertex () {
@@ -116,7 +114,7 @@ abstract class BaseToolRenderer {
     for (let i = 0, len = this._vertexes.length; i < len; i++) {
       ctx.beginPath()
       ctx.arc(axisX.getXByTime(this._vertexes[i].time),
-              axisY.getYByValue(this._vertexes[i].value, axisY.range),
+              axisY.getYByValue(this._vertexes[i].value),
               5, 0, 2 * Math.PI)
       ctx.closePath()
       ctx.fill()
@@ -128,26 +126,6 @@ abstract class BaseToolRenderer {
     const vertex = this._vertexes[index]
     vertex.time = time
     vertex.value = value
-  }
-
-  public moveAsWhole (offsetIndex: number, offsetValue) {
-    const range = this.range()
-    const datasource = this._chart.datasource
-    const leftIndex = datasource.search(range.left)
-    const rightIndex = datasource.search(range.right)
-
-    if (offsetIndex > 0 && rightIndex + offsetIndex > datasource.loaded() - 1) {
-      offsetIndex = datasource.loaded() - 1 - rightIndex
-    } else if (offsetIndex < 0 && leftIndex + offsetIndex < 0) {
-      offsetIndex = -leftIndex
-    }
-
-    this._vertexes.forEach((vertex, i) => this.setVertex(
-        i,
-        datasource.barAt(datasource.search(vertex.time) + offsetIndex).time,
-        vertex.value + offsetValue
-      )
-    )
   }
 
   public range (): {left: number, right: number} {
@@ -203,7 +181,33 @@ abstract class BaseToolRenderer {
     this._isValid = true
   }
 
-  public abstract moveVertex (offsetIndex: number, offsetValue): void
+  public move (offsetIndex: number, offsetValue) {
+    this.hitVertexIndex === -1 ?
+      this.moveAsWhole(offsetIndex, offsetValue) :
+      this.moveVertex(offsetIndex, offsetValue)
+  }
+
+  protected moveAsWhole (offsetIndex: number, offsetValue) {
+    const range = this.range()
+    const datasource = this._chart.datasource
+    const leftIndex = datasource.search(range.left)
+    const rightIndex = datasource.search(range.right)
+
+    if (offsetIndex > 0 && rightIndex + offsetIndex > datasource.loaded() - 1) {
+      offsetIndex = datasource.loaded() - 1 - rightIndex
+    } else if (offsetIndex < 0 && leftIndex + offsetIndex < 0) {
+      offsetIndex = -leftIndex
+    }
+
+    this._vertexes.forEach((vertex, i) => this.setVertex(
+        i,
+        datasource.barAt(datasource.search(vertex.time) + offsetIndex).time,
+        vertex.value + offsetValue
+      )
+    )
+  }
+
+  protected abstract moveVertex (offsetIndex: number, offsetValue): void
 
   protected abstract drawTool (ctx: CanvasRenderingContext2D): void
 

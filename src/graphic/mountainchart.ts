@@ -3,7 +3,7 @@ import BaseChart, { ChartStyle } from './basechart'
 import PlotModel from '../model/plot'
 import { YRange } from '../model/axisy'
 import { HIT_TEST_TOLERANCE } from '../constant'
-import { pointToSegDist, getCanvasHeight } from '../util'
+import { pointToSegDist } from '../util'
 
 enum PLOT_DATA {
   X = 0,
@@ -91,7 +91,7 @@ export default class MountainChartRenderer extends BaseChart {
     const chart = graph.chart
     const axisY = chart.axisY
     const ctx = chart.ctx
-    const height = getCanvasHeight(ctx.canvas)
+    const height = chart.height
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const histogramBase = this.style.histogramBase
     const baseHeight = typeof histogramBase === 'number' ? axisY.getYByValue(histogramBase, rangeY) : -1

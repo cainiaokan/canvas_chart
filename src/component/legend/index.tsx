@@ -1,12 +1,14 @@
 import './index.less'
 import * as React from 'react'
 import { StockDatasource, IStockBar } from '../../datasource'
+import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import StudyModel from '../../model/study'
 import StockModel from '../../model/stock'
 import { formatNumber } from '../../util'
 
 type Prop = {
+  chartLayout: ChartLayout
   chartModel: ChartModel
 }
 
@@ -17,7 +19,7 @@ export default class Legend extends React.Component<Prop, any> {
     this.updateView = this.updateView.bind(this)
   }
 
-  public componentShouldUpdate () {
+  public shouldComponentUpdate () {
     return false
   }
 
@@ -26,6 +28,8 @@ export default class Legend extends React.Component<Prop, any> {
     this.props.chartModel.chartLayout.addListener('hit', this.updateView)
     this.props.chartModel.chartLayout.addListener('resolutionchange', this.updateView)
     this.props.chartModel.chartLayout.addListener('symbolchange', this.updateView)
+    this.props.chartLayout.addListener('symbolresolved', this.updateView)
+    this.props.chartLayout.addListener('studychange', this.updateView)
   }
 
   public componentWillUnmound () {
@@ -33,6 +37,8 @@ export default class Legend extends React.Component<Prop, any> {
     this.props.chartModel.chartLayout.removeListener('hit', this.updateView)
     this.props.chartModel.chartLayout.removeListener('resolutionchange', this.updateView)
     this.props.chartModel.chartLayout.removeListener('symbolchange', this.updateView)
+    this.props.chartLayout.removeListener('symbolresolved', this.updateView)
+    this.props.chartLayout.addListener('studychange', this.updateView)
   }
 
   public render () {
@@ -86,7 +92,10 @@ export default class Legend extends React.Component<Prop, any> {
               <div className='chart-legend-line'
                 style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item main'>
-                  {datasource.symbolInfo ? datasource.symbolInfo.description : 'N/A'},{resolutionText}
+                  {
+                    !datasource.symbolInfo.description ?
+                    '加载中' : `${datasource.symbolInfo.description},${resolutionText}`
+                  }
                 </div>
                 <div className='chart-legend-item' style={ bar ? {
                   color: bar.changerate > 0 ?

@@ -5,11 +5,6 @@ import { Datasource } from '../datasource'
 import AxisYRenderer from '../graphic/axisy'
 import YTickMark from './ytickmark'
 
-type Size = {
-  width: number,
-  height: number
-}
-
 export type YRange = {
   max: number
   min: number
@@ -21,9 +16,10 @@ export default class AxisYModel extends EventEmitter {
 
   public ctx: CanvasRenderingContext2D
   public range: YRange
+  public width: number
+  public height: number
 
   private _margin: number
-  private _size: Size
   private _chart: ChartModel
   private _crosshair: CrosshairModel
   private _datasource: Datasource
@@ -42,13 +38,13 @@ export default class AxisYModel extends EventEmitter {
   }
 
   get margin (): number {
-    const height = this._size.height
+    const height = this.height
     const margin = height * MARGIN_RATIO + this._margin
     return height - 2 * margin < 1 ? (height - 1) / 2 : margin
   }
 
   set margin (margin: number) {
-    const height = this._size.height
+    const height = this.height
     this._margin = height - 2 * margin >= 1 ? margin - height * MARGIN_RATIO : (height - 1) / 2
     this._isValid = false
     this._chart.chartLayout.emit('barmarginchange')
@@ -56,14 +52,6 @@ export default class AxisYModel extends EventEmitter {
 
   get isValid (): boolean {
     return this._isValid
-  }
-
-  get size (): Size {
-    return this._size
-  }
-
-  set size (size: Size) {
-    this._size = size
   }
 
   get chart (): ChartModel {
@@ -90,24 +78,36 @@ export default class AxisYModel extends EventEmitter {
     return this._crosshair
   }
 
-  public getYByValue (value: number, range: YRange): number {
+  public getYByValue (value: number, range: YRange = this.range): number {
     const margin = this.margin
-    const height = this._size.height - margin * 2
+    const availHeight = this.height - margin * 2
     const diff1 = range.max - range.min
     const diff2 = range.max - value
-    return (diff2 / diff1) * height + margin
+    return (diff2 / diff1) * availHeight + margin
   }
 
-  public getValueByY (value: number, range: YRange): number {
+  public getValueByY (value: number, range: YRange = this.range): number {
     const margin = this.margin
-    const height = this._size.height - margin * 2
+    const height = this.height
+    const availHeight = height - margin * 2
     const diff1 = range.max - range.min
-    return (this._size.height - margin - value) * diff1 / height + range.min
+    return (height - margin - value) * diff1 / availHeight + range.min
   }
 
-  public draw (): void {
-    this._tickmark.clearTickmarks()
-    this._isValid = true
+  public draw (useCache = false) {
+    const ctx = this.ctx
+    const width = this.width
+    const height = this.height
+
+    if (!useCache) {
+      this._tickmark.clearTickmarks()
+    }
+
+    ctx.save()
+    ctx.fillStyle = '#fff'
+    ctx.fillRect(0, 0, width, height)
     this._graphic.draw()
+    ctx.restore()
+    this._isValid = true
   }
 }

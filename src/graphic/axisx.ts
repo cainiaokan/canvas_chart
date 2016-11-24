@@ -10,20 +10,17 @@ export default class AxisXRenderer {
   public draw () {
     const axis = this._axis
     const ctx = axis.ctx
+    const width = axis.width
+    const height = axis.height
     const timeBars = axis.getVisibleTimeBars()
     const cursorPoint = axis.crosshair.point
 
-    ctx.fillStyle = '#ffffff'
     ctx.strokeStyle = '#000000'
     ctx.lineWidth = 1
-
-    ctx.save()
     ctx.translate(0.5, 0.5)
-
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     ctx.beginPath()
     ctx.moveTo(0, 0)
-    ctx.lineTo(axis.size.width, 0)
+    ctx.lineTo(width, 0)
     ctx.stroke()
     ctx.font = '12px ans-serif'
     ctx.fillStyle = '#000000'
@@ -60,11 +57,10 @@ export default class AxisXRenderer {
         }
         textMetrics = ctx.measureText(dateStr)
         ctx.fillStyle = '#333333'
-        ctx.fillRect(timeBar.x - textMetrics.width / 2 - margin / 2, 0, textMetrics.width + margin, axis.size.height)
+        ctx.fillRect(timeBar.x - textMetrics.width / 2 - margin / 2, 0, textMetrics.width + margin, height)
         ctx.fillStyle = '#ffffff'
         ctx.fillText(dateStr, timeBar.x, 20)
       }
     }
-    ctx.restore()
   }
 }

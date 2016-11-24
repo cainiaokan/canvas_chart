@@ -1,5 +1,4 @@
 import ChartModel from '../model/chart'
-import { getCanvasHeight, getCanvasWidth } from '../util'
 
 export default class WatermarkRenderer {
   private _chart: ChartModel
@@ -9,9 +8,10 @@ export default class WatermarkRenderer {
   }
 
   public draw () {
-    const ctx = this._chart.ctx
-    const width = getCanvasWidth(ctx.canvas)
-    const height = getCanvasHeight(ctx.canvas)
+    const chart = this._chart
+    const ctx = chart.ctx
+    const width = chart.width
+    const height = chart.height
 
     const fontSize = ~~(height * .25)
     ctx.save()

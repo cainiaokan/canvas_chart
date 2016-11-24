@@ -10,22 +10,19 @@ export default class AxisYRenderer {
   public draw () {
     const axis = this._axis
     const ctx = axis.ctx
-    const canvas = ctx.canvas
+    const width = axis.width
+    const height = axis.height
     const axisY = axis
     const cursorPoint = axis.crosshair.point
     const hover = axis.crosshair.chart.hover
 
-    ctx.fillStyle = '#ffffff'
     ctx.strokeStyle = '#000000'
     ctx.lineWidth = 1
 
-    ctx.save()
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.translate(0.5, 0.5)
     ctx.beginPath()
     ctx.moveTo(0, 0)
-    ctx.lineTo(0, axis.size.height)
+    ctx.lineTo(0, height)
 
     ctx.font = '12px ans-serif'
     ctx.fillStyle = 'black'
@@ -39,18 +36,17 @@ export default class AxisYRenderer {
       ctx.lineTo(5, ~~tickmark.y)
       ctx.fillText(tickmark.value.toFixed(2).toString(), 10, tickmark.y + 5)
     }
+
     ctx.closePath()
     ctx.stroke()
 
     if (cursorPoint && hover && axis.range) {
-      const rangeY = axis.range
       const margin = 8
       const y = cursorPoint.y
       ctx.fillStyle = '#333333'
-      ctx.fillRect(0, y - 5 - margin / 2, axis.size.width + margin, 12 + margin)
+      ctx.fillRect(0, y - 5 - margin / 2, width + margin, 12 + margin)
       ctx.fillStyle = '#fff'
-      ctx.fillText(axis.getValueByY(y, rangeY).toFixed(2).toString(), 10, y + 5)
+      ctx.fillText(axis.getValueByY(y).toFixed(2).toString(), 10, y + 5)
     }
-    ctx.restore()
   }
 }

@@ -56,7 +56,6 @@ type State = {
   resolution?: ResolutionType
   right?: number
   symbolType?: string
-  study?: StudyType
 }
 
 export default class ChartLayout extends React.Component<Prop, State> {
@@ -126,6 +125,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this.pulseUpdate = this.pulseUpdate.bind(this)
     this.fullUpdate = this.fullUpdate.bind(this)
     this.lightUpdate = this.lightUpdate.bind(this)
+  }
+
+  public shouldComponentUpdate (nextProp: Prop, nextState: State) {
+    return !_.isEqual(this.state, nextState) || !_.isEqual(this.props, nextProp)
   }
 
   public componentWillMount () {
@@ -248,8 +251,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
     })
   }
 
+  public componentDidUpdate () {
+    this.fullUpdate()
+  }
+
   public initEvents () {
-    this._chartLayoutModel.axisx.addListener('resize', this.fullUpdate)
     this._chartLayoutModel.axisx.addListener('offsetchange', this.fullUpdate)
     this._chartLayoutModel.axisx.addListener('barwidthchange', this.fullUpdate)
     this._chartLayoutModel.addListener('resolutionchange', resolution => {
@@ -280,18 +286,18 @@ export default class ChartLayout extends React.Component<Prop, State> {
     })
     this._chartLayoutModel.addListener('rightchange', right => {
       this.resetChart()
-      this.setState({ right})
+      this.setState({ right })
     })
     this._chartLayoutModel.addListener('hit', this.lightUpdate)
     this._chartLayoutModel.addListener('cursormove', this.lightUpdate)
     this._chartLayoutModel.addListener('barmarginchange', this.lightUpdate)
     this._chartLayoutModel.addListener('studychange', study => {
-      this.setState({ study })
+      this.forceUpdate()
       this.fullUpdate()
     })
     this._chartLayoutModel.addListener('sidebarfoldstatechange', folded => {
       this.setState({ sidebarFolded: folded })
-      setTimeout(this.fullUpdate, 50)
+      this.fullUpdate()
     })
     this._chartLayoutModel.addListener('drawingtoolbegin', this.lightUpdate)
     this._chartLayoutModel.addListener('drawingtoolend', this.fullUpdate)
@@ -302,10 +308,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
    */
   public fullUpdate () {
     const axisX = this._chartLayoutModel.axisx
-    const totalWidth = this._chartLayoutModel.mainDatasource.loaded() * axisX.barWidth
-    const visibleWidth = axisX.size.width
-    // 当预加载的数据只剩余不足半屏时，执行预加载加载更多的数据以备展示
-    if (totalWidth - visibleWidth - axisX.offset < visibleWidth / 2) {
+    if (this.needMoreData()) {
       this.loadHistory()
     }
 
@@ -318,9 +321,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
       axisX.draw()
       this._chartLayoutModel.charts.forEach(chart => {
         chart.axisY.range = chart.getRangeY()
-        chart.axisY.draw()
         chart.draw()
-        chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
+        chart.axisY.draw()
+        chart.clearTopCanvas()
         chart.crosshair.draw()
       })
       this._lastAnimationFrame = null
@@ -337,7 +340,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
 
     this._lastLightAnimationFrame = requestAnimationFrame(() => {
-      this._chartLayoutModel.axisx.draw(false)
+      this._chartLayoutModel.axisx.draw(this._chartLayoutModel.axisx.isValid ? true : false)
       this._chartLayoutModel.charts.forEach(chart => {
         if (!chart.axisY.range) {
           chart.axisY.range = chart.getRangeY()
@@ -345,8 +348,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
         if (!chart.isValid) {
           chart.draw()
         }
+        chart.axisY.draw(chart.axisY.isValid ? true : false)
+
         // 清空画布
-        chart.topCtx.clearRect(0, 0, chart.topCtx.canvas.width, chart.topCtx.canvas.height)
+        chart.clearTopCanvas()
         // 绘制创建中的工具图形
         if (this._chartLayoutModel.creatingDrawingTool &&
             this._chartLayoutModel.creatingDrawingTool.chart === chart) {
@@ -358,7 +363,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
           this._chartLayoutModel.editingDrawingTool.draw()
         }
         chart.crosshair.draw()
-        chart.axisY.draw()
       })
       this._lastLightAnimationFrame = null
     })
@@ -408,7 +412,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     const axisX = this._chartLayoutModel.axisx
     const datasources = []
     const reqs = []
-    const required = ~~((axisX.size.width * 2 + axisX.offset) / axisX.barWidth)
+    const required = ~~((axisX.width * 2 + axisX.offset) / axisX.barWidth)
 
     this._chartLayoutModel.charts.forEach(chart => {
       chart.graphs.forEach(graph => {
@@ -508,8 +512,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
   public render () {
     const chartLayoutModel = this._chartLayoutModel
     // 12 是padding 10 和 border 2
-    let availWidth = this.props.width - 12
-    let availHeight = this.props.height - AXIS_X_HEIGHT - 14
+    const width = this.props.width
+    const height = this.props.height
+    let availWidth = width - 12
+    let availHeight = height - AXIS_X_HEIGHT - 14
 
     if (this.props.showtoolbox) {
       availWidth -= TOOLBOX_WIDTH
@@ -546,7 +552,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
     return (
       <div className='chart-layout' ref='root'
-        style={ {height: this.props.height + 'px',width: this.props.width + 'px'} }>
+        style={ {height: height + 'px',width: width + 'px'} }>
         {
           this.props.showtoolbox ?
           <ToolBox chartLayout={this._chartLayoutModel} /> : null
@@ -561,8 +567,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
         <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }
              onWheel={this.wheelHandler.bind(this)}>
           {chartLines}
-          <AxisX chartLayout={this._chartLayoutModel}
-                 axis={this._chartLayoutModel.axisx}
+          <AxisX axis={this._chartLayoutModel.axisx}
                  height={AXIS_X_HEIGHT}
                  width={availWidth - AXIS_Y_WIDTH} />
         </div>
@@ -583,9 +588,17 @@ export default class ChartLayout extends React.Component<Prop, State> {
     )
   }
 
-  private wheelHandler (e) {
-    e.preventDefault()
+  private wheelHandler (ev) {
+    ev.preventDefault()
     const axisX = this._chartLayoutModel.axisx
-    axisX.offset -= e.deltaX
+    axisX.offset -= ev.deltaX
+  }
+
+  private needMoreData (): boolean {
+    const axisX = this._chartLayoutModel.axisx
+    const totalWidth = this._chartLayoutModel.mainDatasource.loaded() * axisX.barWidth
+    const visibleWidth = axisX.width
+    // 当预加载的数据只剩余不足半屏时，执行预加载加载更多的数据以备展示
+    return totalWidth - visibleWidth - axisX.offset < visibleWidth / 2
   }
 }

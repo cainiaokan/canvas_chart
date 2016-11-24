@@ -27,7 +27,6 @@ export default class YTickMark {
     if (this._tickmarks) {
       return this._tickmarks
     }
-
     const tickmarks: TickMark[] = []
     const axisY = this._axisY
 
@@ -46,7 +45,7 @@ export default class YTickMark {
       return tickmarks
     }
 
-    const height = axisY.size.height
+    const height = axisY.chart.height
     const diff1 = max - min
     const diff2 = diff1 * height / (height - 2 * axisY.margin)
     const margin = (diff2 - diff1) / 2
