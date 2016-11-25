@@ -1,4 +1,4 @@
-import { ChartStyle } from '../graphic/basechart'
+import { ChartStyle } from '../graphic/diagram'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar, DataAdapter } from '../datasource'
 import { MA, STD, AVEDEV, EMA, LLV, HHV, SMA, REF } from './studyhelper'

@@ -1,8 +1,8 @@
-import BaseToolRenderer from './basetool'
-import { HIT_TEST_TOLERANCE } from '../constant'
-import { pointToSegDist } from '../util'
+import { BaseToolRenderer } from './basetool'
+import { HIT_TEST_TOLERANCE } from '../../constant'
+import { pointToSegDist } from '../../util'
 
-export default class LineToolRenderer extends BaseToolRenderer {
+export class TrendLineToolRenderer extends BaseToolRenderer {
 
   constructor () {
     super()
@@ -23,17 +23,17 @@ export default class LineToolRenderer extends BaseToolRenderer {
     ctx.lineWidth = 1
     ctx.beginPath()
     if (this.isFinished()) {
-      x = axisX.getXByTime(startVertex.time)
-      y = axisY.getYByValue(startVertex.value, rangeY)
+      x = ~~axisX.getXByTime(startVertex.time)
+      y = ~~axisY.getYByValue(startVertex.value, rangeY)
       ctx.moveTo(x, y)
-      x = axisX.getXByTime(endVertex.time)
-      y = axisY.getYByValue(endVertex.value, rangeY)
+      x = ~~axisX.getXByTime(endVertex.time)
+      y = ~~axisY.getYByValue(endVertex.value, rangeY)
       ctx.lineTo(x, y)
     } else {
-      x = axisX.getXByTime(startVertex.time)
-      y = axisY.getYByValue(startVertex.value, rangeY)
+      x = ~~axisX.getXByTime(startVertex.time)
+      y = ~~axisY.getYByValue(startVertex.value, rangeY)
       ctx.moveTo(x, y)
-      ctx.lineTo(cursor.x, cursor.y)
+      ctx.lineTo(~~cursor.x, ~~cursor.y)
     }
     ctx.stroke()
   }

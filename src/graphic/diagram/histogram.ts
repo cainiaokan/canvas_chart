@@ -1,8 +1,8 @@
-import BaseChart, { ChartStyle } from './basechart'
-import PlotModel from '../model/plot'
-import { YRange } from '../model/axisy'
-import { HIT_TEST_TOLERANCE } from '../constant'
-import { isPointInRect } from '../util'
+import { BaseChartRenderer, ChartStyle } from './basechart'
+import PlotModel from '../../model/plot'
+import { YRange } from '../../model/axisy'
+import { HIT_TEST_TOLERANCE } from '../../constant'
+import { isPointInRect } from '../../util'
 
 enum PLOT_DATA {
   X = 0,
@@ -10,7 +10,7 @@ enum PLOT_DATA {
   VALUE
 }
 
-export default class HistogramChartRenderer extends BaseChart {
+export class HistogramChartRenderer extends BaseChartRenderer {
 
   constructor (plotModel: PlotModel, style: ChartStyle) {
     super(plotModel, style)

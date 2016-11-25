@@ -1,12 +1,15 @@
 import { IBar } from '../datasource'
 import { ShapeType } from '../constant'
-import LineChartRenderer from '../graphic/linechart'
-import MountainChartRenderer from '../graphic/mountainchart'
-import ColumnChartRenderer from '../graphic/columnchart'
-import CandleChartRenderer from '../graphic/candle'
-import HistogramChartRenderer from '../graphic/histogram'
-import BandRenderer from '../graphic/band'
-import BaseChartRenderer, { ChartStyle } from '../graphic/basechart'
+import {
+  BaseChartRenderer,
+  ChartStyle,
+  LineChartRenderer,
+  MountainChartRenderer,
+  ColumnChartRenderer,
+  CandleChartRenderer,
+  HistogramChartRenderer,
+  BandRenderer,
+} from '../graphic/diagram'
 import GraphModel from '../model/graph'
 
 export default class PlotModel {

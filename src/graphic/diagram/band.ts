@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
-import BaseChart, { ChartStyle } from './basechart'
-import PlotModel from '../model/plot'
-import { YRange } from '../model/axisy'
+import { BaseChartRenderer, ChartStyle } from './basechart'
+import PlotModel from '../../model/plot'
+import { YRange } from '../../model/axisy'
 
 enum PLOT_DATA {
   X = 0,
@@ -15,7 +15,7 @@ const DEFAULT_STYLE = {
   transparency: .3,
 }
 
-export default class BandRenderer extends BaseChart {
+export class BandRenderer extends BaseChartRenderer {
 
   constructor (plotModel: PlotModel, style: ChartStyle) {
     super(plotModel, _.defaults(style, DEFAULT_STYLE))

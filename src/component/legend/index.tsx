@@ -38,7 +38,7 @@ export default class Legend extends React.Component<Prop, any> {
     this.props.chartModel.chartLayout.removeListener('resolutionchange', this.updateView)
     this.props.chartModel.chartLayout.removeListener('symbolchange', this.updateView)
     this.props.chartLayout.removeListener('symbolresolved', this.updateView)
-    this.props.chartLayout.addListener('studychange', this.updateView)
+    this.props.chartLayout.removeListener('studychange', this.updateView)
   }
 
   public render () {

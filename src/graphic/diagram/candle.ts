@@ -1,8 +1,8 @@
 import * as _ from 'underscore'
-import BaseChart, { ChartStyle } from './basechart'
-import PlotModel from '../model/plot'
-import { YRange } from '../model/axisy'
-import { isPointInRect } from '../util'
+import { BaseChartRenderer, ChartStyle } from './basechart'
+import PlotModel from '../../model/plot'
+import { YRange } from '../../model/axisy'
+import { isPointInRect } from '../../util'
 
 enum PLOT_DATA {
   X = 0,
@@ -18,7 +18,7 @@ const DEFAULT_STYLE = {
   colorDown: '#2bbe65',
 }
 
-export default class CandleChartRenderer extends BaseChart {
+export class CandleChartRenderer extends BaseChartRenderer {
 
   constructor (plotModel: PlotModel, style: ChartStyle) {
     super(plotModel, _.defaults(style, DEFAULT_STYLE))

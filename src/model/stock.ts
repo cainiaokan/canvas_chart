@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar } from '../datasource'
-import { ChartStyle } from '../graphic/basechart'
+import { ChartStyle } from '../graphic/diagram'
 import ChartModel from './chart'
 import PlotModel from './plot'
 import GraphModel from './graph'

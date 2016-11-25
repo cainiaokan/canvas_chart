@@ -5,15 +5,15 @@ import AxisXModel from './axisx'
 import StudyModel from './study'
 import CrosshairModel from './crosshair'
 import AxisYModel from './axisy'
-import BaseToolRender from '../graphic/basetool'
+import { BaseToolRenderer } from '../graphic/tool'
 import { Datasource, StockDatasource, resolveSymbol, SymbolInfo, studyConfig } from '../datasource'
 import { Point } from '../model/crosshair'
 import { ResolutionType, StudyType } from '../constant'
 
 export default class ChartLayoutModel extends EventEmitter {
-  public selectedDrawingTool: BaseToolRender
-  public creatingDrawingTool: BaseToolRender
-  public editingDrawingTool: BaseToolRender
+  public selectedDrawingTool: BaseToolRenderer
+  public creatingDrawingTool: BaseToolRenderer
+  public editingDrawingTool: BaseToolRenderer
 
   private _defaultCursor: 'crosshair' | 'default'
   private _charts: ChartModel[]

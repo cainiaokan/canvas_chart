@@ -1,9 +1,9 @@
-import ChartModel from '../model/chart'
-import { HIT_TEST_TOLERANCE } from '../constant'
+import ChartModel from '../../model/chart'
+import { HIT_TEST_TOLERANCE } from '../../constant'
 
 type Vertex = { time: number, value: number }
 
-abstract class BaseToolRenderer {
+export abstract class BaseToolRenderer {
   protected _chart: ChartModel
   protected _isValid: boolean
   protected _isEditing: boolean
@@ -174,9 +174,14 @@ abstract class BaseToolRenderer {
   }
 
   public draw () {
-    this.drawTool(this.getContext())
+    const ctx = this.getContext()
+    ctx.save()
+    this.drawTool(ctx)
+    ctx.restore()
     if (this._selected || this._hover || !this.isFinished()) {
+      ctx.save()
       this.drawVertex()
+      ctx.restore()
     }
     this._isValid = true
   }
@@ -229,5 +234,3 @@ abstract class BaseToolRenderer {
     }
   }
 }
-
-export default BaseToolRenderer

@@ -50,8 +50,8 @@ export default class Chart extends React.Component<Prop, State> {
     this.startHandler = this.startHandler.bind(this)
     this.moveHandler = this.moveHandler.bind(this)
     this.endHandler = this.endHandler.bind(this)
-    this.mouseEnterHandler = this.mouseEnterHandler.bind(this)
-    this.mouseLeaveHandler = this.mouseLeaveHandler.bind(this)
+    this.mouseOver = this.mouseOver.bind(this)
+    this.mouseOut = this.mouseOut.bind(this)
     this.hitHandler = this.hitHandler.bind(this)
     this.defaultCursorChangeHandler = this.defaultCursorChangeHandler.bind(this)
   }
@@ -67,11 +67,14 @@ export default class Chart extends React.Component<Prop, State> {
   public componentDidMount () {
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
+    const width = ~~this.props.width - AXIS_Y_WIDTH
+    const height = ~~this.props.height
+
+    chart.width = width
+    chart.height = height
 
     chart.ctx = this.refs.canvas.getContext('2d')
     chart.topCtx = this.refs.topCanvas.getContext('2d')
-    chart.width = this.props.width
-    chart.height = this.props.height
 
     chartLayout.addListener('hit', this.hitHandler)
     chartLayout.addListener('defaultcursorchange', this.defaultCursorChangeHandler)
@@ -86,20 +89,26 @@ export default class Chart extends React.Component<Prop, State> {
     document.removeEventListener(END_EVENT, this.endHandler)
   }
 
-  public componentDidUpdate () {
+  public componentDidUpdate (prevProps: Prop) {
+    const curProps = this.props
     const chart = this.props.chart
     const canvas = this.refs.canvas
     const topCanvas = this.refs.topCanvas
-    const width = ~~this.props.width - AXIS_Y_WIDTH
-    const height = ~~this.props.height
-    chart.width = width
-    chart.height = height
-    canvas.width = width
-    canvas.height = height
-    topCanvas.width = width
-    topCanvas.height = height
-    chart.ctx = canvas.getContext('2d')
-    chart.topCtx = topCanvas.getContext('2d')
+    if (curProps.width !== prevProps.width ||
+        curProps.height !== prevProps.height ||
+        chart.ctx.canvas !== canvas ||
+        chart.topCtx.canvas !== topCanvas) {
+      const width = ~~this.props.width - AXIS_Y_WIDTH
+      const height = ~~this.props.height
+      canvas.width = width
+      canvas.height = height
+      topCanvas.width = width
+      topCanvas.height = height
+      chart.ctx = canvas.getContext('2d')
+      chart.topCtx = topCanvas.getContext('2d')
+      chart.width = width
+      chart.height = height
+    }
   }
 
   public render () {
@@ -121,8 +130,8 @@ export default class Chart extends React.Component<Prop, State> {
         onMouseMove: this.moveHandler,
         onMouseDown: this.startHandler,
         onMouseUp: this.endHandler,
-        onMouseEnter: this.mouseEnterHandler,
-        onMouseLeave: this.mouseLeaveHandler,
+        onMouseOver: this.mouseOver,
+        onMouseOut: this.mouseOut,
       }
     }
 
@@ -174,13 +183,12 @@ export default class Chart extends React.Component<Prop, State> {
     }
   }
 
-  private mouseEnterHandler () {
+  private mouseOver () {
     this.props.chart.hover = true
   }
 
-  private mouseLeaveHandler () {
+  private mouseOut () {
     this.props.chart.hover = false
-    this.props.chart.graphs.forEach(graph => graph.hover = false)
     this.props.chartLayout.setCursorPoint(null)
   }
 

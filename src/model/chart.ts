@@ -5,7 +5,7 @@ import AxisXModel from './axisx'
 import AxisYModel, { YRange } from './axisy'
 import CrosshairModel from './crosshair'
 import GraphModel from './graph'
-import BaseToolRenderer from '../graphic/basetool'
+import { BaseToolRenderer } from '../graphic/tool'
 import GridRenderer from '../graphic/grid'
 import WaterMarkRenerer from '../graphic/watermark'
 

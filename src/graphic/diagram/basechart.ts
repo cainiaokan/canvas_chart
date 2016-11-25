@@ -1,5 +1,5 @@
-import PlotModel from '../model/plot'
-import { YRange } from '../model/axisy'
+import PlotModel from '../../model/plot'
+import { YRange } from '../../model/axisy'
 
 enum PLOT_DATA {
   X = 0,
@@ -18,7 +18,7 @@ export type ChartStyle = {
   noLegend?: boolean
 }
 
-abstract class BaseChartRenderer {
+export abstract class BaseChartRenderer {
   protected plotModel: PlotModel
   protected style: ChartStyle
 
@@ -64,5 +64,3 @@ abstract class BaseChartRenderer {
 
   protected abstract getSelectionYByBar (bar: any[]): number
 }
-
-export default BaseChartRenderer

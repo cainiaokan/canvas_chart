@@ -108,7 +108,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
    * @type {number}
    */
   private _lastAnimationFrame: number
-  private _lastLightAnimationFrame: number
   /**
    * 搏动更新定时器
    * @type {number}
@@ -291,14 +290,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.addListener('hit', this.lightUpdate)
     this._chartLayoutModel.addListener('cursormove', this.lightUpdate)
     this._chartLayoutModel.addListener('barmarginchange', this.lightUpdate)
-    this._chartLayoutModel.addListener('studychange', study => {
-      this.forceUpdate()
-      this.fullUpdate()
-    })
-    this._chartLayoutModel.addListener('sidebarfoldstatechange', folded => {
-      this.setState({ sidebarFolded: folded })
-      this.fullUpdate()
-    })
+    this._chartLayoutModel.addListener('studychange', study => this.forceUpdate())
+    this._chartLayoutModel.addListener('sidebarfoldstatechange', folded => this.setState({ sidebarFolded: folded }))
     this._chartLayoutModel.addListener('drawingtoolbegin', this.lightUpdate)
     this._chartLayoutModel.addListener('drawingtoolend', this.fullUpdate)
   }
@@ -334,12 +327,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
    * 轻量级刷新
    */
   public lightUpdate () {
-    // 取消上一帧动画的调度，避免重复计算
-    if (this._lastLightAnimationFrame) {
-      cancelAnimationFrame(this._lastLightAnimationFrame)
-    }
-
-    this._lastLightAnimationFrame = requestAnimationFrame(() => {
+    this._lastAnimationFrame = requestAnimationFrame(() => {
       this._chartLayoutModel.axisx.draw(this._chartLayoutModel.axisx.isValid ? true : false)
       this._chartLayoutModel.charts.forEach(chart => {
         if (!chart.axisY.range) {
@@ -364,7 +352,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
         }
         chart.crosshair.draw()
       })
-      this._lastLightAnimationFrame = null
+      this._lastAnimationFrame = null
     })
   }
 

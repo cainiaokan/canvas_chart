@@ -1,9 +1,13 @@
 import './index.less'
 import * as React from 'react'
-import { SUPPORT_TOUCH } from '../../constant'
+import * as _ from 'underscore'
+import { SUPPORT_TOUCH, START_EVENT } from '../../constant'
 import ChartLayoutModel from '../../model/chartlayout'
-import BaseToolRenderer from '../../graphic/basetool'
-import LineToolRenderer from '../../graphic/linetool'
+import {
+  BaseToolRenderer,
+  TrendAngleToolRenderer,
+  TrendLineToolRenderer,
+} from '../../graphic/tool'
 
 type Prop = {
   chartLayout: ChartLayoutModel
@@ -11,7 +15,7 @@ type Prop = {
 
 type State = {
   selectedIndex?: number
-  selectedIndex2?: number
+  selectedIndex2?: number[]
   showMoreTools?: boolean
 }
 
@@ -31,31 +35,33 @@ export default class ToolBox extends React.Component<Prop, State> {
     this.startHandler = this.startHandler.bind(this)
     this.endHandler = this.endHandler.bind(this)
     this.moveHandler = this.moveHandler.bind(this)
+    this.selectToolHandler = this.selectToolHandler.bind(this)
+    this.hideMoreTools = this.hideMoreTools.bind(this)
     this.showMoreTools = this.showMoreTools.bind(this)
     this.state = {
-      selectedIndex: -1,
-      selectedIndex2: 0,
+      selectedIndex: 0,
+      selectedIndex2: [0, 0],
       showMoreTools: false,
     }
   }
 
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
-    const curState = this.state
-    return curState.selectedIndex !== nextState.selectedIndex ||
-           curState.selectedIndex2 !== nextState.selectedIndex2 ||
-           curState.showMoreTools !== nextState.showMoreTools
+    return !_.isEqual(this.state, nextState)
   }
 
   public componentDidMount () {
     this.props.chartLayout.addListener('drawingtoolend', this.resetTool)
+    document.addEventListener(START_EVENT, this.hideMoreTools)
   }
 
   public componentDidUnmount () {
     this.props.chartLayout.removeListener('drawingtoolend',  this.resetTool)
+    document.removeEventListener(START_EVENT, this.hideMoreTools)
   }
 
   public render () {
     let mainBtnEventHandler
+    let moreBtnEventHandler
     if (SUPPORT_TOUCH) {
       mainBtnEventHandler = {
         onTouchStart: this.startHandler,
@@ -63,11 +69,17 @@ export default class ToolBox extends React.Component<Prop, State> {
         onTouchMove: this.moveHandler,
         onTouchCancel: this.endHandler,
       }
+      moreBtnEventHandler = {
+        onTouchStart: this.selectToolHandler,
+      }
     } else {
       mainBtnEventHandler = {
         onMouseDown: this.startHandler,
         onMouseUp: this.endHandler,
         onMouseMove: this.moveHandler,
+      }
+      moreBtnEventHandler = {
+        onMouseDown: this.selectToolHandler,
       }
     }
 
@@ -77,18 +89,22 @@ export default class ToolBox extends React.Component<Prop, State> {
           toolsList.map((tools, i) =>
             <li className={this.state.selectedIndex === i ? 'selected' : ''}>
               <span className='chart-tools-btn'>
-                <span className={`chart-tools-btn-main ${tools[this.state.selectedIndex2][0]}`}
-                      title={this.state.selectedIndex === i ? tools[this.state.selectedIndex2][1] : tools[0][1]}
+                <span className={`chart-tools-btn-main ${tools[this.state.selectedIndex2[i]][0]}`}
+                      title={this.state.selectedIndex === i ? tools[this.state.selectedIndex2[i]][1] : tools[0][1]}
                       data-index={i} {...mainBtnEventHandler}></span>
-                <span className='chart-tools-btn-more' onClick={() => this.showMoreTools(i)}></span>
+                <span className='chart-tools-btn-more' data-index={i} onClick={this.showMoreTools}></span>
               </span>
               {
                 this.state.showMoreTools && this.state.selectedIndex === i ?
-                <ul className='chart-tools-more'>
+                <div className='chart-tools-more'>
                   {
-                    toolsList[i].map(tool => <li><span className={tool[0]}></span>{tool[1]}</li>)
+                    toolsList[i].map((tool, j) =>
+                      <a href='javascript:;' data-index1={i} data-index2={j} {...moreBtnEventHandler}>
+                        <span className={tool[0]}></span>{tool[1]}
+                      </a>
+                    )
                   }
-                </ul> : null
+                </div> : null
               }
             </li>
           )
@@ -109,18 +125,32 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   private endHandler (ev) {
-    const index1 = +ev.target.dataset.index
-    const index2 = this.state.selectedIndex2
+    const selectedIndex = +ev.target.dataset.index
+    const selectedIndex2 = this.state.selectedIndex2
+
     if (!this.state.showMoreTools && !this._clickCanceled) {
       clearInterval(this._longTapDetectTimeout)
-      this.selectTool(index1, index2)
+      this.selectTool(selectedIndex, selectedIndex2[selectedIndex])
     }
   }
 
-  private selectTool (selectedIndex, selectedIndex2) {
-    this.setState({ selectedIndex, selectedIndex2 })
-    if (selectedIndex === 0) {
-      switch (toolsList[selectedIndex][selectedIndex2][0]) {
+  private selectToolHandler (ev) {
+    this.selectTool(+ev.currentTarget.dataset.index1, +ev.currentTarget.dataset.index2)
+  }
+
+  private showMoreTools (ev: any) {
+    this.setState({ selectedIndex: typeof ev === 'object' ? +ev.target.dataset.index : ev, showMoreTools: true })
+  }
+
+  private hideMoreTools (ev) {
+    this.setState({ showMoreTools: false })
+  }
+
+  private selectTool (index1, index2) {
+    const selectedIndex2 = this.state.selectedIndex2
+    selectedIndex2[index1] = index2
+    if (index1 === 0) {
+      switch (toolsList[index1][index2][0]) {
         case 'chart-tools-crosshair':
           this.props.chartLayout.setDefaultCursor('crosshair')
           break
@@ -130,22 +160,23 @@ export default class ToolBox extends React.Component<Prop, State> {
         default:
           break
       }
+      this.resetTool()
     } else {
-      this.props.chartLayout.selectedDrawingTool =
-        this.getDrawingToolByName(toolsList[selectedIndex][selectedIndex2][0])
+      this.props.chartLayout.selectedDrawingTool = this.getDrawingToolByName(toolsList[index1][index2][0])
+      this.setState({
+        selectedIndex: index1,
+        selectedIndex2,
+        showMoreTools: false,
+      })
     }
-  }
-
-  private showMoreTools (selectedIndex) {
-    this.setState({ selectedIndex, showMoreTools: true })
   }
 
   private getDrawingToolByName (toolName: string): BaseToolRenderer {
     switch (toolName) {
       case 'chart-tools-trend-line':
-        return new LineToolRenderer()
+        return new TrendLineToolRenderer()
       case 'chart-tools-trend-angle':
-        return null
+        return new TrendAngleToolRenderer()
       default:
         throw 'Can\'t find any drawing tool match name ' + toolName
     }
@@ -153,8 +184,8 @@ export default class ToolBox extends React.Component<Prop, State> {
 
   private resetTool () {
     this.setState({
-      selectedIndex: -1,
-      selectedIndex2: 0,
+      selectedIndex: 0,
     })
+    this.props.chartLayout.selectedDrawingTool = null
   }
 }
