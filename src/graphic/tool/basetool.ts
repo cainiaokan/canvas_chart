@@ -212,7 +212,14 @@ export abstract class BaseToolRenderer {
     )
   }
 
-  protected abstract moveVertex (offsetIndex: number, offsetValue): void
+  protected moveVertex (offsetIndex: number, offsetValue: number) {
+    const chart = this._chart
+    const datasource = chart.datasource
+    const vertex = this._vertexes[this._hitVertexIndex]
+
+    vertex.time = datasource.barAt(datasource.search(vertex.time) + offsetIndex).time
+    vertex.value += offsetValue
+  }
 
   protected abstract drawTool (ctx: CanvasRenderingContext2D): void
 

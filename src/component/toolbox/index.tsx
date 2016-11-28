@@ -90,7 +90,7 @@ export default class ToolBox extends React.Component<Prop, State> {
             <li className={this.state.selectedIndex === i ? 'selected' : ''}>
               <span className='chart-tools-btn'>
                 <span className={`chart-tools-btn-main ${tools[this.state.selectedIndex2[i]][0]}`}
-                      title={this.state.selectedIndex === i ? tools[this.state.selectedIndex2[i]][1] : tools[0][1]}
+                      title={tools[this.state.selectedIndex2[i]][1]}
                       data-index={i} {...mainBtnEventHandler}></span>
                 <span className='chart-tools-btn-more' data-index={i} onClick={this.showMoreTools}></span>
               </span>

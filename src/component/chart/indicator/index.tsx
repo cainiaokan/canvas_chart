@@ -13,7 +13,6 @@ type State = {
 
 export default class Indicator extends React.Component<Prop, State> {
   private _chart: ChartModel
-  private _isOpen: boolean
   private _intervalCheckStatus: number
 
   constructor () {
@@ -31,15 +30,10 @@ export default class Indicator extends React.Component<Prop, State> {
     this._chart = this.props.chart
   }
 
-  public componentWillReceiveProps(nextProps: Prop) {
-    this._chart = nextProps.chart
-  }
-
   public componentDidMount () {
-    this._isOpen = this.isOpen()
     this._intervalCheckStatus = setInterval(() => {
       const open = this.isOpen()
-      if (this._isOpen !== open) {
+      if (this.state.isOpen !== open) {
         this.setState({ isOpen: open })
       }
     }, 10000)

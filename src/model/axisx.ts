@@ -1,17 +1,22 @@
 import * as EventEmitter from 'eventemitter3'
 import CrosshairModel from '../model/crosshair'
 import { Datasource } from '../datasource'
+import { ResolutionType } from '../constant'
 import AxisXRenderer from '../graphic/axisx'
 import XTickMark from './xtickmark'
 
-// const weekdays = [1, 2, 3, 4, 5]
-// const openHours = [9, 30, 11, 30, 13, 0, 15, 0]
+const weekdays = [1, 2, 3, 4, 5]
+const openHours = [
+  [[9, 30], [11, 30]],
+  [[13, 0], [15, 0]],
+]
 
 export interface ITimeBar {
   time: number
   x: number
 }
 
+const MAX_MARGIN = 500
 const MARGIN = 50
 export const MAX_BAR_WIDTH = 30
 export const MIN_BAR_WIDTH = 5
@@ -65,8 +70,8 @@ export default class AxisXModel extends EventEmitter {
   }
 
   set offset (offset: number) {
-    if (offset < -MARGIN) {
-      this._offset = -MARGIN
+    if (offset < -MAX_MARGIN) {
+      this._offset = -MAX_MARGIN
     } else if (offset > this.getMaxOffset()) {
       this._offset = this.getMaxOffset()
     } else {
@@ -97,17 +102,20 @@ export default class AxisXModel extends EventEmitter {
       return this._visibleTimeBars
     }
 
+    const timeBars = []
     const datasource = this._datasource
+    const resolution = datasource.resolution
     const width = this.width
     const barWidth = this._barWidth
     const barSize = datasource.loaded()
     const offset = this._offset
     let end = barSize - ~~(offset / barWidth)
     let posX = width - barWidth / 2
+
     if (end > barSize) {
       end = barSize
     } else if (end < 0) {
-      return []
+      return timeBars
     }
 
     if (offset >= 0) {
@@ -123,15 +131,21 @@ export default class AxisXModel extends EventEmitter {
     }
 
     const bars = datasource.slice(start, end)
-    const timeBars = []
 
-    for (let i = bars.length - 1; i >= 0; i--) {
-      const bar = bars[i]
-      timeBars[i] = {
-        time: bar.time,
-        x: posX,
-      }
-      posX -= barWidth
+    if (!bars.length) {
+      return timeBars
+    }
+
+    for (let i = bars.length - 1, x = posX; i >= 0; i--, x -= barWidth) {
+      timeBars.unshift({ time: bars[i].time, x })
+    }
+
+    let time = timeBars[timeBars.length - 1].time
+
+    while (posX < width) {
+      posX += barWidth
+      time = this.getNextTickTime(time, resolution)
+      timeBars.push({ time, x: posX})
     }
 
     return this._visibleTimeBars = timeBars
@@ -201,7 +215,114 @@ export default class AxisXModel extends EventEmitter {
   }
 
   private getMaxOffset (): number {
-    const offset = (this._datasource.loaded() - 0.5) * this._barWidth - this.width + MARGIN
+    const offset = (this._datasource.loaded() - 0.5) * this._barWidth - this.width + MAX_MARGIN
     return offset > 0 ? offset : 0
+  }
+
+  private getNextTickTime (time: number, resolution: ResolutionType) {
+    let nextDate: Date
+    switch (resolution) {
+      case '1':
+        time += 60
+        nextDate = new Date(time * 1000)
+        break
+      case '5':
+        time += 60 * 5
+        nextDate = new Date(time * 1000)
+        break
+      case '15':
+        time += 60 * 15
+        nextDate = new Date(time * 1000)
+        break
+      case '30':
+        time += 60 * 30
+        nextDate = new Date(time * 1000)
+        break
+      case '60':
+        time += 60 * 60
+        nextDate = new Date(time * 1000)
+        break
+      case 'D':
+        time += 60 * 60 * 24
+        nextDate = new Date(time * 1000)
+        break
+      case 'W':
+        time += 7 * 60 * 60 * 24
+        nextDate = new Date(time * 1000)
+        break
+      case 'M':
+        nextDate = new Date(time * 1000)
+        if (nextDate.getMonth() === 11) {
+          nextDate.setFullYear(nextDate.getFullYear() + 1)
+          nextDate.setDate(1)
+          nextDate.setMonth(1)
+          nextDate.setTime(nextDate.getTime() - 24 * 3600 * 1000)
+        } else if (nextDate.getMonth() === 10) {
+          nextDate.setFullYear(nextDate.getFullYear() + 1)
+          nextDate.setDate(1)
+          nextDate.setMonth(0)
+          nextDate.setTime(nextDate.getTime() - 24 * 3600 * 1000)
+        } else {
+          nextDate.setDate(1)
+          nextDate.setMonth(nextDate.getMonth() + 2)
+          nextDate.setTime(nextDate.getTime() - 24 * 3600 * 1000)
+        }
+        if (weekdays.indexOf(nextDate.getDay()) === -1) {
+          let day = nextDate.getDay() - 1 < 0 ? 6 : nextDate.getDay() - 1
+          while (weekdays.indexOf(day) === -1) {
+            day = day - 1 < 0 ? 6 : day - 1
+          }
+          nextDate.setTime(nextDate.getTime() - Math.abs(nextDate.getDay() - day) * (24 * 3600 * 1000))
+        }
+        break
+      default:
+        break
+    }
+
+    for (let i = 0,
+         len = openHours.length,
+         nextDateHour = nextDate.getHours(),
+         nextDateMinute = nextDate.getMinutes(); i < len; i++) {
+      let nextHours = openHours[i + 1]
+      const curHours = openHours[i]
+      const curCloseHour = curHours[1][0]
+      const curCloseMinute = curHours[1][1]
+      let nextOpenHour
+      let nextOpenMinute
+
+      if (!!nextHours) {
+        nextOpenHour = nextHours[0][0]
+        nextOpenMinute = nextHours[0][1]
+        if ((nextDateHour > curCloseHour ||
+           (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) &&
+           (nextDateHour < nextOpenHour ||
+           (nextDateHour === nextOpenHour && nextDateMinute < nextOpenMinute))) {
+          nextDate.setHours(nextOpenHour + nextDateHour - curCloseHour)
+          nextDate.setMinutes(nextOpenMinute + nextDateMinute - curCloseMinute)
+          break
+        }
+      } else {
+        if (nextDateHour > curCloseHour ||
+           (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) {
+          nextHours = openHours[0]
+          nextOpenHour = nextHours[0][0]
+          nextOpenMinute = nextHours[0][1]
+          nextDate.setTime(nextDate.getTime() + 24 * 3600 * 1000)
+          nextDate.setHours(nextOpenHour + nextDateHour - curCloseHour)
+          nextDate.setMinutes(nextOpenMinute + nextDateMinute - curCloseMinute)
+          break
+        }
+      }
+    }
+
+    if (weekdays.indexOf(nextDate.getDay()) === -1) {
+      let day = nextDate.getDay() + 1
+      while (weekdays.indexOf(day % 7) === -1) {
+        day++
+      }
+      nextDate.setTime(nextDate.getTime() + Math.abs(day - nextDate.getDay()) * (24 * 3600 * 1000))
+    }
+
+    return ~~(nextDate.getTime() / 1000)
   }
 }

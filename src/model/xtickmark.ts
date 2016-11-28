@@ -197,6 +197,7 @@ export default class XTickMark {
       const curTickMark = tickmarks[tickmarks.length - 1]
 
       if (prevYear !== curYear) {
+        // 去掉之前的tickmark，因为年份变化的展示优先级更高
         if (passedSpan < TICK_MARK_MIN_SPACE && curTickMark.type < 'Y') {
           tickmarks.pop()
           passedSpan = TICK_MARK_MIN_SPACE
@@ -211,6 +212,7 @@ export default class XTickMark {
           passedSpan = 0
         }
       } else if (prevMonth !== curMonth) {
+        // 去掉之前的tickmark，因为月份变化的展示优先级更高
         if (passedSpan < TICK_MARK_MIN_SPACE && curTickMark.type < 'M') {
           tickmarks.pop()
           passedSpan = TICK_MARK_MIN_SPACE
@@ -257,10 +259,12 @@ export default class XTickMark {
         } else if (curMinutes % 5 === 0) {
           type = 5
         }
+
         if (passedSpan < TICK_MARK_MIN_SPACE && +curTickMark.type < type) {
           tickmarks.pop()
           passedSpan = TICK_MARK_MIN_SPACE
         }
+
         if (passedSpan >= TICK_MARK_MIN_SPACE) {
           tickmarks.push({
             bold: false,

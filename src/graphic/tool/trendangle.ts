@@ -103,13 +103,4 @@ export class TrendAngleToolRenderer extends BaseToolRenderer {
   public isFinished (): boolean {
     return this._vertexes.length === 2
   }
-
-  protected moveVertex (offsetIndex: number, offsetValue: number) {
-    const chart = this._chart
-    const datasource = chart.datasource
-    const vertex = this._vertexes[this._hitVertexIndex]
-
-    vertex.time = datasource.barAt(datasource.search(vertex.time) + offsetIndex).time
-    vertex.value += offsetValue
-  }
 }
