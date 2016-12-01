@@ -295,7 +295,7 @@ export default class Chart extends React.Component<Prop, State> {
   private endHandler (ev: any) {
     if (this._dragOffsetStart) {
       if (ev.touches) {
-        if (Date.now() - this._lastMoveTime < 250 && Math.abs(this._v) > 100) {
+        if (Date.now() - this._lastMoveTime < 100 && Math.abs(this._v) > 100) {
           this.momentumMove(this._v)
         }
       }
@@ -333,13 +333,14 @@ export default class Chart extends React.Component<Prop, State> {
 
     chartLayout.setCursorPoint(point)
 
-    if (this._dragOffsetStart || this._dragDrawingToolStart) {
+    if (this._dragOffsetStart ||
+        this._dragDrawingToolStart ||
+        chartLayout.creatingDrawingTool ||
+        chartLayout.editingDrawingTool) {
       return
     }
 
-    if (!chartLayout.creatingDrawingTool) {
-      chart.hitTest()
-    }
+    chart.hitTest()
   }
 
   private dragMoveHandler (ev: any) {
@@ -350,7 +351,6 @@ export default class Chart extends React.Component<Prop, State> {
 
       const chartLayout = this.props.chartLayout
       const chart = this.props.chart
-      const datasource = chart.datasource
       const axisX = chart.axisX
       const axisY = chart.axisY
       const offset = clientOffset(chart.topCtx.canvas)
@@ -368,24 +368,36 @@ export default class Chart extends React.Component<Prop, State> {
         const tool = chartLayout.editingDrawingTool
         const curBar = axisX.findTimeBarByX(point.x)
         const oldBar = axisX.findTimeBarByX(this._dragPosX)
-        if (curBar && oldBar) {
-          const offsetIndex = datasource.search(curBar.time) - datasource.search(oldBar.time)
-          const offsetValue = axisY.getValueByY(point.y - offset.offsetTop) -
-                              axisY.getValueByY(this._dragPosY - offset.offsetTop)
-          tool.move(offsetIndex, offsetValue)
+        const offsetIndex = curBar.x > oldBar.x ?
+                              ~~((curBar.x - oldBar.x) / axisX.barWidth + 0.5) :
+                              ~~((curBar.x - oldBar.x) / axisX.barWidth - 0.5)
+        const offsetValue = axisY.getValueByY(point.y - offset.offsetTop) -
+                            axisY.getValueByY(this._dragPosY - offset.offsetTop)
+
+        tool.moveBy(offsetIndex, offsetValue)
+
+        if (offsetIndex !== 0) {
           this._dragPosX = point.x
+        }
+
+        if (offsetValue !== 0) {
           this._dragPosY = point.y
         }
       // 拖动背景
       } else if (this._dragOffsetStart) {
+        // 当移动距离过小时，无需拖动，避免频繁重绘
+        if (point.x - this._dragPosX === 0) {
+          return
+        }
         const curOffset = axisX.offset
         const newOffset = curOffset + point.x - this._dragPosX
+        const now = Date.now()
         axisX.offset = newOffset
         this._dragPosX = point.x
         if (ev.touches) {
-          this._v = (point.x - this._lastMovePosition) / (Date.now() - this._lastMoveTime) * 1000
+          this._v = (point.x - this._lastMovePosition) / (now - this._lastMoveTime) * 1000
           this._lastMovePosition = point.x
-          this._lastMoveTime = Date.now()
+          this._lastMoveTime = now
         }
       // 双指水平缩放
       } else if (this._pinchHorzStart) {

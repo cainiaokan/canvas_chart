@@ -218,10 +218,6 @@ export default class ChartLayoutModel extends EventEmitter {
     const chart = this.creatingDrawingTool.chart
     const curBar = chart.axisX.findTimeBarByX(point.x)
 
-    if (!curBar) {
-      return
-    }
-
     const time = curBar.time
     const value = chart.axisY.getValueByY(point.y)
 

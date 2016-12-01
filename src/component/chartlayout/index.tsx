@@ -471,7 +471,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
           promises.push(
             datasource.loadTimeRange(
               mainDatasource.last().time,
-              mainDatasource.now()
+              mainDatasource.now() + 5 * 60 // 未来五分钟
             )
           )
           return promises

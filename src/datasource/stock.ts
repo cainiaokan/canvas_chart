@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import * as RPC from './rpc'
 import PlotList  from './plotlist'
 import { ResolutionType } from '../constant'
@@ -93,8 +94,8 @@ export class StockDatasource extends Datasource {
     return this._plotList.size()
   }
 
-  public search (time, bias?): number {
-    return this._plotList.search(time, bias)
+  public search (time): number {
+    return this._plotList.search(time)
   }
 
   /**
@@ -175,7 +176,8 @@ export class StockDatasource extends Datasource {
     const resolution = this._resolution
     const right = this._right
     if (from > to) {
-      throw TypeError('from must less than to.')
+      return Promise.resolve()
+      // throw TypeError('from must less than to.')
     }
     if (firstBar) {
       if (lastBar.time < to && lastBar.time <= from) {
@@ -189,7 +191,7 @@ export class StockDatasource extends Datasource {
       .then(
         response => response.json()
           .then(data => {
-            const stockBars: IStockBar[] = []
+            let stockBars: IStockBar[] = []
             data.t.forEach((time, index) => {
               const barData: IStockBar = {
                 amount: data.a[index],
@@ -209,6 +211,9 @@ export class StockDatasource extends Datasource {
               }
               stockBars.push(barData)
             })
+
+            stockBars = _.unique(stockBars, bar => bar.time)
+
             // 请求期间symbol和resolution都没发生改变，则merge
             if (symbol.toUpperCase() === this._symbolInfo.symbol.toUpperCase() &&
                 resolution === this._resolution) {

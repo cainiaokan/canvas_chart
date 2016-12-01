@@ -21,17 +21,16 @@ export default class PlotList<T extends IBar> {
   /**
    * 搜索时间戳对应的下标索引
    * @param  {number} time 时间戳（精确到秒）
-   * @param  {number} bias 二分查找找不到精确值时的左右倾向,1为倾向左值，2为倾向右值，0为无倾向
    * @return {number}      下标索引
    */
-  public search(time: number, bias: number = 0): number {
+  public search(time: number): number {
     if (this.cache.length === 0) {
       return
     }
     if (time < this.cache[0].time || time > this.cache[this.cache.length - 1].time) {
       return -1
     } else {
-      return this.bsearch(time, 0, this.cache.length - 1, bias)
+      return this.bsearch(time, 0, this.cache.length - 1)
     }
   }
 
@@ -71,8 +70,8 @@ export default class PlotList<T extends IBar> {
    * @return {T[]}      数据子集
    */
   public range(from: number, to: number): T[] {
-    let fromIndex = this.search(from, 2)
-    let toIndex = this.search(to, 1)
+    let fromIndex = this.search(from)
+    let toIndex = this.search(to)
     if (fromIndex === -1) {
       if (!this.first() || to < this.first().time) {
         return []
@@ -132,27 +131,26 @@ export default class PlotList<T extends IBar> {
    * @param  {number} time      时间戳（精确到秒）
    * @param  {number} fromIndex 开始查找范围
    * @param  {number} toIndex   结束查找范围
-   * @param  {number} bias      二分查找找不到精确值时的左右倾向
    * @return {number}           下标索引
    */
-  private bsearch(time: number, fromIndex: number, toIndex: number, bias: number = 0): number {
-    while (toIndex >= fromIndex) {
-      const pivot = ~~((fromIndex + toIndex) / 2)
-      const value = this.cache[pivot].time
-      if (value === time) {
+  private bsearch(time: number, fromIndex: number, toIndex: number): number {
+    const pivot = ~~((fromIndex + toIndex) / 2)
+    const value = this.cache[pivot].time
+
+    if (fromIndex === toIndex) {
+      if (time === value) {
         return pivot
-      } else if (value > time) {
-        if (bias === 2 && fromIndex === pivot) {
-          return fromIndex
-        }
-        return this.bsearch(time, fromIndex, pivot, bias)
       } else {
-        if (bias === 1 && toIndex === pivot + 1) {
-          return toIndex
-        }
-        return this.bsearch(time, pivot + 1, toIndex, bias)
+        return -1
       }
     }
-    return -1
+
+    if (value === time) {
+      return pivot
+    } else if (value > time) {
+      return this.bsearch(time, fromIndex, pivot)
+    } else {
+      return this.bsearch(time, pivot + 1, toIndex)
+    }
   }
 }

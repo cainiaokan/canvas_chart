@@ -10,13 +10,14 @@ const openHours = [
   [[9, 30], [11, 30]],
   [[13, 0], [15, 0]],
 ]
+// const totalMinutesPerDay = openHours.reduce((total, time) =>
+//   total + (time[1][0] - time[0][0]) * 60 + (time[1][1] - time[0][1]), 0)
 
 export interface ITimeBar {
   time: number
   x: number
 }
 
-const MAX_MARGIN = 500
 const MARGIN = 50
 export const MAX_BAR_WIDTH = 30
 export const MIN_BAR_WIDTH = 5
@@ -70,8 +71,8 @@ export default class AxisXModel extends EventEmitter {
   }
 
   set offset (offset: number) {
-    if (offset < -MAX_MARGIN) {
-      this._offset = -MAX_MARGIN
+    if (offset < this.getMinOffset()) {
+      this._offset = this.getMinOffset()
     } else if (offset > this.getMaxOffset()) {
       this._offset = this.getMaxOffset()
     } else {
@@ -111,6 +112,8 @@ export default class AxisXModel extends EventEmitter {
     const offset = this._offset
     let end = barSize - ~~(offset / barWidth)
     let posX = width - barWidth / 2
+    let x
+    let time
 
     if (end > barSize) {
       end = barSize
@@ -118,6 +121,7 @@ export default class AxisXModel extends EventEmitter {
       return timeBars
     }
 
+    // 修正posX
     if (offset >= 0) {
       posX += offset % barWidth
     } else {
@@ -136,16 +140,28 @@ export default class AxisXModel extends EventEmitter {
       return timeBars
     }
 
-    for (let i = bars.length - 1, x = posX; i >= 0; i--, x -= barWidth) {
+    x = posX
+
+    for (let i = bars.length - 1; i >= 0; i--, x -= barWidth) {
       timeBars.unshift({ time: bars[i].time, x })
     }
 
-    let time = timeBars[timeBars.length - 1].time
+    time = timeBars[0].time
 
-    while (posX < width) {
-      posX += barWidth
+    while (x >= 0) {
+      time = this.getPrevTickTime(time, resolution)
+      timeBars.unshift({ time, x })
+      x -= barWidth
+    }
+
+    x = posX
+
+    time = timeBars[timeBars.length - 1].time
+    // 数据不足显示的时候，使用扩展填充
+    while (x < width - barWidth / 2) {
+      x += barWidth
       time = this.getNextTickTime(time, resolution)
-      timeBars.push({ time, x: posX})
+      timeBars.push({ time, x })
     }
 
     return this._visibleTimeBars = timeBars
@@ -169,57 +185,78 @@ export default class AxisXModel extends EventEmitter {
     this._isValid = true
   }
 
-  // TODO 后续应该改为可以查找超过当前可见区域的x，跟getXByTime方法一样
   public findTimeBarByX (x: number): ITimeBar {
-    const timeBars = this.getVisibleTimeBars()
-    for (let i = 0, len = timeBars.length; i < len; i++) {
-      const bar = timeBars[i]
-      if (Math.abs(x - bar.x) <= this._barWidth / 2) {
-        return bar
-      }
+    const barWidth = this._barWidth
+    const visibleTimeBars = this.getVisibleTimeBars()
+    const firstVisibleBar = visibleTimeBars[0]
+    const lastVisibleBar = visibleTimeBars[visibleTimeBars.length - 1]
+    const resolution = this._datasource.resolution
+
+    if (!visibleTimeBars.length) {
+      return null
     }
-    return null
+
+    if (x > lastVisibleBar.x) {
+      let baseX = lastVisibleBar.x
+      let offset = ~~((x - baseX + 0.5 * barWidth) / barWidth)
+      let time = lastVisibleBar.time
+      x = baseX + offset * barWidth
+      while (offset--) {
+        time = this.getNextTickTime(time, resolution)
+      }
+      return { x, time }
+    } else if (x < firstVisibleBar.x) {
+      let baseX = firstVisibleBar.x
+      let offset = ~~((baseX - x + 0.5 * barWidth) / barWidth)
+      let time = firstVisibleBar.time
+      x = baseX - offset * barWidth
+      while (offset--) {
+        time = this.getPrevTickTime(time, resolution)
+      }
+      return { x, time }
+    } else {
+      let baseX = firstVisibleBar.x
+      let offset = ~~((x - baseX + 0.5 * barWidth) / barWidth)
+      return visibleTimeBars[offset]
+    }
   }
 
   public getXByTime (time: number): number {
-    let indexLeft
-    let indexRight
+    const visibleTimeBars = this.getVisibleTimeBars()
+    const barWidth = this._barWidth
+    const datasource = this._datasource
+    const firstVisibleBar = visibleTimeBars[0]
+    const lastVisibleBar = visibleTimeBars[visibleTimeBars.length - 1]
 
-    const timeBars = this.getVisibleTimeBars()
-    const firstBar = timeBars[0]
-    const lastBar = timeBars[timeBars.length - 1]
-
-    if (firstBar.time > time) {
-      indexLeft = this.datasource.search(time)
-      indexRight = this.datasource.search(firstBar.time)
-      return firstBar.x - this._barWidth * (indexRight - indexLeft)
+    if (!visibleTimeBars.length) {
+      return null
     }
 
-    if (lastBar.time < time) {
-      indexLeft = this.datasource.search(lastBar.time)
-      indexRight = this.datasource.search(time)
-      return lastBar.x + this._barWidth * (indexRight - indexLeft)
+    // 在现有数据范围内，直接使用已有的x坐标
+    if (time >= firstVisibleBar.time && time <= lastVisibleBar.time) {
+      return visibleTimeBars[this.bsearch(time, 0, visibleTimeBars.length - 1, visibleTimeBars)].x
     }
 
-    for (let i = 0, len = timeBars.length; i < len; i++) {
-      const bar = timeBars[i]
-      if (bar.time === time) {
-        return bar.x
+    // 如果time超出了当前数据范围，则需要单独计算x坐标值
+    const baseX = time < firstVisibleBar.time ? firstVisibleBar.x : lastVisibleBar.x
+    const resolution = datasource.resolution
+    let distance = 0
+    let baseTime = time < firstVisibleBar.time ? firstVisibleBar.time : lastVisibleBar.time
+
+    while (baseTime !== time) {
+      if (baseTime < time) {
+        baseTime = this.getNextTickTime(baseTime, resolution)
+        distance++
+      } else {
+        time = this.getNextTickTime(time, resolution)
+        distance--
       }
     }
-    return null
+
+    return baseX + distance * barWidth
   }
 
-  public resetOffset () {
-    this._offset = -MARGIN
-  }
-
-  private getMaxOffset (): number {
-    const offset = (this._datasource.loaded() - 0.5) * this._barWidth - this.width + MAX_MARGIN
-    return offset > 0 ? offset : 0
-  }
-
-  private getNextTickTime (time: number, resolution: ResolutionType) {
+  public getNextTickTime (time: number, resolution: ResolutionType) {
     let nextDate: Date
     switch (resolution) {
       case '1':
@@ -249,6 +286,10 @@ export default class AxisXModel extends EventEmitter {
       case 'W':
         time += 7 * 60 * 60 * 24
         nextDate = new Date(time * 1000)
+        // 保证按照每周五对齐数据
+        while (nextDate.getDay() !== 5) {
+          nextDate.setTime(nextDate.getTime() + 24 * 3600 * 1000)
+        }
         break
       case 'M':
         nextDate = new Date(time * 1000)
@@ -268,61 +309,211 @@ export default class AxisXModel extends EventEmitter {
           nextDate.setTime(nextDate.getTime() - 24 * 3600 * 1000)
         }
         if (weekdays.indexOf(nextDate.getDay()) === -1) {
-          let day = nextDate.getDay() - 1 < 0 ? 6 : nextDate.getDay() - 1
+          let day = nextDate.getDay()
+          let diffDays = 0
           while (weekdays.indexOf(day) === -1) {
             day = day - 1 < 0 ? 6 : day - 1
+            diffDays++
           }
-          nextDate.setTime(nextDate.getTime() - Math.abs(nextDate.getDay() - day) * (24 * 3600 * 1000))
+          nextDate.setTime(nextDate.getTime() - diffDays * (24 * 3600 * 1000))
         }
         break
       default:
         break
     }
 
-    for (let i = 0,
-         len = openHours.length,
-         nextDateHour = nextDate.getHours(),
-         nextDateMinute = nextDate.getMinutes(); i < len; i++) {
-      let nextHours = openHours[i + 1]
-      const curHours = openHours[i]
-      const curCloseHour = curHours[1][0]
-      const curCloseMinute = curHours[1][1]
-      let nextOpenHour
-      let nextOpenMinute
+    if (resolution <= '60') {
+      for (let i = 0,
+           len = openHours.length,
+           nextDateHour = nextDate.getHours(),
+           nextDateMinute = nextDate.getMinutes(); i < len; i++) {
+        let nextHours = openHours[i + 1]
+        const curHours = openHours[i]
+        const curCloseHour = curHours[1][0]
+        const curCloseMinute = curHours[1][1]
+        let nextOpenHour
+        let nextOpenMinute
 
-      if (!!nextHours) {
-        nextOpenHour = nextHours[0][0]
-        nextOpenMinute = nextHours[0][1]
-        if ((nextDateHour > curCloseHour ||
-           (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) &&
-           (nextDateHour < nextOpenHour ||
-           (nextDateHour === nextOpenHour && nextDateMinute < nextOpenMinute))) {
-          nextDate.setHours(nextOpenHour + nextDateHour - curCloseHour)
-          nextDate.setMinutes(nextOpenMinute + nextDateMinute - curCloseMinute)
-          break
-        }
-      } else {
-        if (nextDateHour > curCloseHour ||
-           (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) {
-          nextHours = openHours[0]
+        if (!!nextHours) {
           nextOpenHour = nextHours[0][0]
           nextOpenMinute = nextHours[0][1]
-          nextDate.setTime(nextDate.getTime() + 24 * 3600 * 1000)
-          nextDate.setHours(nextOpenHour + nextDateHour - curCloseHour)
-          nextDate.setMinutes(nextOpenMinute + nextDateMinute - curCloseMinute)
-          break
+          if ((nextDateHour > curCloseHour ||
+             (nextDateHour === curCloseHour && nextDateMinute >= curCloseMinute)) &&
+             (nextDateHour < nextOpenHour ||
+             (nextDateHour === nextOpenHour && nextDateMinute <= nextOpenMinute))) {
+            nextDate.setHours(nextOpenHour + nextDateHour - curCloseHour)
+            nextDate.setMinutes(nextOpenMinute + nextDateMinute - curCloseMinute)
+            break
+          }
+        } else {
+          if (nextDateHour > curCloseHour ||
+             (nextDateHour === curCloseHour && nextDateMinute >= curCloseMinute)) {
+            nextHours = openHours[0]
+            nextOpenHour = nextHours[0][0]
+            nextOpenMinute = nextHours[0][1]
+            nextDate.setTime(nextDate.getTime() + 24 * 3600 * 1000)
+            nextDate.setHours(nextOpenHour + nextDateHour - curCloseHour)
+            nextDate.setMinutes(nextOpenMinute + nextDateMinute - curCloseMinute)
+            break
+          }
         }
       }
     }
 
     if (weekdays.indexOf(nextDate.getDay()) === -1) {
-      let day = nextDate.getDay() + 1
+      let day = nextDate.getDay()
+      let diffDays = 0
       while (weekdays.indexOf(day % 7) === -1) {
+        diffDays++
         day++
       }
-      nextDate.setTime(nextDate.getTime() + Math.abs(day - nextDate.getDay()) * (24 * 3600 * 1000))
+      nextDate.setTime(nextDate.getTime() + diffDays * (24 * 3600 * 1000))
     }
 
     return ~~(nextDate.getTime() / 1000)
+  }
+
+  public getPrevTickTime (time: number, resolution: ResolutionType) {
+    let prevDate: Date
+    switch (resolution) {
+      case '1':
+        time -= 60
+        prevDate = new Date(time * 1000)
+        break
+      case '5':
+        time -= 60 * 5
+        prevDate = new Date(time * 1000)
+        break
+      case '15':
+        time -= 60 * 15
+        prevDate = new Date(time * 1000)
+        break
+      case '30':
+        time -= 60 * 30
+        prevDate = new Date(time * 1000)
+        break
+      case '60':
+        time -= 60 * 60
+        prevDate = new Date(time * 1000)
+        break
+      case 'D':
+        time -= 60 * 60 * 24
+        prevDate = new Date(time * 1000)
+        break
+      case 'W':
+        time -= 7 * 60 * 60 * 24
+        prevDate = new Date(time * 1000)
+        // 保证按照每周五对齐数据
+        while (prevDate.getDay() !== 5) {
+          prevDate.setTime(prevDate.getTime() + 24 * 3600 * 1000)
+        }
+        break
+      case 'M':
+        prevDate = new Date(time * 1000)
+        prevDate.setDate(1)
+        prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
+        if (weekdays.indexOf(prevDate.getDay()) === -1) {
+          let day = prevDate.getDay()
+          let diffDays = 0
+          while (weekdays.indexOf(day) === -1) {
+            day = day - 1 < 0 ? 6 : day - 1
+            diffDays++
+          }
+          prevDate.setTime(prevDate.getTime() - diffDays * (24 * 3600 * 1000))
+        }
+        break
+      default:
+        break
+    }
+
+    if (resolution <= '60') {
+      for (let i = openHours.length - 1,
+           prevDateHour = prevDate.getHours(),
+           prevDateMinute = prevDate.getMinutes(); i >= 0; i--) {
+        let prevHours = openHours[i - 1]
+        const curHours = openHours[i]
+        const curOpenHour = curHours[0][0]
+        const curOpenMinute = curHours[0][1]
+        let prevCloseHour
+        let prevCloseMinute
+
+        if (!!prevHours) {
+          prevCloseHour = prevHours[1][0]
+          prevCloseMinute = prevHours[1][1]
+          if ((prevDateHour > prevCloseHour ||
+             (prevDateHour === prevCloseHour && prevDateMinute >= prevCloseMinute)) &&
+             (prevDateHour < curOpenHour ||
+             (prevDateHour === curOpenHour && prevDateMinute <= curOpenMinute))) {
+            prevDate.setHours(prevCloseHour - (prevDateHour - curOpenHour))
+            prevDate.setMinutes(prevCloseMinute - (prevDateMinute - curOpenMinute))
+            break
+          }
+        } else {
+          if (prevDateHour < curOpenHour ||
+             (prevDateHour === curOpenHour && prevDateMinute <= curOpenMinute)) {
+            prevHours = openHours[openHours.length - 1]
+            prevCloseHour = prevHours[1][0]
+            prevCloseMinute = prevHours[1][1]
+            prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
+            prevDate.setHours(prevCloseHour - (curOpenHour - prevDateHour))
+            prevDate.setMinutes(prevCloseMinute - (curOpenMinute - prevDateMinute))
+            break
+          }
+        }
+      }
+    }
+
+    if (weekdays.indexOf(prevDate.getDay()) === -1) {
+      let day = prevDate.getDay()
+      let diffDays = 0
+      while (weekdays.indexOf(day) === -1) {
+        day = day - 1 < 0 ? 6 : day - 1
+        diffDays++
+      }
+      prevDate.setTime(prevDate.getTime() - diffDays * (24 * 3600 * 1000))
+    }
+
+    return ~~(prevDate.getTime() / 1000)
+  }
+
+  public resetOffset () {
+    this._offset = -MARGIN
+  }
+
+  private getMaxOffset (): number {
+    return (this._datasource.loaded() - 10) * this._barWidth
+  }
+
+  private getMinOffset (): number {
+    return this._barWidth * 10 - this.width
+  }
+
+  /**
+   * 二分查找时间戳对应数据集合中的下标索引
+   * @param  {number}     time        时间戳（精确到秒）
+   * @param  {number}     fromIndex   开始查找范围
+   * @param  {number}     toIndex     结束查找范围
+   * @param  {ITimeBar[]} visibleBars bar数据
+   * @return {number}                 下标索引
+   */
+  private bsearch(time: number, fromIndex: number, toIndex: number, visibleBars: ITimeBar[]): number {
+    const pivot = ~~((fromIndex + toIndex) / 2)
+    const value = visibleBars[pivot].time
+
+    if (fromIndex === toIndex) {
+      if (time === value) {
+        return pivot
+      } else {
+        return -1
+      }
+    }
+
+    if (value === time) {
+      return pivot
+    } else if (value > time) {
+      return this.bsearch(time, fromIndex, pivot, visibleBars)
+    } else {
+      return this.bsearch(time, pivot + 1, toIndex, visibleBars)
+    }
   }
 }

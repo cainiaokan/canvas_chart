@@ -186,39 +186,117 @@ export abstract class BaseToolRenderer {
     this._isValid = true
   }
 
-  public move (offsetIndex: number, offsetValue) {
+  public moveBy (offsetTime: number, offsetValue: number) {
     this.hitVertexIndex === -1 ?
-      this.moveAsWhole(offsetIndex, offsetValue) :
-      this.moveVertex(offsetIndex, offsetValue)
+      this.moveAsWhole(offsetTime, offsetValue) :
+      this.moveVertex(offsetTime, offsetValue)
   }
 
-  protected moveAsWhole (offsetIndex: number, offsetValue) {
-    const range = this.range()
+  protected moveAsWhole (offsetIndex: number, offsetValue: number) {
     const datasource = this._chart.datasource
-    const leftIndex = datasource.search(range.left)
-    const rightIndex = datasource.search(range.right)
+    const axisX = this._chart.axisX
+    const resolution = datasource.resolution
+    const firstBar = datasource.first()
+    const lastBar = datasource.last()
 
-    if (offsetIndex > 0 && rightIndex + offsetIndex > datasource.loaded() - 1) {
-      offsetIndex = datasource.loaded() - 1 - rightIndex
-    } else if (offsetIndex < 0 && leftIndex + offsetIndex < 0) {
-      offsetIndex = -leftIndex
+    if (offsetIndex === 0 && offsetValue === 0) {
+      return
     }
 
-    this._vertexes.forEach((vertex, i) => this.setVertex(
-        i,
-        datasource.barAt(datasource.search(vertex.time) + offsetIndex).time,
-        vertex.value + offsetValue
-      )
-    )
+    this._vertexes.forEach((vertex, i) => {
+      let offset = offsetIndex
+      let time = vertex.time
+      let barIndex = datasource.search(time)
+
+      if (barIndex === -1) {
+        if (offset < 0) {
+          while (offset++) {
+            if (time > lastBar.time) {
+              time = axisX.getPrevTickTime(time, resolution)
+              if (time < lastBar.time) {
+                time = lastBar.time
+              }
+            } else {
+              time = axisX.getPrevTickTime(time, resolution)
+            }
+          }
+        } else {
+          while (offset--) {
+            if (time < firstBar.time) {
+              time = axisX.getNextTickTime(time, resolution)
+              if (time > firstBar.time) {
+                time = firstBar.time
+              }
+            } else {
+              time = axisX.getNextTickTime(time, resolution)
+            }
+
+          }
+        }
+      } else {
+        if (barIndex + offset < 0) {
+          time = datasource.first().time
+          offset += barIndex
+          while (offset++) {
+            time = axisX.getPrevTickTime(time, resolution)
+          }
+        } else if (barIndex + offset > datasource.loaded() - 1) {
+          time = datasource.last().time
+          offset -= datasource.loaded() - 1 - barIndex
+          while (offset--) {
+            time = axisX.getNextTickTime(time, resolution)
+          }
+        } else {
+          time = datasource.barAt(barIndex + offset).time
+        }
+      }
+      this.setVertex(i, time, vertex.value + offsetValue)
+    })
   }
 
   protected moveVertex (offsetIndex: number, offsetValue: number) {
-    const chart = this._chart
-    const datasource = chart.datasource
+    const datasource = this._chart.datasource
+    const axisX = this._chart.axisX
+    const resolution = datasource.resolution
     const vertex = this._vertexes[this._hitVertexIndex]
 
-    vertex.time = datasource.barAt(datasource.search(vertex.time) + offsetIndex).time
-    vertex.value += offsetValue
+    if (offsetIndex === 0 && offsetValue === 0) {
+      return
+    }
+
+    let offset = offsetIndex
+    let time = vertex.time
+    let barIndex = datasource.search(time)
+
+    if (barIndex === -1) {
+      if (offset < 0) {
+        while (offset++) {
+          time = axisX.getPrevTickTime(time, resolution)
+        }
+      } else {
+        while (offset--) {
+          time = axisX.getNextTickTime(time, resolution)
+        }
+      }
+    } else {
+      if (barIndex + offset < 0) {
+        time = datasource.first().time
+        offset += barIndex
+        while (offset++) {
+          time = axisX.getPrevTickTime(time, resolution)
+        }
+      } else if (barIndex + offset > datasource.loaded() - 1) {
+        time = datasource.last().time
+        offset -= datasource.loaded() - 1 - barIndex
+        while (offset--) {
+          time = axisX.getNextTickTime(time, resolution)
+        }
+      } else {
+        time = datasource.barAt(barIndex + offset).time
+      }
+    }
+
+    this.setVertex(this._hitVertexIndex, time, vertex.value + offsetValue)
   }
 
   protected abstract drawTool (ctx: CanvasRenderingContext2D): void

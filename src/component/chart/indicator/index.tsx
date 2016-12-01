@@ -1,6 +1,6 @@
 import './index.less'
 import * as React from 'react'
-
+import * as _ from 'underscore'
 import ChartModel from '../../../model/chart'
 
 type Prop = {
@@ -22,8 +22,8 @@ export default class Indicator extends React.Component<Prop, State> {
     }
   }
 
-  public shouldComponentUpdate (nextProps: Prop) {
-    return false
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+    return !_.isEqual(this.state, nextState)
   }
 
   public componentWillMount() {

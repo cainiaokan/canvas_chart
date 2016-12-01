@@ -69,7 +69,7 @@ export abstract class Datasource extends EventEmitter {
 
   public abstract loaded (): number
 
-  public abstract search (time: number, bias?: number): number
+  public abstract search (time: number): number
 
   /**
    * 从数据源中加载数据集
