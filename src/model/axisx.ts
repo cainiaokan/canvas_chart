@@ -148,6 +148,7 @@ export default class AxisXModel extends EventEmitter {
 
     time = timeBars[0].time
 
+    // 数据不足显示的时候，使用扩展填充
     while (x >= 0) {
       time = this.getPrevTickTime(time, resolution)
       timeBars.unshift({ time, x })
@@ -157,8 +158,8 @@ export default class AxisXModel extends EventEmitter {
     x = posX
 
     time = timeBars[timeBars.length - 1].time
-    // 数据不足显示的时候，使用扩展填充
-    while (x < width - barWidth / 2) {
+
+    while (x <= width - barWidth / 2) {
       x += barWidth
       time = this.getNextTickTime(time, resolution)
       timeBars.push({ time, x })
@@ -234,7 +235,7 @@ export default class AxisXModel extends EventEmitter {
 
     // 在现有数据范围内，直接使用已有的x坐标
     if (time >= firstVisibleBar.time && time <= lastVisibleBar.time) {
-      return visibleTimeBars[this.bsearch(time, 0, visibleTimeBars.length - 1, visibleTimeBars)].x
+      return visibleTimeBars[this.search(time)].x
     }
 
     // 如果time超出了当前数据范围，则需要单独计算x坐标值
@@ -338,16 +339,16 @@ export default class AxisXModel extends EventEmitter {
           nextOpenHour = nextHours[0][0]
           nextOpenMinute = nextHours[0][1]
           if ((nextDateHour > curCloseHour ||
-             (nextDateHour === curCloseHour && nextDateMinute >= curCloseMinute)) &&
+             (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) &&
              (nextDateHour < nextOpenHour ||
-             (nextDateHour === nextOpenHour && nextDateMinute <= nextOpenMinute))) {
+             (nextDateHour === nextOpenHour && nextDateMinute < nextOpenMinute))) {
             nextDate.setHours(nextOpenHour + nextDateHour - curCloseHour)
             nextDate.setMinutes(nextOpenMinute + nextDateMinute - curCloseMinute)
             break
           }
         } else {
           if (nextDateHour > curCloseHour ||
-             (nextDateHour === curCloseHour && nextDateMinute >= curCloseMinute)) {
+             (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) {
             nextHours = openHours[0]
             nextOpenHour = nextHours[0][0]
             nextOpenMinute = nextHours[0][1]
@@ -441,16 +442,21 @@ export default class AxisXModel extends EventEmitter {
           prevCloseHour = prevHours[1][0]
           prevCloseMinute = prevHours[1][1]
           if ((prevDateHour > prevCloseHour ||
-             (prevDateHour === prevCloseHour && prevDateMinute >= prevCloseMinute)) &&
+             (prevDateHour === prevCloseHour && prevDateMinute > prevCloseMinute)) &&
              (prevDateHour < curOpenHour ||
-             (prevDateHour === curOpenHour && prevDateMinute <= curOpenMinute))) {
+             (prevDateHour === curOpenHour && prevDateMinute < curOpenMinute))) {
             prevDate.setHours(prevCloseHour - (prevDateHour - curOpenHour))
             prevDate.setMinutes(prevCloseMinute - (prevDateMinute - curOpenMinute))
             break
+          // 向收盘截止时间对齐。例如9:30应当展示位了前一交易日的收盘时间15:00
+          } else if ((prevDateHour === prevCloseHour && prevDateMinute === prevCloseMinute) ||
+                   (prevDateHour === curOpenHour && prevDateMinute === curOpenMinute)) {
+            prevDate.setHours(prevCloseHour)
+            prevDate.setMinutes(prevCloseMinute)
           }
         } else {
           if (prevDateHour < curOpenHour ||
-             (prevDateHour === curOpenHour && prevDateMinute <= curOpenMinute)) {
+             (prevDateHour === curOpenHour && prevDateMinute < curOpenMinute)) {
             prevHours = openHours[openHours.length - 1]
             prevCloseHour = prevHours[1][0]
             prevCloseMinute = prevHours[1][1]
@@ -458,6 +464,14 @@ export default class AxisXModel extends EventEmitter {
             prevDate.setHours(prevCloseHour - (curOpenHour - prevDateHour))
             prevDate.setMinutes(prevCloseMinute - (curOpenMinute - prevDateMinute))
             break
+          // 向收盘截止时间对齐。例如9:30应当展示位了前一交易日的收盘时间15:00
+          } else if (prevDateHour === curOpenHour && prevDateMinute === curOpenMinute) {
+            prevHours = openHours[openHours.length - 1]
+            prevCloseHour = prevHours[1][0]
+            prevCloseMinute = prevHours[1][1]
+            prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
+            prevDate.setHours(prevCloseHour)
+            prevDate.setMinutes(prevCloseMinute)
           }
         }
       }
@@ -474,6 +488,17 @@ export default class AxisXModel extends EventEmitter {
     }
 
     return ~~(prevDate.getTime() / 1000)
+  }
+
+  public search (time: number): number {
+    const visibleBars = this.getVisibleTimeBars()
+    if (!visibleBars.length) {
+      return -1
+    }
+    if (time < visibleBars[0].time || time > visibleBars[visibleBars.length - 1].time) {
+      return -1
+    }
+    return this.bsearch(time, 0, visibleBars.length - 1, visibleBars)
   }
 
   public resetOffset () {

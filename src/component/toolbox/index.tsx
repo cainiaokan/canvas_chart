@@ -22,6 +22,7 @@ type State = {
 const toolsList = [
   [['chart-tools-crosshair', '十字指针'], ['chart-tools-pointer', '箭头']],
   [['chart-tools-trend-line', '趋势线'], ['chart-tools-trend-angle', '角度趋势线']],
+  [['chart-tools-eraser', '删除画线']],
 ]
 
 export default class ToolBox extends React.Component<Prop, State> {
@@ -40,7 +41,7 @@ export default class ToolBox extends React.Component<Prop, State> {
     this.showMoreTools = this.showMoreTools.bind(this)
     this.state = {
       selectedIndex: 0,
-      selectedIndex2: [0, 0],
+      selectedIndex2: [0, 0, 0],
       showMoreTools: false,
     }
   }
@@ -92,7 +93,10 @@ export default class ToolBox extends React.Component<Prop, State> {
                 <span className={`chart-tools-btn-main ${tools[this.state.selectedIndex2[i]][0]}`}
                       title={tools[this.state.selectedIndex2[i]][1]}
                       data-index={i} {...mainBtnEventHandler}></span>
-                <span className='chart-tools-btn-more' data-index={i} onClick={this.showMoreTools}></span>
+                {
+                  tools.length > 1 ?
+                  <span className='chart-tools-btn-more' data-index={i} onClick={this.showMoreTools}></span> : null
+                }
               </span>
               {
                 this.state.showMoreTools && this.state.selectedIndex === i ?
@@ -116,7 +120,9 @@ export default class ToolBox extends React.Component<Prop, State> {
   private startHandler (ev) {
     const selectedIndex = +ev.target.dataset.index
     this._clickCanceled = false
-    this._longTapDetectTimeout = setTimeout(() => this.showMoreTools(selectedIndex), 500)
+    if (toolsList[selectedIndex].length > 1) {
+      this._longTapDetectTimeout = setTimeout(() => this.showMoreTools(selectedIndex), 500)
+    }
   }
 
   private moveHandler () {
@@ -161,6 +167,12 @@ export default class ToolBox extends React.Component<Prop, State> {
           break
       }
       this.resetTool()
+    } else if (index1 === toolsList.length - 1) {
+      this.setState({
+        selectedIndex: index1,
+        showMoreTools: false,
+      })
+      this.props.chartLayout.selectedDrawingTool = null
     } else {
       this.props.chartLayout.selectedDrawingTool = this.getDrawingToolByName(toolsList[index1][index2][0])
       this.setState({

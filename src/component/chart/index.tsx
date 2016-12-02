@@ -366,23 +366,18 @@ export default class Chart extends React.Component<Prop, State> {
       // 编辑画图工具
       if (this._dragDrawingToolStart) {
         const tool = chartLayout.editingDrawingTool
-        const curBar = axisX.findTimeBarByX(point.x)
-        const oldBar = axisX.findTimeBarByX(this._dragPosX)
-        const offsetIndex = curBar.x > oldBar.x ?
-                              ~~((curBar.x - oldBar.x) / axisX.barWidth + 0.5) :
-                              ~~((curBar.x - oldBar.x) / axisX.barWidth - 0.5)
+        const curBarX = axisX.findTimeBarByX(point.x).x
+        const oldBarX = axisX.findTimeBarByX(this._dragPosX).x
+        const offsetIndex = curBarX >= oldBarX ?
+                            ~~((curBarX - oldBarX) / axisX.barWidth + 0.5) :
+                            ~~((curBarX - oldBarX) / axisX.barWidth - 0.5)
         const offsetValue = axisY.getValueByY(point.y - offset.offsetTop) -
                             axisY.getValueByY(this._dragPosY - offset.offsetTop)
 
         tool.moveBy(offsetIndex, offsetValue)
 
-        if (offsetIndex !== 0) {
-          this._dragPosX = point.x
-        }
-
-        if (offsetValue !== 0) {
-          this._dragPosY = point.y
-        }
+        this._dragPosX = point.x
+        this._dragPosY = point.y
       // 拖动背景
       } else if (this._dragOffsetStart) {
         // 当移动距离过小时，无需拖动，避免频繁重绘

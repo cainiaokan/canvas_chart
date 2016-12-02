@@ -189,76 +189,31 @@ export abstract class BaseToolRenderer {
   public moveBy (offsetTime: number, offsetValue: number) {
     this.hitVertexIndex === -1 ?
       this.moveAsWhole(offsetTime, offsetValue) :
-      this.moveVertex(offsetTime, offsetValue)
+      this.moveVertex(this._hitVertexIndex, offsetTime, offsetValue)
   }
 
   protected moveAsWhole (offsetIndex: number, offsetValue: number) {
+    this._vertexes.forEach((vertex, i) => {
+      this.moveVertex(i, offsetIndex, offsetValue)
+    })
+  }
+
+  /**
+   * 移动画图工具的定点。。。这个方法略复杂呢。。。😭移动经过左右端点的时候都需要做特殊处理
+   * 所谓端点，值得是datasource.first() 以及 datasource.last()所分别对应chart中的
+   * 左端点和右端点
+   * @param {[type]} index       订单的索引号
+   * @param {number} offsetIndex 时间轴偏移量，单位为resolution
+   * @param {number} offsetValue 价格轴偏移量
+   */
+  protected moveVertex (index, offsetIndex: number, offsetValue: number) {
     const datasource = this._chart.datasource
     const axisX = this._chart.axisX
     const resolution = datasource.resolution
     const firstBar = datasource.first()
     const lastBar = datasource.last()
-
-    if (offsetIndex === 0 && offsetValue === 0) {
-      return
-    }
-
-    this._vertexes.forEach((vertex, i) => {
-      let offset = offsetIndex
-      let time = vertex.time
-      let barIndex = datasource.search(time)
-
-      if (barIndex === -1) {
-        if (offset < 0) {
-          while (offset++) {
-            if (time > lastBar.time) {
-              time = axisX.getPrevTickTime(time, resolution)
-              if (time < lastBar.time) {
-                time = lastBar.time
-              }
-            } else {
-              time = axisX.getPrevTickTime(time, resolution)
-            }
-          }
-        } else {
-          while (offset--) {
-            if (time < firstBar.time) {
-              time = axisX.getNextTickTime(time, resolution)
-              if (time > firstBar.time) {
-                time = firstBar.time
-              }
-            } else {
-              time = axisX.getNextTickTime(time, resolution)
-            }
-
-          }
-        }
-      } else {
-        if (barIndex + offset < 0) {
-          time = datasource.first().time
-          offset += barIndex
-          while (offset++) {
-            time = axisX.getPrevTickTime(time, resolution)
-          }
-        } else if (barIndex + offset > datasource.loaded() - 1) {
-          time = datasource.last().time
-          offset -= datasource.loaded() - 1 - barIndex
-          while (offset--) {
-            time = axisX.getNextTickTime(time, resolution)
-          }
-        } else {
-          time = datasource.barAt(barIndex + offset).time
-        }
-      }
-      this.setVertex(i, time, vertex.value + offsetValue)
-    })
-  }
-
-  protected moveVertex (offsetIndex: number, offsetValue: number) {
-    const datasource = this._chart.datasource
-    const axisX = this._chart.axisX
-    const resolution = datasource.resolution
-    const vertex = this._vertexes[this._hitVertexIndex]
+    const total = datasource.loaded()
+    const vertex = this._vertexes[index]
 
     if (offsetIndex === 0 && offsetValue === 0) {
       return
@@ -269,13 +224,63 @@ export abstract class BaseToolRenderer {
     let barIndex = datasource.search(time)
 
     if (barIndex === -1) {
-      if (offset < 0) {
-        while (offset++) {
-          time = axisX.getPrevTickTime(time, resolution)
+      if (time < firstBar.time) {
+        if (offset > 0) {
+          while (offset--) {
+            // 判断是否到达左端点。特殊处理。因为断点上的值可能不恰好匹配getNextTickTime计算得到的刻度
+            // 例如2000-1-7，当resolution为w时，右移1w的值是2000-1-14，但如果右移1w恰好抵达左端点，
+            // 则日期值跟服务器获得的值有关，比如可能是2000-1-12，跟getNextTickTime计算所得不匹配。
+            // 因此这里针对左端点做特殊处理
+            if (axisX.getPrevTickTime(firstBar.time, resolution) === time) {
+              time = firstBar.time
+            } else {
+              time = axisX.getNextTickTime(time, resolution)
+              if (time > firstBar.time) {
+                // 如果移动到的坐标在datasource的数据范围内，则使用datasource中的数据，因为datasource中的数据
+                // 不一定匹配getNextTickTime计算所得
+                if (offset < total) {
+                  time = datasource.barAt(offset + 1).time
+                  offset = 0
+                } else {
+                  time = lastBar.time
+                  offset -= total
+                }
+              }
+            }
+          }
+        } else {
+          while (offset++) {
+            time = axisX.getPrevTickTime(time, resolution)
+          }
         }
       } else {
-        while (offset--) {
-          time = axisX.getNextTickTime(time, resolution)
+        if (offset > 0) {
+          while (offset--) {
+            time = axisX.getNextTickTime(time, resolution)
+          }
+        } else {
+          while (offset++) {
+            // 判断是否到达右端点。特殊处理。因为断点上的值可能不恰好匹配getPrevTickTime计算得到的刻度
+            // 例如2000-1-7，当resolution为w时，左移1w的值是1999-12-31，但如果左移1w恰好抵达右端点，
+            // 则日期值跟服务器获得的值有关，比如可能是1999-12-30，跟getPrevTickTime计算所得不匹配。
+            // 因此这里针对右端点做特殊处理
+            if (axisX.getNextTickTime(lastBar.time, resolution) === time) {
+              time = lastBar.time
+            } else {
+              time = axisX.getPrevTickTime(time, resolution)
+              if (time < lastBar.time) {
+                // 如果移动到的坐标在datasource的数据范围内，则使用datasource中的数据，因为datasource中的数据
+                // 不一定匹配getPrevTickTime计算所得
+                if (offset > -total) {
+                  time = datasource.barAt(total - 2 + offset).time
+                  offset = 0
+                } else {
+                  time = firstBar.time
+                  offset += total
+                }
+              }
+            }
+          }
         }
       }
     } else {
@@ -296,7 +301,7 @@ export abstract class BaseToolRenderer {
       }
     }
 
-    this.setVertex(this._hitVertexIndex, time, vertex.value + offsetValue)
+    this.setVertex(index, time, vertex.value + offsetValue)
   }
 
   protected abstract drawTool (ctx: CanvasRenderingContext2D): void

@@ -327,33 +327,35 @@ export default class ChartLayout extends React.Component<Prop, State> {
    * 轻量级刷新
    */
   public lightUpdate () {
-    this._lastAnimationFrame = requestAnimationFrame(() => {
-      this._chartLayoutModel.axisx.draw(this._chartLayoutModel.axisx.isValid ? true : false)
-      this._chartLayoutModel.charts.forEach(chart => {
-        if (!chart.axisY.range) {
-          chart.axisY.range = chart.getRangeY()
-        }
-        if (!chart.isValid) {
-          chart.draw()
-        }
-        chart.axisY.draw(chart.axisY.isValid ? true : false)
+    if (!this._lastAnimationFrame) {
+      this._lastAnimationFrame = requestAnimationFrame(() => {
+        this._chartLayoutModel.axisx.draw(this._chartLayoutModel.axisx.isValid ? true : false)
+        this._chartLayoutModel.charts.forEach(chart => {
+          if (!chart.axisY.range) {
+            chart.axisY.range = chart.getRangeY()
+          }
+          if (!chart.isValid) {
+            chart.draw()
+          }
+          chart.axisY.draw(chart.axisY.isValid ? true : false)
 
-        // 清空画布
-        chart.clearTopCanvas()
-        // 绘制创建中的工具图形
-        if (this._chartLayoutModel.creatingDrawingTool &&
-            this._chartLayoutModel.creatingDrawingTool.chart === chart) {
-          this._chartLayoutModel.creatingDrawingTool.draw()
-        }
-        // 绘制编辑中的工具图形
-        if (this._chartLayoutModel.editingDrawingTool &&
-            this._chartLayoutModel.editingDrawingTool.chart === chart) {
-          this._chartLayoutModel.editingDrawingTool.draw()
-        }
-        chart.crosshair.draw()
+          // 清空画布
+          chart.clearTopCanvas()
+          // 绘制创建中的工具图形
+          if (this._chartLayoutModel.creatingDrawingTool &&
+              this._chartLayoutModel.creatingDrawingTool.chart === chart) {
+            this._chartLayoutModel.creatingDrawingTool.draw()
+          }
+          // 绘制编辑中的工具图形
+          if (this._chartLayoutModel.editingDrawingTool &&
+              this._chartLayoutModel.editingDrawingTool.chart === chart) {
+            this._chartLayoutModel.editingDrawingTool.draw()
+          }
+          chart.crosshair.draw()
+        })
+        this._lastAnimationFrame = null
       })
-      this._lastAnimationFrame = null
-    })
+    }
   }
 
   /**
