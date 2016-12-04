@@ -27,6 +27,7 @@ export default class ChartModel extends EventEmitter {
   private _watermark: WaterMarkRenerer
   private _isPrice: boolean
   private _isMain: boolean
+  private _isValid
 
   constructor (
     chartLayout: ChartLayout,
@@ -43,6 +44,7 @@ export default class ChartModel extends EventEmitter {
     this._crosshair = crosshair
     this._isPrice = isPrice
     this._isMain = isMain
+    this._isValid = false
     this._grid = new GridRenderer(this)
     this._graphs = []
     this._tools = []
@@ -92,9 +94,20 @@ export default class ChartModel extends EventEmitter {
   }
 
   get isValid (): boolean {
-    return this._graphs.every(graph => graph.isValid) &&
+    return this._isValid &&
+           this._graphs.every(graph => graph.isValid) &&
            this._tools.every(tool => tool.isValid) &&
            this.axisY.isValid
+  }
+
+  public addDrawingTool (tool: BaseToolRenderer) {
+    this._tools.push(tool)
+    this._isValid = false
+  }
+
+  public removeDrawingTool (tool: BaseToolRenderer) {
+    this._tools.splice(this._tools.indexOf(tool), 1)
+    this._isValid = false
   }
 
   public getRangeY (): YRange {

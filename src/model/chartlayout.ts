@@ -14,6 +14,7 @@ export default class ChartLayoutModel extends EventEmitter {
   public selectedDrawingTool: BaseToolRenderer
   public creatingDrawingTool: BaseToolRenderer
   public editingDrawingTool: BaseToolRenderer
+  public willEraseDrawingTool: boolean = false
 
   private _defaultCursor: 'crosshair' | 'default'
   private _charts: ChartModel[]
@@ -234,13 +235,9 @@ export default class ChartLayoutModel extends EventEmitter {
     this.emit('drawingtoolend')
   }
 
-  public drawingToolEditBegin () {
-    this.editingDrawingTool.isEditing = true
-  }
-
-  public drawingToolEditEnd () {
-    this.editingDrawingTool.isEditing = false
-    this.editingDrawingTool = null
+  public removeDrawingTools (tool: BaseToolRenderer) {
+    this.hoverChart.removeDrawingTool(tool)
+    this.emit('removedrawingtool')
   }
 
   private clearCharts () {

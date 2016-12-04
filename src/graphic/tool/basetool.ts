@@ -101,6 +101,7 @@ export abstract class BaseToolRenderer {
 
   public addVertex (vertex: Vertex) {
     this._vertexes.push(vertex)
+    this._isValid = true
   }
 
   public drawVertex () {
@@ -222,16 +223,18 @@ export abstract class BaseToolRenderer {
     let offset = offsetIndex
     let time = vertex.time
     let barIndex = datasource.search(time)
+    let guard
 
     if (barIndex === -1) {
       if (time < firstBar.time) {
         if (offset > 0) {
+          guard = axisX.getPrevTickTime(firstBar.time, resolution)
           while (offset--) {
             // 判断是否到达左端点。特殊处理。因为断点上的值可能不恰好匹配getNextTickTime计算得到的刻度
             // 例如2000-1-7，当resolution为w时，右移1w的值是2000-1-14，但如果右移1w恰好抵达左端点，
             // 则日期值跟服务器获得的值有关，比如可能是2000-1-12，跟getNextTickTime计算所得不匹配。
             // 因此这里针对左端点做特殊处理
-            if (axisX.getPrevTickTime(firstBar.time, resolution) === time) {
+            if (guard === time) {
               time = firstBar.time
             } else {
               time = axisX.getNextTickTime(time, resolution)
@@ -259,12 +262,13 @@ export abstract class BaseToolRenderer {
             time = axisX.getNextTickTime(time, resolution)
           }
         } else {
+          guard = axisX.getNextTickTime(lastBar.time, resolution)
           while (offset++) {
             // 判断是否到达右端点。特殊处理。因为断点上的值可能不恰好匹配getPrevTickTime计算得到的刻度
             // 例如2000-1-7，当resolution为w时，左移1w的值是1999-12-31，但如果左移1w恰好抵达右端点，
             // 则日期值跟服务器获得的值有关，比如可能是1999-12-30，跟getPrevTickTime计算所得不匹配。
             // 因此这里针对右端点做特殊处理
-            if (axisX.getNextTickTime(lastBar.time, resolution) === time) {
+            if (guard === time) {
               time = lastBar.time
             } else {
               time = axisX.getPrevTickTime(time, resolution)

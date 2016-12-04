@@ -230,13 +230,14 @@ export default class Chart extends React.Component<Prop, State> {
       chartLayout.drawingToolBegin(chart)
       chartLayout.drawingToolSetVertex(curPoint)
       if (chartLayout.creatingDrawingTool.isFinished()) {
+        chart.addDrawingTool(chartLayout.creatingDrawingTool)
         chartLayout.drawingToolEnd(chart)
       }
       return
     } else if (chartLayout.creatingDrawingTool && chartLayout.creatingDrawingTool.chart === chart) {
       chartLayout.drawingToolSetVertex(curPoint)
       if (chartLayout.creatingDrawingTool.isFinished()) {
-        chart.tools.push(chartLayout.creatingDrawingTool)
+        chart.addDrawingTool(chartLayout.creatingDrawingTool)
         chartLayout.drawingToolEnd(chart)
       }
       return
@@ -251,10 +252,15 @@ export default class Chart extends React.Component<Prop, State> {
 
         // 正在编辑中的画图工具
         if (chartLayout.editingDrawingTool) {
-          chartLayout.drawingToolEditBegin()
-          this._dragDrawingToolStart = true
-          this._dragPosX = curPoint.x
-          this._dragPosY = curPoint.y
+          if (chartLayout.willEraseDrawingTool) {
+            chartLayout.removeDrawingTools(chartLayout.editingDrawingTool)
+            chartLayout.editingDrawingTool = null
+          } else {
+            chartLayout.editingDrawingTool.isEditing = true
+            this._dragDrawingToolStart = true
+            this._dragPosX = curPoint.x
+            this._dragPosY = curPoint.y
+          }
         } else {
           this._dragOffsetStart = true
           this._dragPosX = curPoint.x
@@ -281,10 +287,15 @@ export default class Chart extends React.Component<Prop, State> {
     } else {
       chart.hitTest(true)
       if (chartLayout.editingDrawingTool) {
-        chartLayout.drawingToolEditBegin()
-        this._dragDrawingToolStart = true
-        this._dragPosX = curPoint.x
-        this._dragPosY = curPoint.y
+        if (chartLayout.willEraseDrawingTool) {
+          chartLayout.removeDrawingTools(chartLayout.editingDrawingTool)
+          chartLayout.editingDrawingTool = null
+        } else {
+          chartLayout.editingDrawingTool.isEditing = true
+          this._dragDrawingToolStart = true
+          this._dragPosX = curPoint.x
+          this._dragPosY = curPoint.y
+        }
       } else {
         this._dragOffsetStart = true
         this._dragPosX = curPoint.x
@@ -293,6 +304,8 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private endHandler (ev: any) {
+    const chartLayout = this.props.chartLayout
+
     if (this._dragOffsetStart) {
       if (ev.touches) {
         if (Date.now() - this._lastMoveTime < 100 && Math.abs(this._v) > 100) {
@@ -302,7 +315,8 @@ export default class Chart extends React.Component<Prop, State> {
     }
 
     if (this._dragDrawingToolStart) {
-      this.props.chartLayout.drawingToolEditEnd()
+      chartLayout.editingDrawingTool.isEditing = false
+      chartLayout.editingDrawingTool = null
       this._dragDrawingToolStart = false
     }
 

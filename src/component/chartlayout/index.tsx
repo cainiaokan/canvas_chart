@@ -290,10 +290,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayoutModel.addListener('hit', this.lightUpdate)
     this._chartLayoutModel.addListener('cursormove', this.lightUpdate)
     this._chartLayoutModel.addListener('barmarginchange', this.lightUpdate)
+    // study 添加或移除时，直接更新dom，不要刷新，因为size已经更新了。会自动刷新所有chart
     this._chartLayoutModel.addListener('studychange', study => this.forceUpdate())
     this._chartLayoutModel.addListener('sidebarfoldstatechange', folded => this.setState({ sidebarFolded: folded }))
+    this._chartLayoutModel.addListener('drawingtoolsetvertex', this.lightUpdate)
     this._chartLayoutModel.addListener('drawingtoolbegin', this.lightUpdate)
-    this._chartLayoutModel.addListener('drawingtoolend', this.fullUpdate)
+    this._chartLayoutModel.addListener('drawingtoolend', this.lightUpdate)
+    this._chartLayoutModel.addListener('removedrawingtool', this.lightUpdate)
   }
 
   /**

@@ -52,11 +52,13 @@ export default class ToolBox extends React.Component<Prop, State> {
 
   public componentDidMount () {
     this.props.chartLayout.addListener('drawingtoolend', this.resetTool)
+    this.props.chartLayout.addListener('removedrawingtool', this.resetTool)
     document.addEventListener(START_EVENT, this.hideMoreTools)
   }
 
   public componentDidUnmount () {
     this.props.chartLayout.removeListener('drawingtoolend',  this.resetTool)
+    this.props.chartLayout.removeListener('removedrawingtool', this.resetTool)
     document.removeEventListener(START_EVENT, this.hideMoreTools)
   }
 
@@ -153,28 +155,33 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   private selectTool (index1, index2) {
+    const chartLayout = this.props.chartLayout
     const selectedIndex2 = this.state.selectedIndex2
     selectedIndex2[index1] = index2
+
+    chartLayout.willEraseDrawingTool = false
+
     if (index1 === 0) {
       switch (toolsList[index1][index2][0]) {
         case 'chart-tools-crosshair':
-          this.props.chartLayout.setDefaultCursor('crosshair')
+          chartLayout.setDefaultCursor('crosshair')
           break
         case 'chart-tools-pointer':
-          this.props.chartLayout.setDefaultCursor('default')
+          chartLayout.setDefaultCursor('default')
           break
         default:
           break
       }
       this.resetTool()
     } else if (index1 === toolsList.length - 1) {
+      chartLayout.willEraseDrawingTool = true
       this.setState({
         selectedIndex: index1,
         showMoreTools: false,
       })
-      this.props.chartLayout.selectedDrawingTool = null
+      chartLayout.selectedDrawingTool = null
     } else {
-      this.props.chartLayout.selectedDrawingTool = this.getDrawingToolByName(toolsList[index1][index2][0])
+      chartLayout.selectedDrawingTool = this.getDrawingToolByName(toolsList[index1][index2][0])
       this.setState({
         selectedIndex: index1,
         selectedIndex2,
@@ -195,9 +202,11 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   private resetTool () {
+    const chartLayout = this.props.chartLayout
     this.setState({
       selectedIndex: 0,
     })
-    this.props.chartLayout.selectedDrawingTool = null
+    chartLayout.willEraseDrawingTool = false
+    chartLayout.selectedDrawingTool = null
   }
 }
