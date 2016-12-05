@@ -20,7 +20,6 @@ type State = {
 export default class Realtime extends React.Component<Prop, State> {
 
   public refs: {
-    [propName: string]: Element
     inOutDonut: HTMLCanvasElement
     inOutBar: HTMLCanvasElement
     capitalInNum: HTMLElement

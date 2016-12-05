@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { SUPPORT_TOUCH, MOVE_EVENT, END_EVENT } from '../constant'
+import {
+  SUPPORT_TOUCH,
+  MOVE_EVENT,
+  DOWN_EVENT_REACT,
+  UP_EVENT,
+} from '../constant'
 import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../model/axisx'
 
 type Prop = {
@@ -11,7 +16,6 @@ type Prop = {
 export default class AxisX extends React.Component<Prop, any> {
 
   public refs: {
-    [propName: string]: Element
     canvas: HTMLCanvasElement
   }
 
@@ -31,12 +35,12 @@ export default class AxisX extends React.Component<Prop, any> {
     axisX.width = this.props.width
     axisX.height = this.props.height
     document.addEventListener(MOVE_EVENT, this.moveHandler)
-    document.addEventListener(END_EVENT, this.endHandler)
+    document.addEventListener(UP_EVENT, this.endHandler)
   }
 
   public componentWillUnmount () {
     document.removeEventListener(MOVE_EVENT, this.moveHandler)
-    document.removeEventListener(END_EVENT, this.endHandler)
+    document.removeEventListener(UP_EVENT, this.endHandler)
   }
 
   public componentDidUpdate () {
@@ -63,14 +67,8 @@ export default class AxisX extends React.Component<Prop, any> {
 
     let eventHandlers
 
-    if (SUPPORT_TOUCH) {
-      eventHandlers = {
-        onTouchStart: this.startHandler,
-      }
-    } else {
-      eventHandlers = {
-        onMouseDown: this.startHandler,
-      }
+    eventHandlers = {
+      [DOWN_EVENT_REACT]: this.startHandler,
     }
 
     return (

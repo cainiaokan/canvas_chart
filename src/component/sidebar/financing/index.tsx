@@ -13,7 +13,6 @@ type Prop = {
 export default class Financing extends React.Component<Prop, any> {
 
   public refs: {
-    [propName: string]: Element
     financing: HTMLDivElement
   }
 

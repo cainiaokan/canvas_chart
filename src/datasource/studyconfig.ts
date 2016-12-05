@@ -13,7 +13,6 @@ export type DataConverter = {
 
 type StudyConfig = {
   [propName: string]: {
-    [propName: string]: any
     stockAdapter: DataAdapter
     input: any[]
     isPrice: boolean

@@ -1,7 +1,12 @@
 import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import { SUPPORT_TOUCH, START_EVENT } from '../../constant'
+import {
+  DOWN_EVENT,
+  DOWN_EVENT_REACT,
+  MOVE_EVENT_REACT,
+  UP_EVENT_REACT,
+} from '../../constant'
 import ChartLayoutModel from '../../model/chartlayout'
 import {
   BaseToolRenderer,
@@ -53,37 +58,27 @@ export default class ToolBox extends React.Component<Prop, State> {
   public componentDidMount () {
     this.props.chartLayout.addListener('drawingtoolend', this.resetTool)
     this.props.chartLayout.addListener('removedrawingtool', this.resetTool)
-    document.addEventListener(START_EVENT, this.hideMoreTools)
+    document.addEventListener(DOWN_EVENT, this.hideMoreTools)
   }
 
   public componentDidUnmount () {
     this.props.chartLayout.removeListener('drawingtoolend',  this.resetTool)
     this.props.chartLayout.removeListener('removedrawingtool', this.resetTool)
-    document.removeEventListener(START_EVENT, this.hideMoreTools)
+    document.removeEventListener(DOWN_EVENT, this.hideMoreTools)
   }
 
   public render () {
     let mainBtnEventHandler
     let moreBtnEventHandler
-    if (SUPPORT_TOUCH) {
-      mainBtnEventHandler = {
-        onTouchStart: this.startHandler,
-        onTouchEnd: this.endHandler,
-        onTouchMove: this.moveHandler,
-        onTouchCancel: this.endHandler,
-      }
-      moreBtnEventHandler = {
-        onTouchStart: this.selectToolHandler,
-      }
-    } else {
-      mainBtnEventHandler = {
-        onMouseDown: this.startHandler,
-        onMouseUp: this.endHandler,
-        onMouseMove: this.moveHandler,
-      }
-      moreBtnEventHandler = {
-        onMouseDown: this.selectToolHandler,
-      }
+
+    mainBtnEventHandler = {
+      [DOWN_EVENT_REACT]: this.startHandler,
+      [UP_EVENT_REACT]: this.endHandler,
+      [MOVE_EVENT_REACT]: this.moveHandler,
+    }
+
+    moreBtnEventHandler = {
+      [DOWN_EVENT_REACT]: this.selectToolHandler,
     }
 
     return <div className='chart-tools'>

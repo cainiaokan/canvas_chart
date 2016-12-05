@@ -1,4 +1,4 @@
-import { SUPPORT_TOUCH } from './interection'
+import { SUPPORT_TOUCH } from './events'
 
 export const AXIS_X_HEIGHT = 30
 export const AXIS_Y_WIDTH = 60

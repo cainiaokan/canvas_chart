@@ -2,6 +2,7 @@ import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
 import ChartModel from '../../../model/chart'
+import { WEEKDAYS, OPEN_HOURS } from '../../../constant'
 
 type Prop = {
   chart: ChartModel
@@ -53,28 +54,27 @@ export default class Indicator extends React.Component<Prop, State> {
   }
 
   private isOpen (): boolean {
-    const now = new Date(this._chart.datasource.now() * 1000)
-    const openAM = new Date()
-    openAM.setHours(9)
-    openAM.setMinutes(30)
-    openAM.setSeconds(0)
-    openAM.setMilliseconds(0)
-    const closeAM = new Date(now.getTime())
-    closeAM.setHours(11)
-    closeAM.setMinutes(30)
-    closeAM.setSeconds(0)
-    closeAM.setMilliseconds(0)
-    const openPM = new Date(now.getTime())
-    openPM.setHours(13)
-    openPM.setMinutes(0)
-    openPM.setSeconds(0)
-    openPM.setMilliseconds(0)
-    const closePM = new Date(now.getTime())
-    closePM.setHours(15)
-    closePM.setMinutes(0)
-    closePM.setSeconds(0)
-    closePM.setMilliseconds(0)
+    const now = this._chart.datasource.now() * 1000
+    const nowTime = new Date(now)
 
-    return (now >= openAM && now <= closeAM) || (now >= openPM && now <= closePM)
+    if (WEEKDAYS.indexOf(nowTime.getDay()) === -1) {
+      return false
+    }
+
+    return OPEN_HOURS.some(timeInterval => {
+      const openTime = new Date(now)
+      openTime.setHours(timeInterval[0][0])
+      openTime.setMinutes(timeInterval[0][1])
+      openTime.setSeconds(0)
+      openTime.setMilliseconds(0)
+
+      const closeTime = new Date(now)
+      closeTime.setHours(timeInterval[1][0])
+      closeTime.setMinutes(timeInterval[1][1])
+      closeTime.setSeconds(0)
+      closeTime.setMilliseconds(0)
+
+      return nowTime.getTime() >= openTime.getTime() && nowTime.getTime() <= closeTime.getTime()
+    })
   }
 }

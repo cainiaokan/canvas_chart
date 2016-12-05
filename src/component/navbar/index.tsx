@@ -1,4 +1,5 @@
 import './index.less'
+import '../../style/btn.less'
 import * as React from 'react'
 import { ResolutionType, SUPPORT_TOUCH } from '../../constant'
 import SearchBox from './searchbox'

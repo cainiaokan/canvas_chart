@@ -1,6 +1,14 @@
 import * as React from 'react'
 
-import { AXIS_Y_WIDTH, SUPPORT_TOUCH, MOVE_EVENT, END_EVENT } from '../../constant'
+import {
+  AXIS_Y_WIDTH,
+  SUPPORT_TOUCH,
+  MOVE_EVENT,
+  UP_EVENT,
+  DOWN_EVENT_REACT,
+  MOVE_EVENT_REACT,
+  UP_EVENT_REACT,
+} from '../../constant'
 import Legend from './../legend'
 import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
@@ -23,7 +31,6 @@ type State = {
 export default class Chart extends React.Component<Prop, State> {
 
   public refs: {
-    [propName: string]: Element
     canvas: HTMLCanvasElement
     topCanvas: HTMLCanvasElement
   }
@@ -79,14 +86,14 @@ export default class Chart extends React.Component<Prop, State> {
     chartLayout.addListener('hit', this.hitHandler)
     chartLayout.addListener('defaultcursorchange', this.defaultCursorChangeHandler)
     document.addEventListener(MOVE_EVENT, this.dragMoveHandler)
-    document.addEventListener(END_EVENT, this.endHandler)
+    document.addEventListener(UP_EVENT, this.endHandler)
   }
 
   public componentWillUnmount () {
     this.props.chartLayout.removeListener('hit', this.hitHandler)
     this.props.chartLayout.removeListener('defaultcursorchange', this.defaultCursorChangeHandler)
     document.removeEventListener(MOVE_EVENT, this.dragMoveHandler)
-    document.removeEventListener(END_EVENT, this.endHandler)
+    document.removeEventListener(UP_EVENT, this.endHandler)
   }
 
   public componentDidUpdate (prevProps: Prop) {
@@ -117,22 +124,17 @@ export default class Chart extends React.Component<Prop, State> {
     const width = ~~this.props.width - AXIS_Y_WIDTH
     const height = ~~this.props.height
 
-    let eventHandlers
+    let eventHandlers: any = {
+      [DOWN_EVENT_REACT]: this.startHandler,
+      [MOVE_EVENT_REACT]: this.moveHandler,
+      [UP_EVENT_REACT]: this.endHandler,
+    }
+
     if (SUPPORT_TOUCH) {
-      eventHandlers = {
-        onTouchMove: this.moveHandler,
-        onTouchStart: this.startHandler,
-        onTouchEnd: this.endHandler,
-        onTouchCancel: this.endHandler,
-      }
+      eventHandlers.onTouchCancel = this.endHandler
     } else {
-      eventHandlers = {
-        onMouseMove: this.moveHandler,
-        onMouseDown: this.startHandler,
-        onMouseUp: this.endHandler,
-        onMouseOver: this.mouseOver,
-        onMouseOut: this.mouseOut,
-      }
+      eventHandlers.onMouseOver = this.mouseOver
+      eventHandlers.onMouseOut = this.mouseOut
     }
 
     return <div className='chart-line'>

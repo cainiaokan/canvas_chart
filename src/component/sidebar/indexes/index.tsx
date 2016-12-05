@@ -22,7 +22,6 @@ type Prop = {
 export default class Indexes extends React.Component<Prop, State> {
 
   public refs: {
-    [propName: string]: Element
     indexes: HTMLDivElement
   }
 

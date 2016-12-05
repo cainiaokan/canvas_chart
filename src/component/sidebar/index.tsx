@@ -24,7 +24,6 @@ type State = {
 
 export default class Sidebar extends React.Component<Prop, State> {
   public refs: {
-    [propName: string]: any
     dataPageList: HTMLElement
     container: HTMLElement
     foldingBtn: HTMLElement

@@ -1,0 +1,48 @@
+.chart-dialog {
+  font-size: 12px;
+
+  position: fixed;
+  z-index: 99;
+
+  border: 1px solid #c9cbcd;
+  background: #fff;
+  .close {
+    position: absolute;
+    z-index: 1;
+    top: 13px;
+    right: 15px;
+
+    display: block;
+
+    width: 21px;
+    height: 21px;
+
+    cursor: pointer;
+    &:after {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+
+      display: block;
+
+      width: 9px;
+      height: 9px;
+
+      content: '\0020';
+
+      background: url(./close.png);
+    }
+    &:hover:after {
+      background-position: 0 9px;
+    }
+  }
+  h3 {
+    font-weight: 800;
+
+    padding: 16px 16px 0;
+    padding-bottom: 14px;
+  }
+  &-body {
+    padding: 0 16px;
+  }
+}

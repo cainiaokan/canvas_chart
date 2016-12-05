@@ -46,7 +46,6 @@ function getFullScreenElement () {
 
 export default class FullScreen extends React.Component<any, any> {
   public refs: {
-    [propName: string]: any
     btn: HTMLElement
   }
   constructor () {

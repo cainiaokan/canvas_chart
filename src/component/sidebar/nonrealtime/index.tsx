@@ -13,7 +13,6 @@ type Prop = {
 export default class NonRealtime extends React.Component<Prop, any> {
 
   public refs: {
-    [propName: string]: Element
     nonrealtime: HTMLDivElement
   }
 

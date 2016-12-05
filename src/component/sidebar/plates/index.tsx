@@ -27,7 +27,6 @@ type StockInfo = {
 export default class Plates extends React.Component<Prop, State> {
 
   public refs: {
-    [propName: string]: Element
     plates: HTMLDivElement
   }
 

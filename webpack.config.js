@@ -10,8 +10,10 @@ module.exports = {
     'static/js/vendor': [
       'react',
       'react-dom',
+      'react-datetime',
       'underscore',
       'es6-promise',
+      'moment',
       'eventemitter3',
       'isomorphic-fetch',
       'd3',
@@ -39,7 +41,7 @@ module.exports = {
         loader: 'ts',
       },
       {
-        test: /style\/common\.css$/,
+        test: /\.css$/,
         loader: cssExtractor.extract(['css', 'csso?-comments', 'postcss'])
       },
       {

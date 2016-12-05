@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { SUPPORT_TOUCH, MOVE_EVENT, END_EVENT } from '../constant'
+import { DOWN_EVENT_REACT, MOVE_EVENT, UP_EVENT } from '../constant'
 import AxisYModel from '../model/axisy'
 
 type Prop = {
@@ -11,7 +11,6 @@ type Prop = {
 export default class AxisY extends React.Component<Prop, any> {
 
   public refs: {
-    [propName: string]: Element
     canvas: HTMLCanvasElement
   }
 
@@ -32,12 +31,12 @@ export default class AxisY extends React.Component<Prop, any> {
     axisY.width = this.props.width
     axisY.height = this.props.height
     document.addEventListener(MOVE_EVENT, this.mouseMoveHandler)
-    document.addEventListener(END_EVENT, this.mouseUpHandler)
+    document.addEventListener(UP_EVENT, this.mouseUpHandler)
   }
 
   public componentWillUnmount () {
     document.removeEventListener(MOVE_EVENT, this.mouseMoveHandler)
-    document.removeEventListener(END_EVENT, this.mouseUpHandler)
+    document.removeEventListener(UP_EVENT, this.mouseUpHandler)
   }
 
   public componentDidUpdate () {
@@ -63,14 +62,8 @@ export default class AxisY extends React.Component<Prop, any> {
     const height = this.props.height
 
     let eventHandlers
-    if (SUPPORT_TOUCH) {
-      eventHandlers = {
-        onTouchStart: this.mouseDownHandler,
-      }
-    } else {
-      eventHandlers = {
-        onMouseDown: this.mouseDownHandler,
-      }
+    eventHandlers = {
+      [DOWN_EVENT_REACT]: this.mouseDownHandler,
     }
 
     return (

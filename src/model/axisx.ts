@@ -1,17 +1,9 @@
 import * as EventEmitter from 'eventemitter3'
 import CrosshairModel from '../model/crosshair'
 import { Datasource } from '../datasource'
-import { ResolutionType } from '../constant'
+import { ResolutionType, WEEKDAYS, OPEN_HOURS } from '../constant'
 import AxisXRenderer from '../graphic/axisx'
 import XTickMark from './xtickmark'
-
-const weekdays = [1, 2, 3, 4, 5]
-const openHours = [
-  [[9, 30], [11, 30]],
-  [[13, 0], [15, 0]],
-]
-// const totalMinutesPerDay = openHours.reduce((total, time) =>
-//   total + (time[1][0] - time[0][0]) * 60 + (time[1][1] - time[0][1]), 0)
 
 export interface ITimeBar {
   time: number
@@ -309,10 +301,10 @@ export default class AxisXModel extends EventEmitter {
           nextDate.setMonth(nextDate.getMonth() + 2)
           nextDate.setTime(nextDate.getTime() - 24 * 3600 * 1000)
         }
-        if (weekdays.indexOf(nextDate.getDay()) === -1) {
+        if (WEEKDAYS.indexOf(nextDate.getDay()) === -1) {
           let day = nextDate.getDay()
           let diffDays = 0
-          while (weekdays.indexOf(day) === -1) {
+          while (WEEKDAYS.indexOf(day) === -1) {
             day = day - 1 < 0 ? 6 : day - 1
             diffDays++
           }
@@ -325,11 +317,11 @@ export default class AxisXModel extends EventEmitter {
 
     if (resolution <= '60') {
       for (let i = 0,
-           len = openHours.length,
+           len = OPEN_HOURS.length,
            nextDateHour = nextDate.getHours(),
            nextDateMinute = nextDate.getMinutes(); i < len; i++) {
-        let nextHours = openHours[i + 1]
-        const curHours = openHours[i]
+        let nextHours = OPEN_HOURS[i + 1]
+        const curHours = OPEN_HOURS[i]
         const curCloseHour = curHours[1][0]
         const curCloseMinute = curHours[1][1]
         let nextOpenHour
@@ -349,7 +341,7 @@ export default class AxisXModel extends EventEmitter {
         } else {
           if (nextDateHour > curCloseHour ||
              (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) {
-            nextHours = openHours[0]
+            nextHours = OPEN_HOURS[0]
             nextOpenHour = nextHours[0][0]
             nextOpenMinute = nextHours[0][1]
             nextDate.setTime(nextDate.getTime() + 24 * 3600 * 1000)
@@ -361,10 +353,10 @@ export default class AxisXModel extends EventEmitter {
       }
     }
 
-    if (weekdays.indexOf(nextDate.getDay()) === -1) {
+    if (WEEKDAYS.indexOf(nextDate.getDay()) === -1) {
       let day = nextDate.getDay()
       let diffDays = 0
-      while (weekdays.indexOf(day % 7) === -1) {
+      while (WEEKDAYS.indexOf(day % 7) === -1) {
         diffDays++
         day++
       }
@@ -413,10 +405,10 @@ export default class AxisXModel extends EventEmitter {
         prevDate = new Date(time * 1000)
         prevDate.setDate(1)
         prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
-        if (weekdays.indexOf(prevDate.getDay()) === -1) {
+        if (WEEKDAYS.indexOf(prevDate.getDay()) === -1) {
           let day = prevDate.getDay()
           let diffDays = 0
-          while (weekdays.indexOf(day) === -1) {
+          while (WEEKDAYS.indexOf(day) === -1) {
             day = day - 1 < 0 ? 6 : day - 1
             diffDays++
           }
@@ -428,11 +420,11 @@ export default class AxisXModel extends EventEmitter {
     }
 
     if (resolution <= '60') {
-      for (let i = openHours.length - 1,
+      for (let i = OPEN_HOURS.length - 1,
            prevDateHour = prevDate.getHours(),
            prevDateMinute = prevDate.getMinutes(); i >= 0; i--) {
-        let prevHours = openHours[i - 1]
-        const curHours = openHours[i]
+        let prevHours = OPEN_HOURS[i - 1]
+        const curHours = OPEN_HOURS[i]
         const curOpenHour = curHours[0][0]
         const curOpenMinute = curHours[0][1]
         let prevCloseHour
@@ -457,7 +449,7 @@ export default class AxisXModel extends EventEmitter {
         } else {
           if (prevDateHour < curOpenHour ||
              (prevDateHour === curOpenHour && prevDateMinute < curOpenMinute)) {
-            prevHours = openHours[openHours.length - 1]
+            prevHours = OPEN_HOURS[OPEN_HOURS.length - 1]
             prevCloseHour = prevHours[1][0]
             prevCloseMinute = prevHours[1][1]
             prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
@@ -466,7 +458,7 @@ export default class AxisXModel extends EventEmitter {
             break
           // 向收盘截止时间对齐。例如9:30应当展示位了前一交易日的收盘时间15:00
           } else if (prevDateHour === curOpenHour && prevDateMinute === curOpenMinute) {
-            prevHours = openHours[openHours.length - 1]
+            prevHours = OPEN_HOURS[OPEN_HOURS.length - 1]
             prevCloseHour = prevHours[1][0]
             prevCloseMinute = prevHours[1][1]
             prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
@@ -477,10 +469,10 @@ export default class AxisXModel extends EventEmitter {
       }
     }
 
-    if (weekdays.indexOf(prevDate.getDay()) === -1) {
+    if (WEEKDAYS.indexOf(prevDate.getDay()) === -1) {
       let day = prevDate.getDay()
       let diffDays = 0
-      while (weekdays.indexOf(day) === -1) {
+      while (WEEKDAYS.indexOf(day) === -1) {
         day = day - 1 < 0 ? 6 : day - 1
         diffDays++
       }

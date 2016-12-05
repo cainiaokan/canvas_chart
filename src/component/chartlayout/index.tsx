@@ -93,7 +93,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public refs: {
-    [propName: string]: Element
     root: HTMLDivElement
   }
 
