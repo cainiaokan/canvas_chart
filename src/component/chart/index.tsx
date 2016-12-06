@@ -203,6 +203,10 @@ export default class Chart extends React.Component<Prop, State> {
       y: ev.touches[0].pageY - offset.offsetTop,
     } : chart.crosshair.point
 
+    if (chartLayout.mainDatasource.loaded() === 0) {
+      return
+    }
+
     /* start 设置状态 */
     // 取消所有graph和tools的选中态
     if (ev.touches && ev.touches.length === 1) {

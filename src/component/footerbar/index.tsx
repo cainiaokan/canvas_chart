@@ -6,6 +6,7 @@ import * as React from 'react'
 import * as Datetime from 'react-datetime'
 import Dialog from '../../component/dialog'
 import ChartLayoutModel from '../../model/chartlayout'
+import { OPEN_HOURS } from '../../constant'
 
 type Prop = {
   chartLayout: ChartLayoutModel
@@ -27,7 +28,8 @@ export default class FooterBar extends React.Component<Prop, State> {
     dateInput: HTMLInputElement
   }
 
-  private studyStates = [false, false, false, false, false]
+  private _studyStates = [false, false, false, false, false]
+  private _inputDateValue: moment.Moment = null
 
   constructor () {
     super()
@@ -42,6 +44,7 @@ export default class FooterBar extends React.Component<Prop, State> {
     this.datePickerBlurHandler = this.datePickerBlurHandler.bind(this)
     this.dateChangeHandler = this.dateChangeHandler.bind(this)
     this.dialogCloseHandler = this.dialogCloseHandler.bind(this)
+    this.checkValidDate = this.checkValidDate.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
@@ -54,16 +57,28 @@ export default class FooterBar extends React.Component<Prop, State> {
   }
 
   public render () {
-    const thisMoment = moment()
-    const dontShowTime = this.props.chartLayout.mainDatasource.resolution > '60'
+    const minHour = OPEN_HOURS[0][0][0]
+    const maxHour = OPEN_HOURS[OPEN_HOURS.length - 1][1][0]
+    const chartLayout = this.props.chartLayout
+    const dontShowTime = chartLayout.mainDatasource.resolution > '60'
+    const mainDatasource = chartLayout.mainDatasource
+    const now = new Date(mainDatasource.now() * 1000)
+    this.correctTime(now)
+
+    const thisMoment = this._inputDateValue ?
+                this._inputDateValue : moment(now).minute(now.getMinutes() - now.getMinutes() % 5)
+
     const nowDateStr =  dontShowTime ? thisMoment.format(dateFormat) : thisMoment.format(dateTimeFormat)
+
+    this._inputDateValue = thisMoment
+
     return (
       <div className='chart-footerbar' style={ {width: this.props.width + 'px', height: this.props.height + 'px'} }>
         <div className='control-list'>
           {
             studyNames.map((study, i) =>
               <a href='javascript:;' data-index={i}
-                className={this.studyStates[i] ? 'active' : ''}
+                className={this._studyStates[i] ? 'active' : ''}
                 onClick={this.changeStudyHandler}>
                 {study}
               </a>
@@ -89,8 +104,10 @@ export default class FooterBar extends React.Component<Prop, State> {
               input={false}
               value={thisMoment.toDate()}
               open={this.state.showCalendar}
-              dateFormat={dontShowTime ? 'YYYY-MM-DD' : 'YYYY-MM-DD'}
-              timeFormat={dontShowTime ? null : 'HH:mm'}
+              isValidDate={this.checkValidDate}
+              dateFormat={true}
+              timeFormat={dontShowTime ? null : true}
+              timeConstraints={ { hours: { min: minHour, max: maxHour }, minutes: { step: 5 } } }
               closeOnSelect={true}
               disableOnClickOutside={true}
               locale={'zh-cn'}
@@ -105,7 +122,7 @@ export default class FooterBar extends React.Component<Prop, State> {
   private changeStudyHandler (ev) {
     const dom = ev.target
     const chartLayout = this.props.chartLayout
-    const studyStates = this.studyStates
+    const studyStates = this._studyStates
     const studyIndex = dom.dataset.index
     const studyName = dom.innerHTML
 
@@ -146,15 +163,27 @@ export default class FooterBar extends React.Component<Prop, State> {
 
   // 点击“前往”按钮时
   private goToDateHandler () {
+    const chartLayout = this.props.chartLayout
+    const resolution = chartLayout.mainDatasource.resolution
+    const toDate = this._inputDateValue.toDate()
+
+    toDate.setSeconds(0)
+
+    if (resolution > '60') {
+      toDate.setHours(0)
+      toDate.setMinutes(0)
+    }
+
     this.dialogCloseHandler()
+    chartLayout.goToDate(~~(toDate.getTime() / 1000))
   }
 
   // 日期选择器值发生变化时
   private dateChangeHandler (moment: moment.Moment) {
-    this.refs.dateInput.value = moment.format(
-      this.props.chartLayout.mainDatasource.resolution > '60' ?
-      moment.format(dateFormat) : moment.format(dateTimeFormat)
-    )
+    const resolution = this.props.chartLayout.mainDatasource.resolution
+    this._inputDateValue = moment
+    this.refs.dateInput.value =
+      moment.format(resolution > '60' ? moment.format(dateFormat) : moment.format(dateTimeFormat))
   }
 
   // 日期选择器关闭时
@@ -162,5 +191,30 @@ export default class FooterBar extends React.Component<Prop, State> {
     this.setState({
       showCalendar: false,
     })
+  }
+
+  // 校验日期是否可选。晚于当前日期都不可选。
+  private checkValidDate (currentDate: moment.Moment, selectedDate: moment.Moment) {
+    const now = this.props.chartLayout.mainDatasource.now()
+    const thisMoment = moment(now * 1000)
+    return !currentDate.isAfter(thisMoment)
+  }
+
+  // 校正日期，使其在开收盘的限制范围内
+  private correctTime (date) {
+    const minHour = OPEN_HOURS[0][0][0]
+    const maxHour = OPEN_HOURS[OPEN_HOURS.length - 1][1][0]
+    const minMinute = OPEN_HOURS[0][0][1]
+    const maxMinute = OPEN_HOURS[OPEN_HOURS.length - 1][1][1]
+    const hour = date.getHours()
+    const minute = date.getMinutes()
+
+    if (hour < minHour || (hour === minHour && minute < minMinute)) {
+      date.setHours(minHour)
+      date.setMinutes(minMinute)
+    } else if (hour > maxHour || (hour === maxHour && minute > maxMinute)) {
+      date.setHours(maxHour)
+      date.setMinutes(maxMinute)
+    }
   }
 }

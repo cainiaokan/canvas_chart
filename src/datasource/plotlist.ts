@@ -23,7 +23,7 @@ export default class PlotList<T extends IBar> {
    * @param  {number} time 时间戳（精确到秒）
    * @return {number}      下标索引
    */
-  public search(time: number): number {
+  public search (time: number): number {
     if (this.cache.length === 0) {
       return
     }
@@ -133,21 +133,23 @@ export default class PlotList<T extends IBar> {
    * @param  {number} toIndex   结束查找范围
    * @return {number}           下标索引
    */
-  private bsearch(time: number, fromIndex: number, toIndex: number): number {
+  private bsearch(time: number, fromIndex: number, toIndex: number, closest = true): number {
     const pivot = ~~((fromIndex + toIndex) / 2)
-    const value = this.cache[pivot].time
+    const curTime = this.cache[pivot].time
 
     if (fromIndex === toIndex) {
-      if (time === value) {
+      if (time === curTime) {
+        return pivot
+      } else if (closest) {
         return pivot
       } else {
         return -1
       }
     }
 
-    if (value === time) {
+    if (curTime === time) {
       return pivot
-    } else if (value > time) {
+    } else if (curTime > time) {
       return this.bsearch(time, fromIndex, pivot)
     } else {
       return this.bsearch(time, pivot + 1, toIndex)

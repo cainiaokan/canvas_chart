@@ -9,11 +9,7 @@ type Prop = {
   onClose?: () => void
 }
 
-type State = {
-
-}
-
-export default class Dialog extends React.Component<Prop, State> {
+export default class Dialog extends React.Component<Prop, any> {
   public refs: {
     container: HTMLDivElement
   }

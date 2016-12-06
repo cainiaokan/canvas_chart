@@ -94,10 +94,36 @@ export default class Realtime extends React.Component<Prop, State> {
 
   public render () {
     const stockInfo = this.props.stockInfo
+
+    const showBidList = stockInfo && stockInfo.selling && stockInfo.buying
+    const showDetailedInfo =  stockInfo && stockInfo.ticks.length
+
+    let bidListHeightRatio = 0
+    let stockInfoHeightRatio = 0
+    let detailedInfoHeightRatio = 0
+
+    if (showBidList) {
+      if (showDetailedInfo) {
+        bidListHeightRatio = 0.3
+        stockInfoHeightRatio = 0.3
+        detailedInfoHeightRatio = 0.4
+      } else {
+        bidListHeightRatio = 0.5
+        stockInfoHeightRatio = 0.5
+      }
+    } else {
+      if (showDetailedInfo) {
+        stockInfoHeightRatio = 0.5
+        detailedInfoHeightRatio = 0.5
+      } else {
+        stockInfoHeightRatio = 1
+      }
+    }
+
     return <div className='realtime-info'>
       <div className='bid-list' ref='bidList' style={{
-        maxHeight: this.props.height * 0.3 + 'px',
-        display: stockInfo && stockInfo.selling && stockInfo.buying ? 'block' : 'none',
+        maxHeight: this.props.height * bidListHeightRatio + 'px',
+        display: showBidList ? 'block' : 'none',
       } }>
         <div>
           <div className='caption'>
@@ -140,11 +166,9 @@ export default class Realtime extends React.Component<Prop, State> {
         </div>
       </div>
 
-      <div className='stock-info' ref='stockInfo' style={ {
-            maxHeight: stockInfo && stockInfo.selling ?
-              this.props.height * 0.3 + 'px' :
-              this.props.height + 'px',
-          } }>
+      <div className='stock-info'
+           ref='stockInfo'
+           style={ { maxHeight: this.props.height * stockInfoHeightRatio + 'px' } }>
         <table>
           <tbody>
             <tr>
@@ -201,8 +225,8 @@ export default class Realtime extends React.Component<Prop, State> {
       </div>
 
       <div className='detailed-info' ref='detailedInfo' style={ {
-        maxHeight: this.props.height * 0.4 + 'px',
-        display: stockInfo && stockInfo.ticks.length ? 'block' : 'none',
+        maxHeight: this.props.height * detailedInfoHeightRatio + 'px',
+        display: showDetailedInfo ? 'block' : 'none',
       } }>
         <div>
           <ul className='tab-btn-group'

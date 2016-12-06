@@ -31,7 +31,8 @@ export abstract class Datasource extends EventEmitter {
    */
   protected _resolution: ResolutionType
   protected _timeDiff: number
-  protected _hasMore: boolean = true
+  protected _hasMoreHistory: boolean = true
+  // 保存上次请求的起始时间，用来记录loadHistory上次加载到哪个时间点
   protected _requestFromTime: number
   protected _pulseInterval = 60
 
@@ -72,11 +73,12 @@ export abstract class Datasource extends EventEmitter {
   public abstract search (time: number): number
 
   /**
-   * 从数据源中加载数据集
-   * @param  {number}  num 加载的条数
+   * 从数据源中加载历史数据集
+   * @param  {number}  loadNum 加载的条数
+   * @param  {number}  startFrom 从某个基准点时刻加载历史数据
    * @return {Promise}
    */
-  public abstract loadHistory(num: number): Promise<any>
+  public abstract loadHistory(loadNum: number, startFrom?: number): Promise<any>
 
   public abstract loadTimeRange(from: number, to: number): Promise<any>
 
@@ -86,7 +88,7 @@ export abstract class Datasource extends EventEmitter {
    * 清空缓存
    */
   public clearCache(): void {
-    this._hasMore = true
+    this._hasMoreHistory = true
     this._requestFromTime = null
   }
 
@@ -94,7 +96,7 @@ export abstract class Datasource extends EventEmitter {
     return ~~(Date.now() / 1000) - this._timeDiff
   }
 
-  get hasMore (): boolean {
-    return this._hasMore
+  get hasMoreHistory (): boolean {
+    return this._hasMoreHistory
   }
 }
