@@ -173,14 +173,14 @@ export class StockDatasource extends Datasource {
    * @param  {number}  startFrom 从某个基准点时刻加载历史数据
    * @return {Promise}
    */
-  public loadHistory (loadNum: number, startFrom?: number): Promise<any> {
+  public loadHistory (loadNum: number): Promise<any> {
     if (!this._hasMoreHistory) {
       return Promise.resolve()
     }
 
     const toTime = this._requestFromTime ?
                      this._requestFromTime : this._plotList.first() ?
-                       this._plotList.first().time : startFrom ? startFrom : this.now()
+                       this._plotList.first().time : this.now()
 
     let fromTime = 0
     let maxTimeSpan = 0

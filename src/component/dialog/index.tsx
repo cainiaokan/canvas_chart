@@ -4,8 +4,8 @@ import { DOWN_EVENT, DOWN_EVENT_REACT, MOVE_EVENT, UP_EVENT } from '../../consta
 
 type Prop = {
   title: string
-  width: number
-  height: number
+  width?: number
+  height?: number
   onClose?: () => void
 }
 
@@ -28,14 +28,17 @@ export default class Dialog extends React.Component<Prop, any> {
   }
 
   public componentDidMount () {
+    const container = this.refs.container
     const pageHeight = document.documentElement.clientHeight
     const pageWidth = document.documentElement.clientWidth
     const style = this.refs.container.style
     const props = this.props
+    const width = props.width || container.clientWidth
+    const height = props.height || container.clientHeight
     style.width = props.width + 'px'
     style.height = props.height + 'px'
-    style.top = pageHeight / 2 - props.height + 'px'
-    style.left = pageWidth / 2 - props.width / 2 + 'px'
+    style.top = pageHeight / 2 - height / 2 + 'px'
+    style.left = pageWidth / 2 - width / 2 + 'px'
     document.addEventListener(DOWN_EVENT, this.clickOutsideHandler)
     document.addEventListener(MOVE_EVENT, this.dragMoveHandler)
     document.addEventListener(UP_EVENT, this.dragEndHandler)

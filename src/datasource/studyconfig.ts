@@ -15,6 +15,7 @@ type StudyConfig = {
   [propName: string]: {
     stockAdapter: DataAdapter
     input: any[]
+    inputLabels: string[]
     isPrice: boolean
     output: DataConverter
     plots: Array<{
@@ -37,6 +38,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.close]
     },
     input: [5],
+    inputLabels: ['长度'],
     isPrice: true,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const n = input[0]
@@ -64,6 +66,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.volume, bar.close < bar.open]
     },
     input: [],
+    inputLabels: [],
     isPrice: false,
     output: (data: any[]): any[][] => {
       return [
@@ -86,6 +89,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.close]
     },
     input: [20, 2],
+    inputLabels: [],
     isPrice: true,
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
@@ -159,6 +163,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.close]
     },
     input: [12, 26, 9],
+    inputLabels: [],
     isPrice: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
@@ -212,6 +217,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.close, bar.high, bar.low]
     },
     input: [9, 3, 3],
+    inputLabels: [],
     isPrice: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const signal = input[0]
@@ -295,6 +301,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.close]
     },
     input: [6, 12, 24],
+    inputLabels: [],
     isPrice: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       if (index - Math.max.apply(Math, input) < 0) {
@@ -345,6 +352,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.high, bar.low, bar.close]
     },
     input: [14],
+    inputLabels: [],
     isPrice: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const len = input[0]

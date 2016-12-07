@@ -5,7 +5,7 @@
     font-weight: 600;
 
     height: 32px;
-    padding: 7px 12px 7px;
+    padding: 7px 16px 7px;
 
     cursor: default;
     vertical-align: bottom;
@@ -13,19 +13,46 @@
     color: #555;
     border: 1px solid #c9cbcd;
     background: #fff;
-  }
-  .btn:active {
-    background: #f2f5f8;
-  }
-  .btn:hover {
-    border: 1px solid #b5b7b9;
-    + .btn {
-      border-left: 1px solid #b5b7b9;
+    :active {
+      background: #f2f5f8;
+    }
+    :hover {
+      border: 1px solid #b5b7b9;
+      + .btn {
+        border-left: 1px solid #b5b7b9;
+      }
+    }
+    .active {
+      color: #58c3e5;
+      background: #f2f5f8;
     }
   }
-  .btn.active {
-    color: #58c3e5;
-    background: #f2f5f8;
+  .btn-blue {
+    border: none;
+    background: #00b3d1;
+    color: #fff;
+    &:hover {
+      background: #06bfdd;
+      border: none;
+    }
+    &:active {
+      background: #06a5bf;
+    }
+  }
+  .btn-gray {
+    border: none;
+    background: #9ca0a6;
+    color: #fff;
+    &:hover {
+      border: none;
+      background: #a4a8ad;
+    }
+    &:active {
+      background: #94989f;
+    }
+  }
+  .btn-smaller {
+    height: 28px;
   }
   .chart-btn-group {
     display: inline-block;

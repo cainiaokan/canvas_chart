@@ -2,6 +2,7 @@ import * as EventEmitter from 'eventemitter3'
 import { Datasource } from '../datasource'
 import ChartLayout from './chartlayout'
 import AxisXModel from './axisx'
+import StudyModel from './study'
 import AxisYModel, { YRange } from './axisy'
 import CrosshairModel from './crosshair'
 import GraphModel from './graph'
@@ -27,7 +28,8 @@ export default class ChartModel extends EventEmitter {
   private _watermark: WaterMarkRenerer
   private _isPrice: boolean
   private _isMain: boolean
-  private _isValid
+  private _isValid = false
+  private _isHit = false
 
   constructor (
     chartLayout: ChartLayout,
@@ -44,7 +46,6 @@ export default class ChartModel extends EventEmitter {
     this._crosshair = crosshair
     this._isPrice = isPrice
     this._isMain = isMain
-    this._isValid = false
     this._grid = new GridRenderer(this)
     this._graphs = []
     this._tools = []
@@ -59,6 +60,14 @@ export default class ChartModel extends EventEmitter {
 
   get graphs (): GraphModel[] {
     return this._graphs
+  }
+
+  get studies (): StudyModel[] {
+    return this.graphs.filter(graph => graph instanceof StudyModel) as StudyModel[]
+  }
+
+  get nonStudies (): GraphModel[] {
+    return this.graphs.filter(graph => !(graph instanceof StudyModel)) as StudyModel[]
   }
 
   get tools (): BaseToolRenderer[] {
@@ -91,6 +100,10 @@ export default class ChartModel extends EventEmitter {
 
   get isMain (): boolean {
     return this._isMain
+  }
+
+  get isHit (): boolean {
+    return this._isHit
   }
 
   get isValid (): boolean {
@@ -139,6 +152,7 @@ export default class ChartModel extends EventEmitter {
 
   public hitTest (select = false): boolean  {
     let hit = false
+
     for (let i = this._tools.length - 1; i >= 0; i--) {
       if (hit) {
         this._tools[i].hover = false
@@ -146,6 +160,7 @@ export default class ChartModel extends EventEmitter {
         hit = true
       }
     }
+
     for (let i = this._graphs.length - 1; i >= 0; i--) {
       if (hit) {
         this._graphs[i].hover = false
@@ -153,7 +168,16 @@ export default class ChartModel extends EventEmitter {
         hit = true
       }
     }
-    this._chartLayout.emit('hit', hit)
+
+    if (hit !== this._isHit) {
+      this._isHit = hit
+      this._chartLayout.emit('hit', hit)
+    }
+
+    if (select) {
+      this._chartLayout.emit('select', hit)
+    }
+
     return hit
   }
 

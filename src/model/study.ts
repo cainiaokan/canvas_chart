@@ -10,6 +10,7 @@ export default class StudyModel extends Graph {
 
   private _studyType: StudyType
   private _styles: ChartStyle[]
+  private _inputLabels: string[]
 
   constructor (
     datasource: Datasource,
@@ -22,6 +23,7 @@ export default class StudyModel extends Graph {
     super(datasource, chart, config.isPrice, config.stockAdapter, config.output, input || config.input)
     this._studyType = study
     this._styles = style || _.pluck(config.plots, 'style')
+    this._inputLabels = config.inputLabels || []
 
     config.plots.forEach((plotConfig, index) => {
       this._plots.push(
@@ -43,7 +45,7 @@ export default class StudyModel extends Graph {
     return this._styles
   }
 
-  get input (): any {
-    return this._input
+  get inputLabels (): string[] {
+    return this._inputLabels
   }
 }

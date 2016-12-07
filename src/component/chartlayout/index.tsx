@@ -105,6 +105,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       loaded: false,
       symbolType: '',
     }
+    this.updateView = this.updateView.bind(this)
   }
 
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
@@ -277,10 +278,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.setState({ right })
     })
     chartLayout.addListener('hit', chartLayout.lightUpdate)
+    chartLayout.addListener('select', chartLayout.lightUpdate)
     chartLayout.addListener('cursormove', chartLayout.lightUpdate)
     chartLayout.addListener('barmarginchange', chartLayout.lightUpdate)
     // study 添加或移除时，直接更新dom，不要刷新，因为size已经更新了。会自动刷新所有chart
-    chartLayout.addListener('studychange', study => this.forceUpdate())
+    chartLayout.addListener('addstudy', this.updateView)
+    chartLayout.addListener('removestudy', this.updateView)
+    chartLayout.addListener('modifystudy', chartLayout.lightUpdate)
     chartLayout.addListener('sidebarfoldstatechange', folded => this.setState({ sidebarFolded: folded }))
     chartLayout.addListener('drawingtoolsetvertex', chartLayout.lightUpdate)
     chartLayout.addListener('removedrawingtool', chartLayout.lightUpdate)
@@ -371,5 +375,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
       const axisX = this._chartLayoutModel.axisx
       axisX.offset -= ev.deltaX
     }
+  }
+
+  private updateView () {
+    this.forceUpdate()
   }
 }

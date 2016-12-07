@@ -4,6 +4,8 @@ import ChartModel from './chart'
 import PlotModel from './plot'
 import { YRange } from './axisy'
 
+let sequence = 0
+
 abstract class GraphModel {
   protected _plots: PlotModel[]
   protected _datasource: Datasource
@@ -12,6 +14,7 @@ abstract class GraphModel {
   protected _calc: DataConverter
   protected _input: any[]
   protected _isPrice: boolean
+  protected _id: number
 
   private _hover: boolean = false
   private _selected: boolean = false
@@ -32,8 +35,22 @@ abstract class GraphModel {
     this._adapter = adapter
     this._calc = calc
     this._input = input
+    this._id = sequence++
     this._plots = []
     this._cache = {}
+  }
+
+  get input (): any[] {
+    return this._input
+  }
+
+  set input (input: any[]) {
+    this._input = input
+    this._isValid = false
+  }
+
+  get id (): number {
+    return this._id
   }
 
   get isPrice (): boolean {

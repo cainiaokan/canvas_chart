@@ -360,7 +360,7 @@ export default class ChartLayoutModel extends EventEmitter {
       return
     }
     this.charts.forEach(ch => ch.crosshair.point = point)
-    this.emit('cursormove')
+    this.emit('cursormove', point)
   }
 
   /**
@@ -410,7 +410,7 @@ export default class ChartLayoutModel extends EventEmitter {
       this.charts.push(chart)
     }
 
-    this.emit('studychange')
+    this.emit('addstudy')
   }
 
   /**
@@ -431,12 +431,18 @@ export default class ChartLayoutModel extends EventEmitter {
           if (!chart.graphs.length) {
             this.charts.splice(i, 1)
           }
-          this.emit('studychange')
+          this.emit('removestudy')
           return true
         } else {
           return false
         }
       })
+  }
+
+  public modifyStudy (study: StudyModel, newInput: any[]) {
+    study.clearCache()
+    study.input = newInput
+    this.emit('modifystudy')
   }
 
   public drawingToolBegin (chart: ChartModel) {
@@ -527,7 +533,7 @@ export default class ChartLayoutModel extends EventEmitter {
     const axisX = this.axisx
     const totalWidth = this.mainDatasource.loaded() * axisX.barWidth
     const visibleWidth = axisX.width
-    // 当预加载的数据只剩余不足半屏时，执行预加载加载更多的数据以备展示
-    return totalWidth - visibleWidth - axisX.offset < visibleWidth / 2
+    // 当预加载的数据只剩余不足一屏时，执行预加载加载更多的数据以备展示
+    return totalWidth - visibleWidth - axisX.offset < visibleWidth
   }
 }

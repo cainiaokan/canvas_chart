@@ -88,17 +88,14 @@ export default class FooterBar extends React.Component<Prop, State> {
         </div>
         {
           this.state.showGotoDateDialog ?
-          <Dialog title='定位时间'
-                  width={300}
-                  height={100}
-                  onClose={this.dialogCloseHandler}>
-            <div>
+          <Dialog title='定位时间' onClose={this.dialogCloseHandler}>
+            <div className='chart-go-to-date'>
               <input ref='dateInput'
                      type='text'
                      readOnly={true}
                      defaultValue={nowDateStr}
                      onClick={this.inputClickHandler} />
-              <button className='chart-go-to-date-btn btn' onClick={this.goToDateHandler}>前往</button>
+              <button className='btn btn-blue' onClick={this.goToDateHandler}>前往</button>
             </div>
             <Datetime
               input={false}

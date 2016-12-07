@@ -78,7 +78,7 @@ export abstract class Datasource extends EventEmitter {
    * @param  {number}  startFrom 从某个基准点时刻加载历史数据
    * @return {Promise}
    */
-  public abstract loadHistory(loadNum: number, startFrom?: number): Promise<any>
+  public abstract loadHistory(loadNum: number): Promise<any>
 
   public abstract loadTimeRange(from: number, to: number): Promise<any>
 

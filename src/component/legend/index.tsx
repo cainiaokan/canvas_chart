@@ -1,10 +1,14 @@
 import './index.less'
+import '../../style/btn.less'
+
 import * as React from 'react'
-import { StockDatasource, IStockBar } from '../../datasource'
+import * as _ from 'underscore'
+import { StockDatasource } from '../../datasource'
 import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import StudyModel from '../../model/study'
 import StockModel from '../../model/stock'
+import Dialog from '../../component/dialog'
 import { formatNumber } from '../../util'
 
 type Prop = {
@@ -12,20 +16,37 @@ type Prop = {
   chartModel: ChartModel
 }
 
-export default class Legend extends React.Component<Prop, any> {
+type State = {
+  showSettingDialog?: boolean
+}
+
+export default class Legend extends React.Component<Prop, State> {
+  public refs: {
+    settingForm: HTMLFormElement
+  }
+
+  private _studyInSetting: StudyModel = null
 
   constructor (proportion: number) {
     super()
+    this.state = {
+      showSettingDialog: false,
+    }
+    this.cursorMoveHandler = this.cursorMoveHandler.bind(this)
+    this.studySettingsDialogOpenHandler = this.studySettingsDialogOpenHandler.bind(this)
+    this.studySettingDialogCloseHanlder = this.studySettingDialogCloseHanlder.bind(this)
+    this.confirmBtnClickHanler = this.confirmBtnClickHanler.bind(this)
     this.updateView = this.updateView.bind(this)
   }
 
-  public shouldComponentUpdate () {
-    return false
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+    return !_.isEqual(this.state, nextState)
   }
 
   public componentDidMount () {
-    this.props.chartModel.chartLayout.addListener('cursormove', this.updateView)
+    this.props.chartModel.chartLayout.addListener('cursormove', this.cursorMoveHandler)
     this.props.chartModel.chartLayout.addListener('hit', this.updateView)
+    this.props.chartModel.chartLayout.addListener('select', this.updateView)
     this.props.chartModel.chartLayout.addListener('resolutionchange', this.updateView)
     this.props.chartModel.chartLayout.addListener('symbolchange', this.updateView)
     this.props.chartLayout.addListener('symbolresolved', this.updateView)
@@ -33,7 +54,8 @@ export default class Legend extends React.Component<Prop, any> {
   }
 
   public componentWillUnmound () {
-    this.props.chartModel.chartLayout.removeListener('cursormove', this.updateView)
+    this.props.chartModel.chartLayout.removeListener('cursormove', this.cursorMoveHandler)
+    this.props.chartModel.chartLayout.removeListener('select', this.updateView)
     this.props.chartModel.chartLayout.removeListener('hit', this.updateView)
     this.props.chartModel.chartLayout.removeListener('resolutionchange', this.updateView)
     this.props.chartModel.chartLayout.removeListener('symbolchange', this.updateView)
@@ -42,20 +64,31 @@ export default class Legend extends React.Component<Prop, any> {
   }
 
   public render () {
-    const maStudies = this.props.chartModel.graphs
-      .filter(graph => graph instanceof StudyModel && graph.studyType === 'MA') as Array<StudyModel>
+    const chart = this.props.chartModel
+    // 过滤出所有非指标图
+    const nonStudies = chart.nonStudies
+    // 过滤出所有指标图
+    const studies = chart.studies
+    // 过滤出所有均线指标图
+    const maStudies = studies.filter(graph => graph.studyType === 'MA') as Array<StudyModel>
+    // 过滤出所有非均线指标
+    const nonMAStudies = studies.filter(graph => graph.studyType !== 'MA') as Array<StudyModel>
+
+    const studyInSetting = this._studyInSetting
+    const input = this.state.showSettingDialog ? studyInSetting.input : null
+    const inputLabels = this.state.showSettingDialog ? studyInSetting.inputLabels : null
+
     return (
       <div className='chart-legend'>
         {
-          this.props.chartModel.graphs.filter(graph => !(graph instanceof StudyModel)).map(graph => {
+          nonStudies.map(graph => {
+            // 股票类图形
             if (graph instanceof StockModel) {
-              const bars = graph.getCurBar()
-              const prevBars = graph.getPrevBar()
+              const curBar = graph.getCurBar()
+              const prevBar = graph.getPrevBar()
               const datasource = graph.datasource as StockDatasource
-              const bar = bars ?
-                datasource.barAt(datasource.search(bars[0][1])) as IStockBar : null
-              const prev = prevBars ?
-                datasource.barAt(datasource.search(prevBars[0][1])) as IStockBar : null
+              const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
+              const prev = prevBar ? datasource.barAt(datasource.search(prevBar[0][1])) : null
               const colorUp = '#FF0000'
               const colorDown = '#008000'
               const resolution = datasource.resolution
@@ -89,77 +122,74 @@ export default class Legend extends React.Component<Prop, any> {
                   break
               }
               return [
-              <div className='chart-legend-line'
-                style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
-                <div className='chart-legend-item main'>
-                  {
-                    !datasource.symbolInfo.description ?
-                    '加载中' : `${datasource.symbolInfo.description},${resolutionText}`
-                  }
-                </div>
-                <div className='chart-legend-item' style={ bar ? {
-                  color: bar.changerate > 0 ?
-                    colorUp : bar.changerate < 0 ?
-                      colorDown : 'inherit',
-                  display: resolution === '1' ? '' : 'none'} : {display : 'none'} }>
-                  现价&nbsp;{bar ? formatNumber(bar.close) : 'N/A'}
-                </div>
-                <div className='chart-legend-item' style={ bar ? {
-                  color: prev ? bar.open > prev.close ?
-                    colorUp : bar.open < prev.close ?
-                      colorDown : 'inherit' : 'inherit',
-                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                  开盘&nbsp;{bar ? formatNumber(bar.open) : 'N/A'}
-                </div>
-                <div className='chart-legend-item' style={ bar ? {
-                  color: prev ? bar.high > prev.close ?
-                    colorUp : bar.high < prev.close ?
-                      colorDown : 'inherit' : 'inherit',
-                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                  最高&nbsp;{bar ? formatNumber(bar.high) : 'N/A'}
-                </div>
-                <div className='chart-legend-item' style={ bar ? {
-                  color: prev ? bar.low > prev.close ?
-                    colorUp : bar.low < prev.close ?
-                      colorDown : 'inherit' : 'inherit',
-                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                  最低&nbsp;{bar ? formatNumber(bar.low) : 'N/A'}
-                </div>
-                <div className='chart-legend-item' style={ bar ? {
-                  color: prev ? bar.close > prev.close ?
-                    colorUp : bar.close < prev.close ?
-                      colorDown : 'inherit' : 'inherit',
-                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                  收盘&nbsp;{bar ? formatNumber(bar.close) : 'N/A'}
-                </div>
-                <div className='chart-legend-item'
-                  style={ bar ? {
-                    color: bar.changerate > 0 ?
-                      colorUp : bar.changerate < 0 ?
+                <div className='chart-legend-line'
+                  style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
+                  <div className='chart-legend-item main'>
+                    {
+                      !datasource.symbolInfo.description ?
+                      '加载中' : `${datasource.symbolInfo.description},${resolutionText}`
+                    }
+                  </div>
+                  <div className='chart-legend-item' style={ cur ? {
+                    color: cur.changerate > 0 ?
+                      colorUp : cur.changerate < 0 ?
                         colorDown : 'inherit',
-                    display: typeof bar.changerate === 'number' ? '' : 'none'} : {display: 'none'}}>
-                  涨跌幅&nbsp;
-                  {
-                    bar && typeof bar.changerate === 'number' ?
-                      (bar.changerate > 0 ? '+' : '') +
-                      (bar.changerate * 100).toFixed(2) + '%'
-                      :'N/A'
-                  }
-                </div>
-                <div className='chart-legend-item'
-                style={ {display: bar && typeof bar.turnover === 'string' ? '' : 'none'} }>
-                  换手率&nbsp;{ bar && typeof bar.turnover === 'string' ? (+bar.turnover * 100).toFixed(2) + '%' : 'N/A'}
-                </div>
-              </div>,
-              <div className='chart-legend-line'
-                style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
-                <div className='chart-legend-item' style={ {display:bar ? '' : 'none'} }>
-                  成交量&nbsp;{bar ? formatNumber(bar.volume) + '手' : 'N/A'}
-                </div>
-                <div className='chart-legend-item' style={ {display:bar ? '' : 'none'} }>
-                  成交额&nbsp;{bar ? formatNumber(bar.amount) : 'N/A'}
-                </div>
-              </div>,
+                    display: resolution === '1' ? '' : 'none'} : {display : 'none'} }>
+                    现价&nbsp;{cur ? formatNumber(cur.close) : 'N/A'}
+                  </div>
+                  <div className='chart-legend-item' style={ cur ? {
+                    color: prev ? cur.open > prev.close ?
+                      colorUp : cur.open < prev.close ?
+                        colorDown : 'inherit' : 'inherit',
+                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                    开盘&nbsp;{cur ? formatNumber(cur.open) : 'N/A'}
+                  </div>
+                  <div className='chart-legend-item' style={ cur ? {
+                    color: prev ? cur.high > prev.close ?
+                      colorUp : cur.high < prev.close ?
+                        colorDown : 'inherit' : 'inherit',
+                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                    最高&nbsp;{cur ? formatNumber(cur.high) : 'N/A'}
+                  </div>
+                  <div className='chart-legend-item' style={ cur ? {
+                    color: prev ? cur.low > prev.close ?
+                      colorUp : cur.low < prev.close ?
+                        colorDown : 'inherit' : 'inherit',
+                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                    最低&nbsp;{cur ? formatNumber(cur.low) : 'N/A'}
+                  </div>
+                  <div className='chart-legend-item' style={ cur ? {
+                    color: prev ? cur.close > prev.close ?
+                      colorUp : cur.close < prev.close ?
+                        colorDown : 'inherit' : 'inherit',
+                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                    收盘&nbsp;{cur ? formatNumber(cur.close) : 'N/A'}
+                  </div>
+                  <div className='chart-legend-item'
+                    style={ cur ? {
+                      color: cur.changerate > 0 ?
+                        colorUp : cur.changerate < 0 ?
+                          colorDown : 'inherit',
+                      display: typeof cur.changerate === 'number' ? '' : 'none'} : {display: 'none'}}>
+                    涨跌幅&nbsp;
+                    {
+                      cur && typeof cur.changerate === 'number' ?
+                        (cur.changerate > 0 ? '+' : '') +
+                        (cur.changerate * 100).toFixed(2) + '%'
+                        :'N/A'
+                    }
+                  </div>
+                  <div className='chart-legend-item'
+                  style={ {display: cur && typeof cur.turnover === 'string' ? '' : 'none'} }>
+                    换手率&nbsp;{ cur && typeof cur.turnover === 'string' ? (+cur.turnover * 100).toFixed(2) + '%' : 'N/A'}
+                  </div>
+                  <div className='chart-legend-item' style={ {display:cur ? '' : 'none'} }>
+                    成交量&nbsp;{cur ? formatNumber(cur.volume) + '手' : 'N/A'}
+                  </div>
+                  <div className='chart-legend-item' style={ {display:cur ? '' : 'none'} }>
+                    成交额&nbsp;{cur ? formatNumber(cur.amount) : 'N/A'}
+                  </div>
+                </div>,
               ]
             }
           })
@@ -178,24 +208,42 @@ export default class Legend extends React.Component<Prop, any> {
                     fontWeight: ma.hover || ma.selected ? 600 : 'normal',
                   } }>
                   {ma.studyType}{ma.input[0]}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
+                  {/*<a className='chart-legend-btn' href='javascript:;'>
+                    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' width='14' height='14'>
+                      <path d='M0 0v14h14V0zm7 2.69c3.018 0 5.172 3.232 5.172 4.31 0 1.077-2.154 4.31-5.172 4.31S1.828 8.08 1.828 7c0-1.077 2.154-4.31 5.172-4.31zm0 1.508C5.49 4.198 4.198 5.49 4.198 7S5.49 9.802 7 9.802 9.802 8.51 9.802 7 8.51 4.198 7 4.198zm0 1.68c.646 0 1.12.476 1.12 1.122 0 .646-.473 1.12-1.12 1.12-.646 0-1.12-.473-1.12-1.12 0-.646.473-1.12 1.12-1.12z'></path>
+                    </svg>
+                  </a>*/}
+                  <a className='chart-legend-btn'
+                     href='javascript:;'
+                     data-id={ma.id}
+                     onClick={this.studySettingsDialogOpenHandler}>
+                    <svg xmlns='http://www.w3.org/2000/svg' viewBox='-2.4 120.9 14 14' width='14' height='14'>
+                      <path d='M-2.4 120.9v14h14v-14zm6.086 1.803H5.52v1.332c.416.1.805.258 1.166.48l.944-.935 1.297 1.297-.943.943c.215.35.38.748.48 1.164H9.8v1.837H8.463c-.1.417-.257.806-.48 1.167l.935.944-1.296 1.298-.944-.943c-.35.215-.747.38-1.164.48v1.332H3.677v-1.33c-.415-.102-.804-.258-1.165-.482l-.943.936-1.298-1.296.94-.945c-.216-.35-.38-.748-.482-1.165H-.597v-1.835H.737c.1-.416.257-.805.48-1.166l-.935-.944 1.296-1.297.944.943c.35-.215.747-.38 1.164-.48zm.912 3.053c-1.188 0-2.143.963-2.143 2.143 0 1.187.963 2.143 2.143 2.143 1.18 0 2.14-.963 2.145-2.145 0-1.188-.966-2.144-2.145-2.144z'></path>
+                    </svg>
+                  </a>
+                  {/*<a className='chart-legend-btn' href='javascript:;'>
+                    <svg xmlns='http://www.w3.org/2000/svg' viewBox='-2.4 120.9 14 14' width='14' height='14'>
+                      <path d='M-2.4 120.9v14h14v-14zm3.34 2.123l3.66 3.66 3.66-3.66 1.217 1.22-3.66 3.658 3.66 3.66-1.22 1.22-3.658-3.66-3.66 3.66-1.22-1.22 3.66-3.66-3.66-3.66z'></path>
+                    </svg>
+                  </a>*/}
                 </div>
               })
             }
           </div> : null
         }
         {
-          this.props.chartModel.graphs.filter(graph => (graph instanceof StudyModel)).map(graph => {
-             if (graph instanceof StudyModel && graph.studyType !== 'MA' && graph.studyType !== 'VOLUME') {
-              const bars = graph.getCurBar()
+          nonMAStudies.map(study => {
+            if (study.studyType !== 'VOLUME') {
+              const curBar = study.getCurBar()
               return <div className='chart-legend-line'
-                style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
+                style={ {fontWeight: study.hover || study.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item'>
-                  {graph.studyType}({graph.input.join(',')})
+                  {study.studyType}({study.input.join(',')})
                 </div>
                 {
-                  bars && bars.map((bar, index) => !graph.styles[index].noLegend ?
+                  curBar && curBar.map((bar, index) => !study.styles[index].noLegend ?
                     <div className='chart-legend-item'
-                    style={ {color: graph.styles[index].color} }>
+                    style={ {color: study.styles[index].color} }>
                       {bar[2].toFixed(4)}
                     </div> : null
                   )
@@ -204,8 +252,58 @@ export default class Legend extends React.Component<Prop, any> {
             }
           })
         }
+        {
+          this.state.showSettingDialog ?
+          <Dialog title='设置' onClose={this.studySettingDialogCloseHanlder}>
+            <form ref='settingForm' className='chart-study-setting'>
+            {
+              input.map((value, i) => {
+                if (typeof value === 'number') {
+                  return <div>
+                    <div className='chart-study-setting-field'>
+                      <label>{inputLabels[i]}</label>
+                      <input type='text' defaultValue={value + ''} />
+                    </div>
+                    <div className='chart-study-setting-btn-group clearfix'>
+                      <a href='javascript:;' className='btn btn-gray' onClick={this.studySettingDialogCloseHanlder}>取消</a>
+                      <a href='javascript:;' className='btn btn-blue' onClick={this.confirmBtnClickHanler}>确定</a>
+                    </div>
+                  </div>
+                }
+              })
+            }
+            </form>
+          </Dialog> : null
+        }
       </div>
     )
+  }
+
+  private studySettingsDialogOpenHandler (ev) {
+    this._studyInSetting = _.findWhere(this.props.chartModel.studies, { id: +ev.currentTarget.dataset.id })
+    this.setState({ showSettingDialog: true })
+  }
+
+  private studySettingDialogCloseHanlder () {
+    this._studyInSetting = null
+    this.setState({ showSettingDialog: false })
+  }
+
+  private confirmBtnClickHanler () {
+    const settingForm = this.refs.settingForm
+    const newInput = this._studyInSetting.input.map((value, i) => settingForm[i].tagName.toUpperCase() === 'INPUT' ? +settingForm[i].value : Boolean(settingForm[i].value))
+    this.props.chartLayout.modifyStudy(this._studyInSetting, newInput)
+    this.studySettingDialogCloseHanlder()
+  }
+
+  /**
+   * 指针移动事件触发的回调处理函数
+   * @param  {[type]} point 指针位置
+   */
+  private cursorMoveHandler (point) {
+    if (point) {
+      this.forceUpdate()
+    }
   }
 
   private updateView () {
