@@ -6,6 +6,10 @@ import ChartLayoutModel from '../../../model/chartlayout'
 
 type Prop = {
   chartLayout: ChartLayoutModel
+  className?: string
+  placeholder?: string
+  autofill?: boolean
+  onSelect: (symbo: string) => void
 }
 
 type State = {
@@ -15,6 +19,11 @@ type State = {
 }
 
 export default class SearchBox extends React.Component<Prop, State> {
+  public static defaultProps = {
+    className: '',
+    placeholder: '',
+    autofill: false,
+  }
 
   public refs: {
       [key: string]: (Element)
@@ -55,11 +64,16 @@ export default class SearchBox extends React.Component<Prop, State> {
   public render () {
     const state = this.state
     return (
-      <div className='chart-searchbox'>
-        <input className='chart-searchbox-input' type='text' maxLength={100} ref='input'
-          onFocus={this.inputFocosHandler.bind(this)}
-          onBlur={this.inputBlurHandler.bind(this)}
-          onInput={this.keyDownHandler.bind(this)}/>
+      <div className={`chart-searchbox ${this.props.className}`}>
+        <input className='chart-searchbox-input'
+               defaultValue={''}
+               type='text'
+               maxLength={100}
+               placeholder={this.props.placeholder}
+               ref='input'
+               onFocus={this.inputFocosHandler.bind(this)}
+               onBlur={this.inputBlurHandler.bind(this)}
+               onInput={this.keyDownHandler.bind(this)}/>
         <ul className='chart-searchresults'
           style={
             {
@@ -90,8 +104,13 @@ export default class SearchBox extends React.Component<Prop, State> {
 
   private selectSymbolHandler (index) {
     const symbolInfo = this.state.results[index]
-    this.props.chartLayout.setSymbol(symbolInfo.symbol)
-    this.refs.input.value = symbolInfo.symbol
+    this.props.onSelect(symbolInfo.symbol)
+    if (this.props.autofill) {
+      setTimeout(() => {
+        this.refs.input.value = symbolInfo.symbol
+        this.refs.input.blur()
+      }, 300)
+    }
   }
 
   private inputFocosHandler () {

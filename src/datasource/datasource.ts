@@ -46,6 +46,10 @@ export abstract class Datasource extends EventEmitter {
     this._timeDiff = timeDiff
   }
 
+  get timeDiff () {
+    return this._timeDiff
+  }
+
   get pulseInterval () {
     return this._pulseInterval
   }

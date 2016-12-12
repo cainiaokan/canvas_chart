@@ -35,6 +35,12 @@ export class StockDatasource extends Datasource {
    * 股票代码
    * @type {string}
    */
+  private _symbol: string
+
+  /**
+   * 股票详细信息
+   * @type {SymbolInfo}
+   */
   private _symbolInfo: SymbolInfo
 
   private _right: number
@@ -46,13 +52,9 @@ export class StockDatasource extends Datasource {
    */
   constructor (symbol: string, resolution: ResolutionType, right: number, timeDiff: number = 0) {
     super(resolution, timeDiff)
+    this._symbol = symbol
     this._right = right
-    this._symbolInfo = {
-      symbol,
-      type: 'stock',
-      exchange: '',
-      description: '',
-    }
+    this._symbolInfo = null
     this._plotList = new PlotList<IStockBar>()
   }
 
@@ -69,6 +71,7 @@ export class StockDatasource extends Datasource {
   }
 
   set symbolInfo (symbolInfo: SymbolInfo) {
+    this._symbol = symbolInfo.symbol
     this._symbolInfo = symbolInfo
   }
 
@@ -109,7 +112,7 @@ export class StockDatasource extends Datasource {
   public loadTimeRange (from: number, to: number): Promise<IStockBar[]> {
     const firstBar = this._plotList.first()
     const lastBar = this._plotList.last()
-    const symbol = this._symbolInfo.symbol
+    const symbol = this._symbol
     const resolution = this._resolution
     const right = this._right
     if (from > to) {
@@ -154,7 +157,7 @@ export class StockDatasource extends Datasource {
               stockBars = _.unique(stockBars, bar => bar.time)
 
               // 请求期间symbol和resolution都没发生改变，则merge
-              if (symbol.toUpperCase() === this._symbolInfo.symbol.toUpperCase() &&
+              if (symbol.toUpperCase() === this._symbol.toUpperCase() &&
                   resolution === this._resolution) {
                 this._plotList.merge(stockBars)
                 resolve(stockBars)
@@ -253,14 +256,11 @@ export class StockDatasource extends Datasource {
 
   public resolveSymbol (): Promise<SymbolInfo> {
     return new Promise((resolve, reject) => {
-      RPC.resolveSymbol(this._symbolInfo.symbol)
+      RPC.resolveSymbol(this._symbol)
         .then(response => response
           .json()
           .then(data => {
-            this._symbolInfo.description = data.description
-            this._symbolInfo.exchange = data.exchange
-            this._symbolInfo.symbol = data.symbol
-            this._symbolInfo.type = data.type
+            this._symbolInfo = data
             resolve()
           })
           .catch(reject)

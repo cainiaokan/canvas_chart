@@ -3,9 +3,12 @@
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
+    line-height: 32px;
+
+    display: inline-block;
 
     height: 32px;
-    padding: 7px 16px 7px;
+    padding: 0 16px;
 
     cursor: default;
     vertical-align: bottom;
@@ -13,36 +16,36 @@
     color: #555;
     border: 1px solid #c9cbcd;
     background: #fff;
-    :active {
+    &:active {
       background: #f2f5f8;
     }
-    :hover {
+    &:hover {
       border: 1px solid #b5b7b9;
       + .btn {
         border-left: 1px solid #b5b7b9;
       }
     }
-    .active {
+    &.active {
       color: #58c3e5;
       background: #f2f5f8;
     }
   }
   .btn-blue {
+    color: #fff;
     border: none;
     background: #00b3d1;
-    color: #fff;
     &:hover {
-      background: #06bfdd;
       border: none;
+      background: #06bfdd;
     }
     &:active {
       background: #06a5bf;
     }
   }
   .btn-gray {
+    color: #fff;
     border: none;
     background: #9ca0a6;
-    color: #fff;
     &:hover {
       border: none;
       background: #a4a8ad;
@@ -52,12 +55,16 @@
     }
   }
   .btn-smaller {
+    line-height: 28px;
+
     height: 28px;
   }
   .chart-btn-group {
     display: inline-block;
+
+    margin-right: 8px;
   }
-  .chart-btn-group .btn:not(:last-child) {
+  .chart-btn-group .btn:not(:last-of-type) {
     border-right: none;
   }
 }

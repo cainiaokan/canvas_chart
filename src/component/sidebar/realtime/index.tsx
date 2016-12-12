@@ -1,10 +1,10 @@
 import './index.less'
 import * as React from 'react'
+import * as iScroll from 'iscroll'
 import { max as d3_max } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { arc as d3_arc, pie as d3_pie } from 'd3-shape'
 import { StockInfo, CapitalFlowInfo } from '../pollmanager'
-import * as iScroll from '../../../vendor/iscroll'
 
 type Prop = {
   width: number
@@ -105,8 +105,8 @@ export default class Realtime extends React.Component<Prop, State> {
     if (showBidList) {
       if (showDetailedInfo) {
         bidListHeightRatio = 0.3
-        stockInfoHeightRatio = 0.3
-        detailedInfoHeightRatio = 0.4
+        stockInfoHeightRatio = 0.25
+        detailedInfoHeightRatio = 0.45
       } else {
         bidListHeightRatio = 0.5
         stockInfoHeightRatio = 0.5
@@ -122,7 +122,7 @@ export default class Realtime extends React.Component<Prop, State> {
 
     return <div className='realtime-info'>
       <div className='bid-list' ref='bidList' style={{
-        maxHeight: this.props.height * bidListHeightRatio + 'px',
+        height: this.props.height * bidListHeightRatio + 'px',
         display: showBidList ? 'block' : 'none',
       } }>
         <div>
@@ -168,7 +168,7 @@ export default class Realtime extends React.Component<Prop, State> {
 
       <div className='stock-info'
            ref='stockInfo'
-           style={ { maxHeight: this.props.height * stockInfoHeightRatio + 'px' } }>
+           style={ { height: this.props.height * stockInfoHeightRatio + 'px' } }>
         <table>
           <tbody>
             <tr>
@@ -225,7 +225,7 @@ export default class Realtime extends React.Component<Prop, State> {
       </div>
 
       <div className='detailed-info' ref='detailedInfo' style={ {
-        maxHeight: this.props.height * detailedInfoHeightRatio + 'px',
+        height: this.props.height * detailedInfoHeightRatio + 'px',
         display: showDetailedInfo ? 'block' : 'none',
       } }>
         <div>

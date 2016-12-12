@@ -40,6 +40,25 @@ select:disabled {
   background: inherit;
 }
 
+input[type='text'] {
+  font-size: 13px;
+  font-weight: 600;
+
+  height: 32px;
+  padding: 0 0 0 7px;
+
+  cursor: auto;
+  vertical-align: bottom;
+
+  color: #524f4f;
+  border: 1px solid #c9cbcd;
+  border-radius: 0;
+  background: #fff;
+
+  -webkit-appearance: none;
+          appearance: none;
+}
+
 a {
   cursor: pointer;
   user-select: none;

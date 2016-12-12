@@ -70,6 +70,10 @@ export default class ChartModel extends EventEmitter {
     return this.graphs.filter(graph => !(graph instanceof StudyModel)) as StudyModel[]
   }
 
+  get mainGraph (): GraphModel {
+    return this.graphs.filter(graph => graph.isMain)[0] || null
+  }
+
   get tools (): BaseToolRenderer[] {
     return this._tools
   }
@@ -113,6 +117,16 @@ export default class ChartModel extends EventEmitter {
            this.axisY.isValid
   }
 
+  public addGraph (graph: GraphModel) {
+    this.graphs.push(graph)
+    this._isValid = false
+  }
+
+  public removeGraph (graph: GraphModel) {
+    this.graphs.splice(this.graphs.indexOf(graph), 1)
+    this._isValid = false
+  }
+
   public addDrawingTool (tool: BaseToolRenderer) {
     this._tools.push(tool)
     this._isValid = false
@@ -123,8 +137,8 @@ export default class ChartModel extends EventEmitter {
     this._isValid = false
   }
 
-  public getRangeY (): YRange {
-    return this._graphs
+  public calcRangeY () {
+    this._axisY.range = this._graphs
       .reduce((range: YRange, graph: GraphModel) => {
         // 如果chart是价格相关的，但是某个子图是价格无关的，则忽略它
         if (this.isPrice && !graph.isPrice) {
@@ -196,6 +210,8 @@ export default class ChartModel extends EventEmitter {
     this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
     // 绘制当前可见的画图工具
     this._tools.filter(tool => tool.isNowVisible()).forEach(tool => tool.draw())
+
+    this._isValid = true
   }
 
   public clearTopCanvas () {
@@ -204,6 +220,10 @@ export default class ChartModel extends EventEmitter {
     const height = this.height
 
     ctx.clearRect(0, 0, width, height)
+  }
+
+  public clearCache () {
+    this.graphs.forEach(graph => graph.clearVisibleBarCache())
   }
 
   private drawBg () {

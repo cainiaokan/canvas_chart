@@ -37,6 +37,8 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.state = {
       tabIndex: 0,
     }
+    this.symbolResolvedHandler = this.symbolResolvedHandler.bind(this)
+    this.symbolChangeHandler = this.symbolChangeHandler.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
@@ -47,21 +49,28 @@ export default class Sidebar extends React.Component<Prop, State> {
            this.state.tabIndex !== nextState.tabIndex
   }
 
-  public componentWillMount () {
-    const datasource = this.props.chartLayout.mainDatasource as StockDatasource
-    this._pollManager = new PollManager(datasource.symbolInfo, 0)
+  public componentDidMount () {
+    const chartLayout = this.props.chartLayout
+    const symbolInfo = (chartLayout.mainDatasource as StockDatasource).symbolInfo
+
+    this._pollManager = new PollManager()
     this._pollManager.on('data', data => {
       this._data = data
       this.forceUpdate()
     })
-    this.props.chartLayout.addListener('symbolresolved', symbolInfo => {
-      this._pollManager.symbolInfo = symbolInfo
-      this._pollManager.start()
-    })
-    this.props.chartLayout.addListener('symbolchange', symbolInfo => {
-      this._pollManager.symbolInfo = symbolInfo
-      this._pollManager.restart()
-    })
+
+    if (!!symbolInfo) {
+      this.symbolResolvedHandler(symbolInfo)
+    } else {
+      chartLayout.addListener('symbolresolved', this.symbolResolvedHandler)
+      chartLayout.addListener('symbolchange', this.symbolChangeHandler)
+    }
+  }
+
+  public componentWillUnmount () {
+    const chartLayout = this.props.chartLayout
+    chartLayout.removeListener('symbolresolved', this.symbolResolvedHandler)
+    chartLayout.removeListener('symbolchange', this.symbolChangeHandler)
   }
 
   public render () {
@@ -72,8 +81,10 @@ export default class Sidebar extends React.Component<Prop, State> {
       ['sector', '所属板块'],
       ['tools', '更多工具'],
     ]
-    const stockInfo = this._data.stockInfo
     const chartLayout = this.props.chartLayout
+    const symbolInfo = (chartLayout.mainDatasource as StockDatasource).symbolInfo
+
+    const stockInfo = this._data.stockInfo
     const height = this.props.height - STOCK_PANEL_HEIGHT
     const width = this.props.width - 2
 
@@ -144,7 +155,9 @@ export default class Sidebar extends React.Component<Prop, State> {
             </span>
           </div>
         </div> :
-        <div className='stock-title'>{(chartLayout.mainDatasource as StockDatasource).symbolInfo.description}</div>
+        <div className='stock-title'>
+          {!!symbolInfo ? symbolInfo.description : '加载中'}
+        </div>
       }
       <div className='data-window-tabs'>
         <ul className='tab-list' onClick={this.switchTabPage.bind(this)}>
@@ -197,5 +210,15 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.setState({
       tabIndex: index,
     })
+  }
+
+  private symbolResolvedHandler (symbolInfo) {
+    this._pollManager.symbolInfo = symbolInfo
+    this._pollManager.start()
+  }
+
+  private symbolChangeHandler (symbolInfo) {
+    this._pollManager.symbolInfo = symbolInfo
+    this._pollManager.restart()
   }
 }

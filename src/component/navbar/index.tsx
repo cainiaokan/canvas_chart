@@ -1,95 +1,64 @@
 import './index.less'
-import '../../style/btn.less'
 import * as React from 'react'
 import { ResolutionType, SUPPORT_TOUCH } from '../../constant'
+import ResolutionOption from './resolution'
 import SearchBox from './searchbox'
+import DateTimePicker from './datetime'
+import Compare from './compare'
+import IndicatorSelector from './indicator'
 import FullScreen from './fullscreen'
+import RightOption from './right'
 import ChartLayoutModel from '../../model/chartlayout'
 
 type Prop = {
   chartLayout: ChartLayoutModel
   resolution: ResolutionType
   symbolType: string
-  right?: number
+  width: number
+  right?: 0 | 1 | 2
 }
 
-type State = {
-}
-
-const studyLabels = ['分时', '日K', '5分钟', '15分钟', '30分钟', '60分钟', '周K', '月K']
-const studyValues = ['1', 'D', '5', '15', '30', '60', 'W', 'M']
-
-const rightLabels = ['除权', '前复权']
-const rightValues = [0, 1]
-
-export default class Navbar extends React.Component<Prop, State> {
-
+export default class Navbar extends React.Component<Prop, any> {
   public static defaultProps = {
     right: 1,
     symbolType: '',
   }
 
-  public componentWillMount () {
-    this.state = {
-      resolution: this.props.resolution,
-      right: this.props.right,
-    }
+  constructor () {
+    super()
+    this.selectSymbolHandler = this.selectSymbolHandler.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop) {
     const curProp = this.props
     return curProp.resolution !== nextProps.resolution ||
            curProp.symbolType !== nextProps.symbolType ||
+           curProp.width !== nextProps.width ||
            curProp.right !== nextProps.right
   }
 
   public render () {
-    return (
-      <div className='chart-navbar'>
-        <SearchBox chartLayout={this.props.chartLayout} />
-        <div className='chart-btn-group resolution-btn-group' onClick={this.resolutionSelectHandler.bind(this)}>
-          {
-            studyValues.map((val, index) => {
-              let className = 'btn'
-              if (this.props.resolution === val) {
-                className += ' active'
-              }
-              return <button className={className} value={val}>{studyLabels[index]}</button>
-            })
-          }
-        </div>
+    const chartLayout = this.props.chartLayout
+    return <div className='chart-navbar' style={ {width: this.props.width + 'px'} }>
+        <SearchBox chartLayout={chartLayout}
+                   className='chart-navbar-search'
+                   autofill={true}
+                   onSelect={this.selectSymbolHandler} />
+        <ResolutionOption chartLayout={chartLayout} resolution={this.props.resolution} />
+        <DateTimePicker chartLayout={chartLayout} />
         {
           !SUPPORT_TOUCH ? <FullScreen /> : null
         }
+        <Compare chartLayout={chartLayout} />
+        <IndicatorSelector chartLayout={chartLayout} />
         {
           this.props.symbolType === 'stock' ?
-          <div className='chart-btn-group right-btn-group' onClick={this.rightSelectHandler.bind(this)}>
-          {
-            rightValues.map((val, index) => {
-              let className = 'btn'
-              if (this.props.right === val) {
-                className += ' active'
-              }
-              return <button className={className} value={val}>{rightLabels[index]}</button>
-            })
-          }
-          </div> : null
+          <RightOption chartLayout={chartLayout} right={this.props.right} /> : null
         }
       </div>
-    )
   }
 
-  private resolutionSelectHandler (ev) {
-    const resolution = ev.target.value
-    if (this.props.resolution !== resolution) {
-      this.props.chartLayout.setResolution(resolution)
-    }
-  }
-
-  private rightSelectHandler (ev) {
-    const right = +ev.target.value
-    if (this.props.right !== right) {
-      this.props.chartLayout.setRight(right)
-    }
+  private selectSymbolHandler (symbol) {
+    this.props.chartLayout.setSymbol(symbol)
   }
 }

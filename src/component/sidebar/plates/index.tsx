@@ -1,9 +1,9 @@
 import './index.less'
 import * as React from 'react'
-import { SUPPORT_TOUCH } from '../../../constant'
+import * as iScroll from 'iscroll'
 import { PlateList } from '../pollmanager'
 import { getStockListByPlate } from '../../../datasource'
-import * as iScroll from '../../../vendor/iscroll'
+import { SUPPORT_TOUCH } from '../../../constant'
 
 type Prop = {
   plates: PlateList

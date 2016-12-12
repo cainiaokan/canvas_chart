@@ -20,9 +20,9 @@ module.exports = {
       'd3-array',
       'd3-scale',
       'd3-shape',
-      './src/vendor/iscroll.js',
+      'iscroll',
+      'spin',
       './src/vendor/hidpi-canvas-polyfill.js',
-      './src/vendor/spin.js'
     ],
     // chart功能的入口模块
     'static/js/chart': './src/index.tsx',
@@ -54,7 +54,7 @@ module.exports = {
           'image?{bypassOnDebug: true, progressive:true, optimizationLevel: 3, pngquant:{quality: "65-80"}}',
           'url?limit=10000&name=img/[hash:8].[name].[ext]',
         ]
-      },
+      }
     ]
   },
   plugins: [
@@ -73,7 +73,8 @@ module.exports = {
     // 配置生产环境变量
     new webpack.DefinePlugin({
       'process.env':{
-        'NODE_ENV': JSON.stringify('production')
+        NODE_ENV: JSON.stringify('production'),
+        BROWSER: JSON.stringify(true)
       }
     }),
 
@@ -98,10 +99,10 @@ module.exports = {
   ],
   resolve: {
     root: [
-      path.resolve('./src/vendor')
+      // path.resolve('./src/vendor')
     ],
     alias: {
     },
-    extensions: ['', '.js', '.ts', '.tsx']
+    extensions: ['', '.js', '.ts', '.tsx'],
   }
 }

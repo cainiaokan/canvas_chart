@@ -1,7 +1,7 @@
 .chart-sidebar {
-  position: absolute;
-  top: 0;
-  right: 0;
+  position: relative;
+
+  float: right;
 
   vertical-align: top;
 
@@ -121,19 +121,9 @@
     }
   }
   .data-page-list {
-    position: absolute;
-    top: 76px;
-    bottom: 0;
-    left: 0;
-
     overflow: hidden;
 
     width: 268px;
-
-    border-right: solid #c9cbcd 1px;
-  }
-  &.folded .data-page-list {
-    display: none;
   }
   .tab-list {
     position: absolute;
@@ -143,6 +133,7 @@
 
     width: 44px;
 
+    border-left: 1px solid #c9cbcd;
     background: #f1f3f6;
     > li {
       position: relative;
@@ -209,6 +200,14 @@
       &.active:before {
         background-position: center -177px;
       }
+    }
+  }
+  &.folded {
+    .data-page-list {
+      display: none;
+    }
+    .tab-list {
+      border-left: none;
     }
   }
 }

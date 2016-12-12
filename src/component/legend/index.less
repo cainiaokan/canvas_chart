@@ -4,8 +4,11 @@
 
   position: absolute;
   z-index: 9;
-  top: 16px;
-  left: 24px;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  padding: 16px 0 0 24px;
 
   cursor: auto;
   .chart-legend-line {
@@ -14,8 +17,9 @@
     margin-bottom: 8px;
 
     white-space: nowrap;
-  }
-  .chart-legend-line {
+    &:last-child {
+      margin-bottom: 0;
+    }
     .main {
       font-size: 16px;
 
@@ -50,28 +54,18 @@
 .chart-study-setting {
   width: 300px;
   &-field {
-    line-height: 30px;
+    line-height: 25px;
 
-    height: 30px;
+    height: 25px;
     label {
       font-weight: 600;
 
       margin-right: 8px;
     }
     input {
-      font-family: Trebuchet MS,Tahoma,Arial,sans-serif;
-      font-size: 14px;
-
-      display: inline-block;
-      overflow: hidden;
-
       height: 25px;
-      margin: 0;
-      padding-left: 8px;
 
-      color: inherit;
-      color: #5a5a5a;
-      border: 1px solid #c9cbcd;
+      widht: 200px;
       &:focus {
         border-color: #3bb3e4;
       }

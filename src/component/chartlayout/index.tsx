@@ -1,5 +1,5 @@
 import './index.less'
-import * as Spinner from '../../vendor/spin.js'
+import * as Spinner from 'spin'
 import * as React from 'react'
 import * as _ from 'underscore'
 import Chart from '../chart'
@@ -54,7 +54,7 @@ type State = {
   loaded?: boolean
   sidebarFolded?: boolean
   resolution?: ResolutionType
-  right?: number
+  right?: 0 | 1 | 2
   symbolType?: string
 }
 
@@ -85,7 +85,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scrollable: true,
     shape: 'line',
     showtoolbox: true,
-    showfooterbar: true,
+    showfooterbar: false,
     shownavbar: true,
     showsidebar: true,
     type: 'realtime',
@@ -207,6 +207,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
       new StockModel(
         mainDatasource,
         chart,
+        true,
+        true,
+        false,
         this.state.resolution === '1' && this.props.shape === 'candle' ? 'line' : this.props.shape,
         { lineWidth: 2 }
       ))
@@ -250,20 +253,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.addListener('resolutionchange', resolution => {
       // 股票类型时，分时图显示线形图，其他显示蜡烛图
       if (chartLayout.mainDatasource instanceof StockDatasource && this.props.shape === 'candle') {
+        const mainGraph = chartLayout.mainChart.mainGraph as StockModel
         if (resolution === '1') {
-          chartLayout.mainChart.graphs
-            .filter(graph => graph instanceof StockModel)
-            .forEach(graph => {
-              (graph as StockModel).setShape('line')
-              graph.plots[0].shape = 'line'
-            })
+          mainGraph.setShape('line')
+          mainGraph.plots[0].shape = 'line'
         } else {
-          chartLayout.mainChart.graphs
-            .filter(graph => graph instanceof StockModel)
-            .forEach(graph => {
-              (graph as StockModel).setShape(this.props.shape)
-              graph.plots[0].shape = this.props.shape
-            })
+          mainGraph.setShape(this.props.shape)
+          mainGraph.plots[0].shape = this.props.shape
         }
       }
       chartLayout.resetChart()
@@ -281,10 +277,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.addListener('select', chartLayout.lightUpdate)
     chartLayout.addListener('cursormove', chartLayout.lightUpdate)
     chartLayout.addListener('barmarginchange', chartLayout.lightUpdate)
-    // study 添加或移除时，直接更新dom，不要刷新，因为size已经更新了。会自动刷新所有chart
-    chartLayout.addListener('addstudy', this.updateView)
-    chartLayout.addListener('removestudy', this.updateView)
-    chartLayout.addListener('modifystudy', chartLayout.lightUpdate)
+    chartLayout.addListener('addchart', this.updateView)
+    chartLayout.addListener('deletechart', this.updateView)
+    chartLayout.addListener('addgraph', chartLayout.lightUpdate)
+    chartLayout.addListener('deletegraph', chartLayout.lightUpdate)
+    chartLayout.addListener('modifygraph', chartLayout.lightUpdate)
     chartLayout.addListener('sidebarfoldstatechange', folded => this.setState({ sidebarFolded: folded }))
     chartLayout.addListener('drawingtoolsetvertex', chartLayout.lightUpdate)
     chartLayout.addListener('removedrawingtool', chartLayout.lightUpdate)
@@ -292,16 +289,21 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public render () {
     const chartLayoutModel = this._chartLayoutModel
-    // 12 是padding 10 和 border 2
     const width = this.props.width
     const height = this.props.height
+
+    // 根据屏幕宽度重置选项
+    const showSideBar = width > 768 ? this.props.showsidebar : false
+    const showToolBox = width > 768 ? this.props.showtoolbox : false
+
+    // 12 是chart-body的margin 10 和 border 2
     let availWidth = width - 12
     let availHeight = height - AXIS_X_HEIGHT - 14
 
-    if (this.props.showtoolbox) {
+    if (showToolBox) {
       availWidth -= TOOLBOX_WIDTH
     }
-    if (this.props.showsidebar) {
+    if (showSideBar) {
       availWidth -= !this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
     }
     if (this.props.shownavbar) {
@@ -335,14 +337,22 @@ export default class ChartLayout extends React.Component<Prop, State> {
       <div className='chart-layout' ref='root'
         style={ {height: height + 'px',width: width + 'px'} }>
         {
-          this.props.showtoolbox ?
+          showToolBox ?
           <ToolBox chartLayout={this._chartLayoutModel} /> : null
+        }
+        {
+          showSideBar ?
+          <Sidebar chartLayout={this._chartLayoutModel}
+                   folded={this.state.sidebarFolded}
+                   width={!this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
+                   height={this.props.height} /> : null
         }
         {
           this.props.shownavbar ?
           <Navbar resolution={this.state.resolution}
                   chartLayout={this._chartLayoutModel}
                   symbolType={this.state.symbolType}
+                  width={availWidth}
                   right={this.state.right} /> : null
         }
         <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }
@@ -352,13 +362,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
                  height={AXIS_X_HEIGHT}
                  width={availWidth - AXIS_Y_WIDTH} />
         </div>
-        {
-          this.props.showsidebar ?
-          <Sidebar chartLayout={this._chartLayoutModel}
-                   folded={this.state.sidebarFolded}
-                   width={!this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
-                   height={this.props.height} /> : null
-        }
         {
           this.props.showfooterbar ?
           <FooterBar chartLayout={this._chartLayoutModel}

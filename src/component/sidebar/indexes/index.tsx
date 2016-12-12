@@ -2,8 +2,8 @@ import './index.less'
 import '../../../style/table.less'
 
 import * as React from 'react'
+import * as iScroll from 'iscroll'
 import { SUPPORT_TOUCH } from '../../../constant'
-import * as iScroll from '../../../vendor/iscroll'
 import ChartLayout from '../../../model/chartlayout'
 import { IndexesInfo, RealtimeTools } from '../pollmanager'
 
@@ -68,8 +68,8 @@ export default class Indexes extends React.Component<Prop, State> {
     if (this._indexesInfo) {
       Object.keys(indexesInfo)
         .forEach(code =>
-          mutations[code] =
-            indexesInfo[code].changeAmount !== this._indexesInfo[code].changeAmount ? 'mutation' : '')
+          mutations[code] = indexesInfo[code].changeAmount !== this._indexesInfo[code].changeAmount ? 'mutation' : ''
+        )
     }
 
     if (indexesInfo) {
@@ -77,7 +77,8 @@ export default class Indexes extends React.Component<Prop, State> {
         .forEach(code =>
           classList[code] =
             indexesInfo[code].changeAmount > 0 ? 'positive' :
-              indexesInfo[code].changeAmount < 0 ? 'negtive' : '')
+              indexesInfo[code].changeAmount < 0 ? 'negtive' : ''
+        )
     }
 
     if (realtimeTools) {
@@ -85,7 +86,8 @@ export default class Indexes extends React.Component<Prop, State> {
         .forEach(key =>
           classList[key] =
             realtimeTools[key][1] === 'red' ? 'positive' :
-              realtimeTools[key][1] === 'green' ? 'negtive' : '')
+              realtimeTools[key][1] === 'green' ? 'negtive' : ''
+        )
     }
 
     this._indexesInfo = indexesInfo

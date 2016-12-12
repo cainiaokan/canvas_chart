@@ -20,7 +20,7 @@ export default class StudyModel extends Graph {
     style?: ChartStyle[]) {
 
     const config = studyConfig[study]
-    super(datasource, chart, config.isPrice, config.stockAdapter, config.output, input || config.input)
+    super(datasource, chart, config.isPrice, false, false, config.stockAdapter, config.output, input || config.input)
     this._studyType = study
     this._styles = style || _.pluck(config.plots, 'style')
     this._inputLabels = config.inputLabels || []

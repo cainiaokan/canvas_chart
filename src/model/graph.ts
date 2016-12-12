@@ -4,7 +4,7 @@ import ChartModel from './chart'
 import PlotModel from './plot'
 import { YRange } from './axisy'
 
-let sequence = 0
+let sequence = 1
 
 abstract class GraphModel {
   protected _plots: PlotModel[]
@@ -14,24 +14,30 @@ abstract class GraphModel {
   protected _calc: DataConverter
   protected _input: any[]
   protected _isPrice: boolean
+  protected _ismain: boolean
+  protected _isComparison: boolean
   protected _id: number
 
   private _hover: boolean = false
   private _selected: boolean = false
   private _isValid: boolean = true
-  private _visibleBars: any[][]
+  private _visibleBarCache: any[][]
   private _cache: { [propName: number]: any[] }
 
   constructor (
     datasource: Datasource,
     chart: ChartModel,
     isPrice: boolean,
+    isMain: boolean,
+    isComparison: boolean,
     adapter: DataAdapter,
     calc: DataConverter,
     input: any = null) {
     this._datasource = datasource
     this._chart = chart
     this._isPrice = isPrice
+    this._ismain = isMain
+    this._isComparison = isComparison
     this._adapter = adapter
     this._calc = calc
     this._input = input
@@ -55,6 +61,14 @@ abstract class GraphModel {
 
   get isPrice (): boolean {
     return this._isPrice
+  }
+
+  get isMain (): boolean {
+    return this._ismain
+  }
+
+  get isComparison (): boolean {
+    return this._isComparison
   }
 
   get selected (): boolean {
@@ -96,7 +110,6 @@ abstract class GraphModel {
   }
 
   public draw () {
-    this._visibleBars = null
     this._plots.forEach(plot => plot.draw())
     this._isValid = true
   }
@@ -181,8 +194,8 @@ abstract class GraphModel {
    * @return {IBar[]}
    */
   public getVisibleBars (): IBar[][] {
-    if (this._visibleBars) {
-      return this._visibleBars
+    if (this._visibleBarCache) {
+      return this._visibleBarCache
     }
 
     const timeBars = this._chart.axisX.getVisibleTimeBars()
@@ -258,14 +271,17 @@ abstract class GraphModel {
       }
     }
 
-    return this._visibleBars = visibleBars
+    return this._visibleBarCache = visibleBars
+  }
+
+  public clearVisibleBarCache () {
+    this._visibleBarCache = null
   }
 
   public clearCache () {
-    this._visibleBars = null
+    this._visibleBarCache = null
     this._cache = {}
   }
-
 }
 
 export default GraphModel

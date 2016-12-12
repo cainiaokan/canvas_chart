@@ -1,15 +1,21 @@
 import './index.less'
 import * as React from 'react'
+import * as _ from 'underscore'
 import { DOWN_EVENT, DOWN_EVENT_REACT, MOVE_EVENT, UP_EVENT } from '../../constant'
 
 type Prop = {
   title: string
   width?: number
   height?: number
+  className?: string
   onClose?: () => void
 }
 
 export default class Dialog extends React.Component<Prop, any> {
+  public static defaultProps = {
+    className: '',
+  }
+
   public refs: {
     container: HTMLDivElement
   }
@@ -25,6 +31,10 @@ export default class Dialog extends React.Component<Prop, any> {
     this.dragStartHandler = this.dragStartHandler.bind(this)
     this.dragMoveHandler = this.dragMoveHandler.bind(this)
     this.dragEndHandler = this.dragEndHandler.bind(this)
+  }
+
+  public shouldComponentUpdate (nextProps: Prop) {
+    return !_.isEqual(this.props, nextProps)
   }
 
   public componentDidMount () {
@@ -55,7 +65,7 @@ export default class Dialog extends React.Component<Prop, any> {
       [DOWN_EVENT_REACT]: this.dragStartHandler,
     }
 
-    return <div ref='container' className='chart-dialog'>
+    return <div ref='container' className={`${this.props.className} chart-dialog`}>
       <h3 {...dragEvents}>{this.props.title}</h3>
       <a href='javascript:;' className='close' onClick={this.closeHandler}></a>
       <div className='chart-dialog-body'>

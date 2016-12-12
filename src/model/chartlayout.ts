@@ -1,6 +1,8 @@
 import * as EventEmitter from 'eventemitter3'
 import * as _ from 'underscore'
+import * as randomColor from 'randomcolor'
 import ChartModel from './chart'
+import StockModel from './stock'
 import AxisXModel from './axisx'
 import StudyModel from './study'
 import CrosshairModel from './crosshair'
@@ -89,7 +91,7 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
-   * 全刷新
+   * 全量刷新
    */
   public fullUpdate () {
     const axisX = this.axisx
@@ -106,7 +108,9 @@ export default class ChartLayoutModel extends EventEmitter {
     this._lastAnimationFrame = requestAnimationFrame(() => {
       axisX.draw()
       this.charts.forEach(chart => {
-        chart.axisY.range = chart.getRangeY()
+        // 全量刷新需要刷新chart中的缓存
+        chart.clearCache()
+        chart.calcRangeY()
         chart.draw()
         chart.axisY.draw()
         chart.clearTopCanvas()
@@ -117,7 +121,7 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
-   * 轻量级刷新
+   * 轻量刷新
    */
   public lightUpdate () {
     if (!this._lastAnimationFrame) {
@@ -125,7 +129,7 @@ export default class ChartLayoutModel extends EventEmitter {
         this.axisx.draw(this.axisx.isValid ? true : false)
         this.charts.forEach(chart => {
           if (!chart.axisY.range) {
-            chart.axisY.range = chart.getRangeY()
+            chart.calcRangeY()
           }
           if (!chart.isValid) {
             chart.draw()
@@ -314,12 +318,7 @@ export default class ChartLayoutModel extends EventEmitter {
       .then(response =>
         response.json()
           .then(data => {
-            const symbolInfo: SymbolInfo = {
-              symbol,
-              type: data.type,
-              description: data.description,
-              exchange: data.exchange,
-            }
+            const symbolInfo: SymbolInfo = data
             const mainDatasource = this._mainDatasource
             this.clearCharts()
             if (mainDatasource instanceof StockDatasource) {
@@ -382,9 +381,18 @@ export default class ChartLayoutModel extends EventEmitter {
       const studyModel = new StudyModel(
         this._mainDatasource,
         this.mainChart,
-        study
+        study,
+        null,
+        study === 'MA' ? [{
+          color: randomColor({
+            luminosity: 'bright',
+            hue: 'random',
+          }),
+          lineWidth: 1,
+        }] : null
       )
-      this.mainChart.graphs.push(studyModel)
+      this.mainChart.addGraph(studyModel)
+      this.emit('addgraph')
     } else {
       const mainDatasource = this._mainDatasource
       const crosshair = new CrosshairModel(this)
@@ -406,43 +414,98 @@ export default class ChartLayoutModel extends EventEmitter {
       axisY.chart = chart
       crosshair.chart = chart
 
-      chart.graphs.push(studyModel)
+      chart.addGraph(studyModel)
       this.charts.push(chart)
+      this.emit('addchart')
     }
-
-    this.emit('addstudy')
   }
 
   /**
    * 移除指标
    * @param {StudyType} study
    */
-  public removeStudy (study: StudyType) {
-    this.charts
-      .some((chart, i) => {
-        if (chart.graphs.some((graph, j) => {
-          if (graph instanceof StudyModel && graph.studyType === study) {
-            chart.graphs.splice(j, 1)
-            return true
-          } else {
-            return false
-          }
-        })) {
-          if (!chart.graphs.length) {
-            this.charts.splice(i, 1)
-          }
-          this.emit('removestudy')
-          return true
-        } else {
-          return false
-        }
-      })
+  public deleteStudy (chart: ChartModel, studyId: number) {
+    if (chart.graphs.some(graph => {
+      if (graph instanceof StudyModel && graph.id === studyId) {
+        chart.removeGraph(graph)
+        return true
+      } else {
+        return false
+      }
+    })) {
+      // 如果此时chart中已经没有其他图形了，则把整个chart都移除
+      if (!chart.graphs.length) {
+        this.charts.splice(this.charts.indexOf(chart), 1)
+        this.emit('deletechart')
+      } else {
+        this.emit('deletegraph')
+      }
+      return true
+    } else {
+      return false
+    }
   }
 
+  /**
+   * 修改指标参数
+   * @param {StudyModel} study    指标对象
+   * @param {any[]}      newInput 参数
+   */
   public modifyStudy (study: StudyModel, newInput: any[]) {
     study.clearCache()
     study.input = newInput
-    this.emit('modifystudy')
+    this.emit('modifygraph')
+  }
+
+  /**
+   * 增加对比股票图形
+   * @param {string} symbol 对比股票的代码
+   */
+  public addComparison (symbol: string) {
+    const mainDatasource = this.mainDatasource as StockDatasource
+    const mainChart = this.mainChart
+    const datasource = new StockDatasource(symbol, mainDatasource.resolution, mainDatasource.right, mainDatasource.timeDiff)
+    const stockModel = new StockModel(
+      datasource,
+      mainChart,
+      false,
+      false,
+      true,
+      'line',
+      {
+        color: randomColor({
+          luminosity: 'bright',
+          hue: 'random',
+        }),
+        lineWidth: 1,
+      }
+    )
+    resolveSymbol(symbol)
+      .then(response =>
+        response.json()
+          .then(data => {
+            datasource.symbolInfo = data
+            datasource
+              .loadHistory(mainDatasource.loaded())
+              .then(() => {
+                mainChart.addGraph(stockModel)
+                this.emit('addgraph', data)
+              })
+          })
+      )
+    return stockModel.id
+  }
+
+  public deleteComparison (graphId: number) {
+    this.mainChart.graphs.some((graph, j) => {
+      if (graph.isComparison && graph.id === graphId) {
+        this.mainChart.graphs.splice(j, 1)
+        this.emit('deletegraph')
+        return true
+      } else {
+        return false
+      }
+    })
   }
 
   public drawingToolBegin (chart: ChartModel) {
@@ -485,7 +548,13 @@ export default class ChartLayoutModel extends EventEmitter {
   public goToDate (time: number) {
     const mainDatasource = this._mainDatasource
     const axisX = this._axisx
-    const index = mainDatasource.search(time)
+
+    if (mainDatasource.loaded() === 0) {
+      return
+    }
+
+    const index = time < mainDatasource.last().time ? mainDatasource.search(time) : mainDatasource.loaded() - 1
+
     if (index !== -1) {
       axisX.offset =  (mainDatasource.loaded() - 1.5 - index) * axisX.barWidth - axisX.width / 2
     } else {

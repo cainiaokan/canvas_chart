@@ -61,7 +61,7 @@ export default class ToolBox extends React.Component<Prop, State> {
     document.addEventListener(DOWN_EVENT, this.hideMoreTools)
   }
 
-  public componentDidUnmount () {
+  public componentWillUnmount () {
     this.props.chartLayout.removeListener('drawingtoolend',  this.resetTool)
     this.props.chartLayout.removeListener('removedrawingtool', this.resetTool)
     document.removeEventListener(DOWN_EVENT, this.hideMoreTools)

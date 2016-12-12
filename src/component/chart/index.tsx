@@ -48,6 +48,8 @@ export default class Chart extends React.Component<Prop, State> {
   private _v: number = 0
   private _momentumTimer: number
 
+  private canvasOffset = null
+
   constructor () {
     super()
     this.state = {
@@ -83,6 +85,8 @@ export default class Chart extends React.Component<Prop, State> {
     chart.ctx = this.refs.canvas.getContext('2d')
     chart.topCtx = this.refs.topCanvas.getContext('2d')
 
+    this.canvasOffset = clientOffset(chart.ctx.canvas)
+
     chartLayout.addListener('hit', this.hitHandler)
     chartLayout.addListener('defaultcursorchange', this.defaultCursorChangeHandler)
     document.addEventListener(MOVE_EVENT, this.dragMoveHandler)
@@ -115,6 +119,7 @@ export default class Chart extends React.Component<Prop, State> {
       chart.topCtx = topCanvas.getContext('2d')
       chart.width = width
       chart.height = height
+      this.canvasOffset = clientOffset(chart.ctx.canvas)
     }
   }
 
@@ -162,11 +167,11 @@ export default class Chart extends React.Component<Prop, State> {
     const axisX = this.props.chartLayout.axisx
     this._momentumTimer = setTimeout(() => {
       if (Math.abs(v) > 10) {
-        axisX.offset += v * 60 / 1000
+        axisX.offset += v * 30 / 1000
         v -= v * 0.3
         this.momentumMove(v)
       }
-    }, 60)
+    }, 30)
   }
 
   private stopMomentum () {
@@ -197,7 +202,7 @@ export default class Chart extends React.Component<Prop, State> {
   private startHandler (ev: any) {
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
-    const offset = clientOffset(chart.topCtx.canvas)
+    const offset = this.canvasOffset
     const curPoint = ev.touches ? {
       x: ev.touches[0].pageX - offset.offsetLeft,
       y: ev.touches[0].pageY - offset.offsetTop,
@@ -314,7 +319,7 @@ export default class Chart extends React.Component<Prop, State> {
 
     if (this._dragOffsetStart) {
       if (ev.touches) {
-        if (Date.now() - this._lastMoveTime < 100 && Math.abs(this._v) > 100) {
+        if (Date.now() - this._lastMoveTime < 60 && Math.abs(this._v) > 100) {
           this.momentumMove(this._v)
         }
       }
@@ -336,7 +341,7 @@ export default class Chart extends React.Component<Prop, State> {
   private moveHandler (ev: any) {
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
-    const offset = clientOffset(chart.topCtx.canvas)
+    const offset = this.canvasOffset
     const point = ev.touches ? {
       x: ev.touches[0].pageX - offset.offsetLeft,
       y: ev.touches[0].pageY - offset.offsetTop,
@@ -373,7 +378,7 @@ export default class Chart extends React.Component<Prop, State> {
       const chart = this.props.chart
       const axisX = chart.axisX
       const axisY = chart.axisY
-      const offset = clientOffset(chart.topCtx.canvas)
+      const offset = this.canvasOffset
       const point = ev.touches ? {
           x: ev.touches[0].pageX - offset.offsetLeft,
           y: ev.touches[0].pageY - offset.offsetTop,

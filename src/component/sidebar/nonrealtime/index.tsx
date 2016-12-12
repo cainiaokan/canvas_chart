@@ -1,8 +1,8 @@
 import './index.less'
 import '../../../style/table.less'
 import * as React from 'react'
+import * as iScroll from 'iscroll'
 import { NonRealtimeTools } from '../pollmanager'
-import * as iScroll from '../../../vendor/iscroll'
 
 type Prop = {
   nonRealtimeTools: NonRealtimeTools
