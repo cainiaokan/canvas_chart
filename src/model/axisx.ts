@@ -1,7 +1,7 @@
 import * as EventEmitter from 'eventemitter3'
 import CrosshairModel from '../model/crosshair'
 import { Datasource } from '../datasource'
-import { ResolutionType, WEEKDAYS, OPEN_HOURS } from '../constant'
+import { ResolutionType, OPEN_DAYS, OPEN_TIME_RANGE } from '../constant'
 import AxisXRenderer from '../graphic/axisx'
 import XTickMark from './xtickmark'
 
@@ -10,9 +10,9 @@ export interface ITimeBar {
   x: number
 }
 
-const MARGIN = 50
+export const INITIAL_OFFSET = 50
 export const MAX_BAR_WIDTH = 30
-export const MIN_BAR_WIDTH = 5
+export const MIN_BAR_WIDTH = 1
 
 export default class AxisXModel extends EventEmitter {
 
@@ -21,7 +21,7 @@ export default class AxisXModel extends EventEmitter {
   public height: number
 
   private _barWidth: number = 8
-  private _offset: number = -MARGIN
+  private _offset: number = -INITIAL_OFFSET
   private _datasource: Datasource
   private _crosshair: CrosshairModel
   private _graphic: AxisXRenderer
@@ -51,7 +51,7 @@ export default class AxisXModel extends EventEmitter {
       this._barWidth = width
     }
     this._isValid = false
-    this.emit('barwidthchange', this._barWidth)
+    this.emit('barwidth_change', this._barWidth)
   }
 
   get isValid (): boolean {
@@ -71,7 +71,7 @@ export default class AxisXModel extends EventEmitter {
       this._offset = offset
     }
     this._isValid = false
-    this.emit('offsetchange', this._offset)
+    this.emit('offset_change', this._offset)
   }
 
   get datasource (): Datasource {
@@ -301,10 +301,10 @@ export default class AxisXModel extends EventEmitter {
           nextDate.setMonth(nextDate.getMonth() + 2)
           nextDate.setTime(nextDate.getTime() - 24 * 3600 * 1000)
         }
-        if (WEEKDAYS.indexOf(nextDate.getDay()) === -1) {
+        if (OPEN_DAYS.indexOf(nextDate.getDay()) === -1) {
           let day = nextDate.getDay()
           let diffDays = 0
-          while (WEEKDAYS.indexOf(day) === -1) {
+          while (OPEN_DAYS.indexOf(day) === -1) {
             day = day - 1 < 0 ? 6 : day - 1
             diffDays++
           }
@@ -317,11 +317,11 @@ export default class AxisXModel extends EventEmitter {
 
     if (resolution <= '60') {
       for (let i = 0,
-           len = OPEN_HOURS.length,
+           len = OPEN_TIME_RANGE.length,
            nextDateHour = nextDate.getHours(),
            nextDateMinute = nextDate.getMinutes(); i < len; i++) {
-        let nextHours = OPEN_HOURS[i + 1]
-        const curHours = OPEN_HOURS[i]
+        let nextHours = OPEN_TIME_RANGE[i + 1]
+        const curHours = OPEN_TIME_RANGE[i]
         const curCloseHour = curHours[1][0]
         const curCloseMinute = curHours[1][1]
         let nextOpenHour
@@ -341,7 +341,7 @@ export default class AxisXModel extends EventEmitter {
         } else {
           if (nextDateHour > curCloseHour ||
              (nextDateHour === curCloseHour && nextDateMinute > curCloseMinute)) {
-            nextHours = OPEN_HOURS[0]
+            nextHours = OPEN_TIME_RANGE[0]
             nextOpenHour = nextHours[0][0]
             nextOpenMinute = nextHours[0][1]
             nextDate.setTime(nextDate.getTime() + 24 * 3600 * 1000)
@@ -353,10 +353,10 @@ export default class AxisXModel extends EventEmitter {
       }
     }
 
-    if (WEEKDAYS.indexOf(nextDate.getDay()) === -1) {
+    if (OPEN_DAYS.indexOf(nextDate.getDay()) === -1) {
       let day = nextDate.getDay()
       let diffDays = 0
-      while (WEEKDAYS.indexOf(day % 7) === -1) {
+      while (OPEN_DAYS.indexOf(day % 7) === -1) {
         diffDays++
         day++
       }
@@ -405,10 +405,10 @@ export default class AxisXModel extends EventEmitter {
         prevDate = new Date(time * 1000)
         prevDate.setDate(1)
         prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
-        if (WEEKDAYS.indexOf(prevDate.getDay()) === -1) {
+        if (OPEN_DAYS.indexOf(prevDate.getDay()) === -1) {
           let day = prevDate.getDay()
           let diffDays = 0
-          while (WEEKDAYS.indexOf(day) === -1) {
+          while (OPEN_DAYS.indexOf(day) === -1) {
             day = day - 1 < 0 ? 6 : day - 1
             diffDays++
           }
@@ -420,11 +420,11 @@ export default class AxisXModel extends EventEmitter {
     }
 
     if (resolution <= '60') {
-      for (let i = OPEN_HOURS.length - 1,
+      for (let i = OPEN_TIME_RANGE.length - 1,
            prevDateHour = prevDate.getHours(),
            prevDateMinute = prevDate.getMinutes(); i >= 0; i--) {
-        let prevHours = OPEN_HOURS[i - 1]
-        const curHours = OPEN_HOURS[i]
+        let prevHours = OPEN_TIME_RANGE[i - 1]
+        const curHours = OPEN_TIME_RANGE[i]
         const curOpenHour = curHours[0][0]
         const curOpenMinute = curHours[0][1]
         let prevCloseHour
@@ -449,7 +449,7 @@ export default class AxisXModel extends EventEmitter {
         } else {
           if (prevDateHour < curOpenHour ||
              (prevDateHour === curOpenHour && prevDateMinute < curOpenMinute)) {
-            prevHours = OPEN_HOURS[OPEN_HOURS.length - 1]
+            prevHours = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1]
             prevCloseHour = prevHours[1][0]
             prevCloseMinute = prevHours[1][1]
             prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
@@ -458,7 +458,7 @@ export default class AxisXModel extends EventEmitter {
             break
           // 向收盘截止时间对齐。例如9:30应当展示位了前一交易日的收盘时间15:00
           } else if (prevDateHour === curOpenHour && prevDateMinute === curOpenMinute) {
-            prevHours = OPEN_HOURS[OPEN_HOURS.length - 1]
+            prevHours = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1]
             prevCloseHour = prevHours[1][0]
             prevCloseMinute = prevHours[1][1]
             prevDate.setTime(prevDate.getTime() - 24 * 3600 * 1000)
@@ -469,10 +469,10 @@ export default class AxisXModel extends EventEmitter {
       }
     }
 
-    if (WEEKDAYS.indexOf(prevDate.getDay()) === -1) {
+    if (OPEN_DAYS.indexOf(prevDate.getDay()) === -1) {
       let day = prevDate.getDay()
       let diffDays = 0
-      while (WEEKDAYS.indexOf(day) === -1) {
+      while (OPEN_DAYS.indexOf(day) === -1) {
         day = day - 1 < 0 ? 6 : day - 1
         diffDays++
       }
@@ -494,7 +494,7 @@ export default class AxisXModel extends EventEmitter {
   }
 
   public resetOffset () {
-    this._offset = -MARGIN
+    this._offset = -INITIAL_OFFSET
   }
 
   private getMaxOffset (): number {

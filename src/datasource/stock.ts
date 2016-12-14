@@ -1,10 +1,9 @@
 import * as _ from 'underscore'
+import moment = require('moment')
 import * as RPC from './rpc'
 import PlotList  from './plotlist'
-import { ResolutionType, WEEKDAYS } from '../constant'
+import { ResolutionType, OPEN_DAYS, OPEN_MINITES_COUNT } from '../constant'
 import { IBar, Datasource, SymbolInfo } from './datasource'
-
-const DAY_OFF_NUM = 7 - WEEKDAYS.length
 
 /**
  * 股票信息的数据规格
@@ -110,21 +109,13 @@ export class StockDatasource extends Datasource {
    * @return {Promise<IStockBar[]>}      请求到的数据结果
    */
   public loadTimeRange (from: number, to: number): Promise<IStockBar[]> {
-    const firstBar = this._plotList.first()
-    const lastBar = this._plotList.last()
     const symbol = this._symbol
     const resolution = this._resolution
     const right = this._right
+
     if (from > to) {
       return Promise.resolve()
       // throw TypeError('from must less than to.')
-    }
-    if (firstBar) {
-      if (lastBar.time < to && lastBar.time <= from) {
-        from = lastBar.time
-      } else if (firstBar.time > from && firstBar.time <= to) {
-        to = firstBar.time
-      }
     }
 
     return new Promise((resolve, reject) =>
@@ -172,11 +163,11 @@ export class StockDatasource extends Datasource {
 
   /**
    * 从数据源中加载历史数据集
-   * @param  {number}  loadNum 加载的条数
-   * @param  {number}  startFrom 从某个基准点时刻加载历史数据
+   * @param  {number}  requiredNum 加载的条数
+   * @param  {number}  loaded      已经加载的条数
    * @return {Promise}
    */
-  public loadHistory (loadNum: number): Promise<any> {
+  public loadHistory (requiredNum: number, loaded = 0): Promise<any> {
     if (!this._hasMoreHistory) {
       return Promise.resolve()
     }
@@ -190,40 +181,49 @@ export class StockDatasource extends Datasource {
 
     switch (this._resolution) {
       case '1':
-        fromTime = toTime - loadNum * 60 - DAY_OFF_NUM * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT + 0.5) * 24 * 3600
         maxTimeSpan = 10 * 24 * 3600
         break
       case '5':
-        fromTime = toTime - loadNum * 5 * 60 - 5 * 24 * 3600
-        maxTimeSpan = 30 * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 5 + 0.5) * 24 * 3600
+        maxTimeSpan = 20 * 24 * 3600
         break
       case '15':
-        fromTime = toTime - loadNum * 15 * 60 - 10 * 24 * 3600
-        maxTimeSpan = 90 * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 15 + 0.5) * 24 * 3600
+        maxTimeSpan = 45 * 24 * 3600
         break
       case '30':
-        fromTime = toTime - loadNum * 30 * 60 - 20 * 24 * 3600
-        maxTimeSpan = 180 * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 30 + 0.5) * 24 * 3600
+        maxTimeSpan = 90 * 24 * 3600
         break
       case '60':
-        fromTime = toTime - loadNum * 60 * 60 - 20 * 24 * 3600
-        maxTimeSpan = 360 * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 60 + 0.5) * 24 * 3600
+        maxTimeSpan = 180 * 24 * 3600
         break
       case 'D':
-        fromTime = toTime - loadNum * 24 * 3600
-        maxTimeSpan = 0
+        fromTime = toTime - 2 * requiredNum * 24 * 3600
+        maxTimeSpan = 360 * 24 * 3600
         break
       case 'W':
-        fromTime = toTime - loadNum * 7 * 24 * 3600
-        maxTimeSpan = 0
+        fromTime = toTime - 1.5 * requiredNum * 7 * 24 * 3600
+        maxTimeSpan = 360 * 24 * 3600
         break
       case 'M':
-        fromTime = toTime - loadNum * 30 * 24 * 3600
-        maxTimeSpan = 0
+        fromTime = toTime - 1.2 * requiredNum * 30 * 24 * 3600
+        maxTimeSpan = 360 * 24 * 3600
         break
       default:
         throw new Error('unsupport resolution')
     }
+
+    // 修整fromTime，若fromTime在休市期间，则将时间前推以跳过休市时间，从而避免无效请求
+    const fromMoment = moment(fromTime * 1000)
+
+    while (OPEN_DAYS.indexOf(fromMoment.day()) === -1) {
+      fromMoment.subtract(1, 'days')
+    }
+
+    fromTime = ~~(fromMoment.toDate().getTime() / 1000)
 
     this._requestFromTime = fromTime
 
@@ -233,19 +233,18 @@ export class StockDatasource extends Datasource {
           const requestToTime = this._plotList.first() ?
                                   this._plotList.first().time : this.now()
 
-          // 如果plotList的size已经大于loadNum，则已经请求足够多的数据了，可以结束请求
-          if (this._plotList.size() >= loadNum) {
+          const count = stockBars.length
+          loaded += count
+
+          // 如果plotList的size已经大于requiredNum，则已经请求足够多的数据了，可以结束请求
+          if (loaded >= requiredNum) {
             resolve()
-          // 对于resolution为 D\W\M的，如果请求不到新的数据，则直接认为没有新数据了，不必继续请求了。
-          } else if (maxTimeSpan === 0 && stockBars.length === 0) {
+          // 如果请求的时长大于了最大时间跨度值时，认为已经没有新数据了。
+          } else if (requestToTime - this._requestFromTime >= maxTimeSpan) {
             this._hasMoreHistory = false
             resolve()
-          // 对于resolution为1、5、15、30和60的，如果请求的时长大于了最大值时，认为已经没有新数据了。
-          } else if (requestToTime - this._requestFromTime >= maxTimeSpan) {
-            resolve()
-          // 除却以上情况，认为后续可能还有新的数据，继续请求
           } else {
-            this.loadHistory(loadNum)
+            this.loadHistory(requiredNum, loaded)
               .then(resolve)
               .catch(reject)
           }

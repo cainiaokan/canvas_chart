@@ -1,12 +1,6 @@
 import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import {
-  DOWN_EVENT,
-  DOWN_EVENT_REACT,
-  MOVE_EVENT_REACT,
-  UP_EVENT_REACT,
-} from '../../constant'
 import ChartLayoutModel from '../../model/chartlayout'
 import {
   BaseToolRenderer,
@@ -21,6 +15,7 @@ type Prop = {
 type State = {
   selectedIndex?: number
   selectedIndex2?: number[]
+  showMoreIndex?: number
   showMoreTools?: boolean
 }
 
@@ -38,8 +33,8 @@ export default class ToolBox extends React.Component<Prop, State> {
   constructor () {
     super()
     this.resetTool = this.resetTool.bind(this)
-    this.startHandler = this.startHandler.bind(this)
-    this.endHandler = this.endHandler.bind(this)
+    this.downHandler = this.downHandler.bind(this)
+    this.upHandler = this.upHandler.bind(this)
     this.moveHandler = this.moveHandler.bind(this)
     this.selectToolHandler = this.selectToolHandler.bind(this)
     this.hideMoreTools = this.hideMoreTools.bind(this)
@@ -56,31 +51,20 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this.props.chartLayout.addListener('drawingtoolend', this.resetTool)
-    this.props.chartLayout.addListener('removedrawingtool', this.resetTool)
-    document.addEventListener(DOWN_EVENT, this.hideMoreTools)
+    this.props.chartLayout.addListener('drawingtool_edit', this.resetTool)
+    this.props.chartLayout.addListener('drawingtool_remove', this.resetTool)
+    document.addEventListener('mousedown', this.hideMoreTools)
+    document.addEventListener('touchstart', this.hideMoreTools)
   }
 
   public componentWillUnmount () {
-    this.props.chartLayout.removeListener('drawingtoolend',  this.resetTool)
-    this.props.chartLayout.removeListener('removedrawingtool', this.resetTool)
-    document.removeEventListener(DOWN_EVENT, this.hideMoreTools)
+    this.props.chartLayout.removeListener('drawingtool_edit',  this.resetTool)
+    this.props.chartLayout.removeListener('drawingtool_remove', this.resetTool)
+    document.removeEventListener('mousedown', this.hideMoreTools)
+    document.removeEventListener('touchstart', this.hideMoreTools)
   }
 
   public render () {
-    let mainBtnEventHandler
-    let moreBtnEventHandler
-
-    mainBtnEventHandler = {
-      [DOWN_EVENT_REACT]: this.startHandler,
-      [UP_EVENT_REACT]: this.endHandler,
-      [MOVE_EVENT_REACT]: this.moveHandler,
-    }
-
-    moreBtnEventHandler = {
-      [DOWN_EVENT_REACT]: this.selectToolHandler,
-    }
-
     return <div className='chart-tools'>
       <ul className='chart-tools-group'>
         {
@@ -89,18 +73,27 @@ export default class ToolBox extends React.Component<Prop, State> {
               <span className='chart-tools-btn'>
                 <span className={`chart-tools-btn-main ${tools[this.state.selectedIndex2[i]][0]}`}
                       title={tools[this.state.selectedIndex2[i]][1]}
-                      data-index={i} {...mainBtnEventHandler}></span>
+                      data-index={i}
+                      onMouseDown={this.downHandler}
+                      onTouchStart={this.downHandler}
+                      onMouseUp={this.upHandler}
+                      onTouchEnd={this.upHandler}
+                      onMouseMove={this.moveHandler}
+                      onTouchMove={this.moveHandler}></span>
                 {
                   tools.length > 1 ?
                   <span className='chart-tools-btn-more' data-index={i} onClick={this.showMoreTools}></span> : null
                 }
               </span>
               {
-                this.state.showMoreTools && this.state.selectedIndex === i ?
+                this.state.showMoreTools && this.state.showMoreIndex === i ?
                 <div className='chart-tools-more'>
                   {
                     toolsList[i].map((tool, j) =>
-                      <a href='javascript:;' data-index1={i} data-index2={j} {...moreBtnEventHandler}>
+                      <a href='javascript:;'
+                         data-index1={i}
+                         data-index2={j}
+                         onMouseDown={this.selectToolHandler}>
                         <span className={tool[0]}></span>{tool[1]}
                       </a>
                     )
@@ -114,11 +107,14 @@ export default class ToolBox extends React.Component<Prop, State> {
     </div>
   }
 
-  private startHandler (ev) {
+  private downHandler (ev) {
+    if (ev.touches) {
+      ev.preventDefault()
+    }
     const selectedIndex = +ev.target.dataset.index
     this._clickCanceled = false
     if (toolsList[selectedIndex].length > 1) {
-      this._longTapDetectTimeout = setTimeout(() => this.showMoreTools(selectedIndex), 500)
+      this._longTapDetectTimeout = setTimeout(() => this.showMoreTools(selectedIndex), 300)
     }
   }
 
@@ -127,7 +123,7 @@ export default class ToolBox extends React.Component<Prop, State> {
     clearInterval(this._longTapDetectTimeout)
   }
 
-  private endHandler (ev) {
+  private upHandler (ev) {
     const selectedIndex = +ev.target.dataset.index
     const selectedIndex2 = this.state.selectedIndex2
 
@@ -142,11 +138,16 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   private showMoreTools (ev: any) {
-    this.setState({ selectedIndex: typeof ev === 'object' ? +ev.target.dataset.index : ev, showMoreTools: true })
+    this.setState({ showMoreIndex: typeof ev === 'object' ? +ev.target.dataset.index : ev, showMoreTools: true })
   }
 
   private hideMoreTools (ev) {
-    this.setState({ showMoreTools: false })
+    if (this.state.showMoreTools) {
+      if (!!ev.touches) {
+        ev.preventDefault()
+      }
+      this.setState({ showMoreTools: false })
+    }
   }
 
   private selectTool (index1, index2) {

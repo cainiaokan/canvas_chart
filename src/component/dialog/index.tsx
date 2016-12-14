@@ -1,7 +1,6 @@
 import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import { DOWN_EVENT, DOWN_EVENT_REACT, MOVE_EVENT, UP_EVENT } from '../../constant'
 
 type Prop = {
   title: string
@@ -49,24 +48,28 @@ export default class Dialog extends React.Component<Prop, any> {
     style.height = props.height + 'px'
     style.top = pageHeight / 2 - height / 2 + 'px'
     style.left = pageWidth / 2 - width / 2 + 'px'
-    document.addEventListener(DOWN_EVENT, this.clickOutsideHandler)
-    document.addEventListener(MOVE_EVENT, this.dragMoveHandler)
-    document.addEventListener(UP_EVENT, this.dragEndHandler)
+    document.addEventListener('mousedown', this.clickOutsideHandler)
+    document.addEventListener('touchstart', this.clickOutsideHandler)
+    document.addEventListener('mousemove', this.dragMoveHandler)
+    document.addEventListener('touchmove', this.dragMoveHandler)
+    document.addEventListener('mouseup', this.dragEndHandler)
+    document.addEventListener('touchend', this.dragEndHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener(DOWN_EVENT, this.clickOutsideHandler)
-    document.removeEventListener(MOVE_EVENT, this.dragMoveHandler)
-    document.removeEventListener(UP_EVENT, this.dragEndHandler)
+    document.removeEventListener('mousedown', this.clickOutsideHandler)
+    document.removeEventListener('touchstart', this.clickOutsideHandler)
+    document.removeEventListener('mousemove', this.dragMoveHandler)
+    document.removeEventListener('touchmove', this.dragMoveHandler)
+    document.removeEventListener('mouseup', this.dragEndHandler)
+    document.removeEventListener('touchend', this.dragEndHandler)
   }
 
   public render () {
-    const dragEvents = {
-      [DOWN_EVENT_REACT]: this.dragStartHandler,
-    }
-
     return <div ref='container' className={`${this.props.className} chart-dialog`}>
-      <h3 {...dragEvents}>{this.props.title}</h3>
+      <h3 onMouseDown={this.dragStartHandler} onTouchStart={this.dragStartHandler}>
+        {this.props.title}
+      </h3>
       <a href='javascript:;' className='close' onClick={this.closeHandler}></a>
       <div className='chart-dialog-body'>
         {
@@ -92,6 +95,9 @@ export default class Dialog extends React.Component<Prop, any> {
   }
 
   private dragStartHandler (ev) {
+    if (!!ev.touches) {
+      ev.preventDefault()
+    }
     const touchDrag = ev.touches && ev.touches.length === 1
     this._dragStart = true
     this._dragPosX = touchDrag ? ev.touches[0].pageX : ev.pageX

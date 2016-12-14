@@ -1,6 +1,6 @@
 import * as EventEmitter from 'eventemitter3'
 import * as _ from 'underscore'
-import * as randomColor from 'randomcolor'
+import randomColor = require('randomcolor')
 import ChartModel from './chart'
 import StockModel from './stock'
 import AxisXModel from './axisx'
@@ -198,7 +198,7 @@ export default class ChartLayoutModel extends EventEmitter {
     this._loading = true
     const axisX = this.axisx
     const datasources = []
-    const required = ~~((axisX.width * 2 + axisX.offset) / axisX.barWidth)
+    const requiredNum = ~~(axisX.width / axisX.barWidth + 0.5)
 
     this.charts.forEach(chart => {
       chart.graphs.forEach(graph => {
@@ -212,7 +212,7 @@ export default class ChartLayoutModel extends EventEmitter {
      */
     return new Promise((resolve, reject) => {
       mainDatasource
-        .loadHistory(required)
+        .loadHistory(requiredNum)
         .then(() =>
           Promise.all(
             _.chain(datasources)
@@ -306,7 +306,7 @@ export default class ChartLayoutModel extends EventEmitter {
       ), [])
     ).forEach(datasource => datasource.resolution = resolution)
     this._axisx.resetOffset()
-    this.emit('resolutionchange', resolution)
+    this.emit('resolution_change', resolution)
   }
 
   /**
@@ -327,7 +327,7 @@ export default class ChartLayoutModel extends EventEmitter {
               throw 'mainDatasource required to be an instance of StockDatasource.'
             }
             this._axisx.resetOffset()
-            this.emit('symbolchange', symbolInfo)
+            this.emit('symbol_change', symbolInfo)
           })
       )
   }
@@ -346,7 +346,7 @@ export default class ChartLayoutModel extends EventEmitter {
       }
     })
     this._axisx.resetOffset()
-    this.emit('rightchange', right)
+    this.emit('right_change', right)
   }
 
   /**
@@ -359,7 +359,7 @@ export default class ChartLayoutModel extends EventEmitter {
       return
     }
     this.charts.forEach(ch => ch.crosshair.point = point)
-    this.emit('cursormove', point)
+    this.emit('cursor_move', point)
   }
 
   /**
@@ -368,7 +368,7 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public setDefaultCursor (cursor: 'default' | 'crosshair') {
     this._defaultCursor = cursor
-    this.emit('defaultcursorchange', cursor)
+    this.emit('cursor_change', cursor)
   }
 
   /**
@@ -392,7 +392,7 @@ export default class ChartLayoutModel extends EventEmitter {
         }] : null
       )
       this.mainChart.addGraph(studyModel)
-      this.emit('addgraph')
+      this.emit('graph_add')
     } else {
       const mainDatasource = this._mainDatasource
       const crosshair = new CrosshairModel(this)
@@ -416,7 +416,7 @@ export default class ChartLayoutModel extends EventEmitter {
 
       chart.addGraph(studyModel)
       this.charts.push(chart)
-      this.emit('addchart')
+      this.emit('chart_add')
     }
   }
 
@@ -436,9 +436,9 @@ export default class ChartLayoutModel extends EventEmitter {
       // 如果此时chart中已经没有其他图形了，则把整个chart都移除
       if (!chart.graphs.length) {
         this.charts.splice(this.charts.indexOf(chart), 1)
-        this.emit('deletechart')
+        this.emit('chart_remove')
       } else {
-        this.emit('deletegraph')
+        this.emit('graph_delete')
       }
       return true
     } else {
@@ -454,7 +454,7 @@ export default class ChartLayoutModel extends EventEmitter {
   public modifyStudy (study: StudyModel, newInput: any[]) {
     study.clearCache()
     study.input = newInput
-    this.emit('modifygraph')
+    this.emit('graph_modify')
   }
 
   /**
@@ -489,7 +489,7 @@ export default class ChartLayoutModel extends EventEmitter {
               .loadHistory(mainDatasource.loaded())
               .then(() => {
                 mainChart.addGraph(stockModel)
-                this.emit('addgraph', data)
+                this.emit('graph_add', data)
               })
           })
       )
@@ -500,7 +500,7 @@ export default class ChartLayoutModel extends EventEmitter {
     this.mainChart.graphs.some((graph, j) => {
       if (graph.isComparison && graph.id === graphId) {
         this.mainChart.graphs.splice(j, 1)
-        this.emit('deletegraph')
+        this.emit('graph_delete')
         return true
       } else {
         return false
@@ -529,7 +529,7 @@ export default class ChartLayoutModel extends EventEmitter {
     const value = chart.axisY.getValueByY(point.y)
 
     this.creatingDrawingTool.addVertex({ time, value })
-    this.emit('drawingtoolsetvertex')
+    this.emit('drawingtool_edit')
   }
 
   /**
@@ -538,7 +538,7 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public removeDrawingTools (tool: BaseToolRenderer) {
     this.hoverChart.removeDrawingTool(tool)
-    this.emit('removedrawingtool')
+    this.emit('drawingtool_remove')
   }
 
   /**

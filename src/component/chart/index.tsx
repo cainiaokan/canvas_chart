@@ -2,12 +2,6 @@ import * as React from 'react'
 
 import {
   AXIS_Y_WIDTH,
-  SUPPORT_TOUCH,
-  MOVE_EVENT,
-  UP_EVENT,
-  DOWN_EVENT_REACT,
-  MOVE_EVENT_REACT,
-  UP_EVENT_REACT,
 } from '../../constant'
 import Legend from './../legend'
 import ChartLayout from '../../model/chartlayout'
@@ -56,9 +50,10 @@ export default class Chart extends React.Component<Prop, State> {
       hover: false,
     }
     this.dragMoveHandler = this.dragMoveHandler.bind(this)
-    this.startHandler = this.startHandler.bind(this)
+    this.gestureMoveHandler = this.gestureMoveHandler.bind(this)
+    this.downHandler = this.downHandler.bind(this)
     this.moveHandler = this.moveHandler.bind(this)
-    this.endHandler = this.endHandler.bind(this)
+    this.upHandler = this.upHandler.bind(this)
     this.mouseOver = this.mouseOver.bind(this)
     this.mouseOut = this.mouseOut.bind(this)
     this.hitHandler = this.hitHandler.bind(this)
@@ -87,17 +82,23 @@ export default class Chart extends React.Component<Prop, State> {
 
     this.canvasOffset = clientOffset(chart.ctx.canvas)
 
-    chartLayout.addListener('hit', this.hitHandler)
-    chartLayout.addListener('defaultcursorchange', this.defaultCursorChangeHandler)
-    document.addEventListener(MOVE_EVENT, this.dragMoveHandler)
-    document.addEventListener(UP_EVENT, this.endHandler)
+    chartLayout.addListener('graph_hover', this.hitHandler)
+    chartLayout.addListener('cursor_change', this.defaultCursorChangeHandler)
+    document.addEventListener('mousemove', this.dragMoveHandler)
+    document.addEventListener('touchmove', this.dragMoveHandler)
+    document.addEventListener('touchmove', this.gestureMoveHandler)
+    document.addEventListener('mouseup', this.upHandler)
+    document.addEventListener('touchend', this.upHandler)
   }
 
   public componentWillUnmount () {
-    this.props.chartLayout.removeListener('hit', this.hitHandler)
-    this.props.chartLayout.removeListener('defaultcursorchange', this.defaultCursorChangeHandler)
-    document.removeEventListener(MOVE_EVENT, this.dragMoveHandler)
-    document.removeEventListener(UP_EVENT, this.endHandler)
+    this.props.chartLayout.removeListener('graph_hover', this.hitHandler)
+    this.props.chartLayout.removeListener('cursor_change', this.defaultCursorChangeHandler)
+    document.removeEventListener('mousemove', this.dragMoveHandler)
+    document.removeEventListener('touchmove', this.dragMoveHandler)
+    document.removeEventListener('touchmove', this.gestureMoveHandler)
+    document.removeEventListener('mouseup', this.upHandler)
+    document.removeEventListener('touchend', this.upHandler)
   }
 
   public componentDidUpdate (prevProps: Prop) {
@@ -129,19 +130,6 @@ export default class Chart extends React.Component<Prop, State> {
     const width = ~~this.props.width - AXIS_Y_WIDTH
     const height = ~~this.props.height
 
-    let eventHandlers: any = {
-      [DOWN_EVENT_REACT]: this.startHandler,
-      [MOVE_EVENT_REACT]: this.moveHandler,
-      [UP_EVENT_REACT]: this.endHandler,
-    }
-
-    if (SUPPORT_TOUCH) {
-      eventHandlers.onTouchCancel = this.endHandler
-    } else {
-      eventHandlers.onMouseOver = this.mouseOver
-      eventHandlers.onMouseOut = this.mouseOut
-    }
-
     return <div className='chart-line'>
       <div className='chart-plot'
         style={
@@ -153,7 +141,17 @@ export default class Chart extends React.Component<Prop, State> {
         }>
         <Legend chartLayout={chartLayout} chartModel={chart} />
         <canvas ref='canvas' width={width} height={height}></canvas>
-        <canvas ref='topCanvas' width={width} height={height} {...eventHandlers}>
+        <canvas ref='topCanvas'
+                width={width}
+                height={height}
+                onMouseDown={this.downHandler}
+                onTouchStart={this.downHandler}
+                onMouseMove={this.moveHandler}
+                onTouchMove={this.moveHandler}
+                onMouseUp={this.upHandler}
+                onTouchEnd={this.upHandler}
+                onMouseOver={this.mouseOver}
+                onMouseOut={this.mouseOut}>
         </canvas>
         {
           chart.isMain ? <Indicator chart={chart} /> : null
@@ -179,15 +177,13 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private hitHandler (hover: boolean) {
-    if (!SUPPORT_TOUCH && this.props.chartLayout.hoverChart === this.props.chart) {
+    if (this.props.chartLayout.hoverChart === this.props.chart) {
       this.setState({ cursor: hover ? 'pointer' : this.props.chartLayout.defaultCursor })
     }
   }
 
   private defaultCursorChangeHandler (cursor: 'crosshair' | 'default') {
-    if (!SUPPORT_TOUCH) {
-      this.setState({ cursor: this.state.hover ? 'pointer' : this.props.chartLayout.defaultCursor })
-    }
+    this.setState({ cursor: this.state.hover ? 'pointer' : this.props.chartLayout.defaultCursor })
   }
 
   private mouseOver () {
@@ -199,11 +195,14 @@ export default class Chart extends React.Component<Prop, State> {
     this.props.chartLayout.setCursorPoint(null)
   }
 
-  private startHandler (ev: any) {
+  private downHandler (ev: any) {
+    const isTouchEvent = !!ev.touches
+    const isSingleTouch = isTouchEvent && ev.touches.length === 1
+    const isDoubleTouch = isTouchEvent && ev.touches.length === 2
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
     const offset = this.canvasOffset
-    const curPoint = ev.touches ? {
+    const curPoint = isTouchEvent ? {
       x: ev.touches[0].pageX - offset.offsetLeft,
       y: ev.touches[0].pageY - offset.offsetTop,
     } : chart.crosshair.point
@@ -212,75 +211,57 @@ export default class Chart extends React.Component<Prop, State> {
       return
     }
 
-    /* start 设置状态 */
-    // 取消所有graph和tools的选中态
-    if (ev.touches && ev.touches.length === 1) {
-      // 触屏设备需要手动设置取消chart hover
-      // 手动取消画图工具的hover
-      chartLayout.charts.forEach(ch => {
-        ch.hover = false
-        ch.graphs.forEach(graph => graph.hover = false)
-        ch.tools.forEach(tool => tool.hover = false)
-      })
-      chart.hover = true
-    }
-
+    // 取消其他chart中的所有选中态
     chartLayout.charts.forEach(ch => {
       ch.graphs.forEach(graph => graph.selected = false)
       ch.tools.forEach(tool => tool.selected = false)
     })
 
-    if (ev.touches && ev.touches.length === 1) {
+    if (isSingleTouch) {
+      // 取消所有graph和tools的选中态
+      chartLayout.charts.forEach(ch => {
+        // 触屏设备需要手动设置取消chart hover
+        ch.hover = false
+        ch.graphs.forEach(graph => graph.hover = false)
+        // 手动取消画图工具的hover
+        ch.tools.forEach(tool => tool.hover = false)
+      })
+      // 设置当前chart为hover态
+      chart.hover = true
       // 触屏设备需要点击时手动设置指针位置
       chartLayout.setCursorPoint(curPoint)
     }
-    /* end 设置状态 */
 
-    /* start 创建tool图形 */
-    if (chartLayout.selectedDrawingTool) {
-      chartLayout.drawingToolBegin(chart)
-      chartLayout.drawingToolSetVertex(curPoint)
-      if (chartLayout.creatingDrawingTool.isFinished()) {
-        chart.addDrawingTool(chartLayout.creatingDrawingTool)
-        chartLayout.drawingToolEnd(chart)
+    // 多指手势时不能绘制画图工具
+    if (!isTouchEvent || isSingleTouch) {
+      /* start 创建tool图形 */
+      if (chartLayout.selectedDrawingTool) {
+        chartLayout.drawingToolBegin(chart)
+        chartLayout.drawingToolSetVertex(curPoint)
+        if (chartLayout.creatingDrawingTool.isFinished()) {
+          chart.addDrawingTool(chartLayout.creatingDrawingTool)
+          chartLayout.drawingToolEnd(chart)
+        }
+        return
+      } else if (chartLayout.creatingDrawingTool && chartLayout.creatingDrawingTool.chart === chart) {
+        chartLayout.drawingToolSetVertex(curPoint)
+        if (chartLayout.creatingDrawingTool.isFinished()) {
+          chart.addDrawingTool(chartLayout.creatingDrawingTool)
+          chartLayout.drawingToolEnd(chart)
+        }
+        return
       }
-      return
-    } else if (chartLayout.creatingDrawingTool && chartLayout.creatingDrawingTool.chart === chart) {
-      chartLayout.drawingToolSetVertex(curPoint)
-      if (chartLayout.creatingDrawingTool.isFinished()) {
-        chart.addDrawingTool(chartLayout.creatingDrawingTool)
-        chartLayout.drawingToolEnd(chart)
-      }
-      return
+      /* end 创建tool图形 */
     }
-    /* end 创建tool图形 */
 
     // 触屏设备
-    if (ev.touches) {
+    if (isTouchEvent) {
+      // 触摸事件时组织产生鼠标事件
+      ev.preventDefault()
       // 手势拖拽
-      if (ev.touches.length === 1) {
-        chart.hitTest(true)
-
-        // 正在编辑中的画图工具
-        if (chartLayout.editingDrawingTool) {
-          if (chartLayout.willEraseDrawingTool) {
-            chartLayout.removeDrawingTools(chartLayout.editingDrawingTool)
-            chartLayout.editingDrawingTool = null
-          } else {
-            chartLayout.editingDrawingTool.isEditing = true
-            this._dragDrawingToolStart = true
-            this._dragPosX = curPoint.x
-            this._dragPosY = curPoint.y
-          }
-        } else {
-          this._dragOffsetStart = true
-          this._dragPosX = curPoint.x
-          this._lastMovePosition = curPoint.x
-          this._lastMoveTime = Date.now()
-          this.stopMomentum()
-        }
-      // 双指缩放
-      } else if (ev.touches.length === 2) {
+      if (isSingleTouch) {
+        // do nothing
+      } else if (isDoubleTouch) {
         const offsetHorz = Math.abs(ev.touches[0].clientX - ev.touches[1].clientX)
         const offsetVert = Math.abs(ev.touches[0].clientY - ev.touches[1].clientY)
         this._dragOffsetStart = false
@@ -292,36 +273,46 @@ export default class Chart extends React.Component<Prop, State> {
           this._pinchVertStart = true
           this._pinchOffset = offsetVert
         }
-      // 鼠标拖拽
-      }
-    // 非触屏设备
-    } else {
-      chart.hitTest(true)
-      if (chartLayout.editingDrawingTool) {
-        if (chartLayout.willEraseDrawingTool) {
-          chartLayout.removeDrawingTools(chartLayout.editingDrawingTool)
-          chartLayout.editingDrawingTool = null
-        } else {
-          chartLayout.editingDrawingTool.isEditing = true
-          this._dragDrawingToolStart = true
-          this._dragPosX = curPoint.x
-          this._dragPosY = curPoint.y
-        }
+        return
+      // 忽略三指及以上的手势
       } else {
-        this._dragOffsetStart = true
+        return
+      }
+    }
+
+    // 点击检测
+    chart.hitTest(true)
+
+    // 正在编辑中的画图工具
+    if (chartLayout.editingDrawingTool) {
+      if (chartLayout.willEraseDrawingTool) {
+        chartLayout.removeDrawingTools(chartLayout.editingDrawingTool)
+        chartLayout.editingDrawingTool = null
+      } else {
+        chartLayout.editingDrawingTool.isEditing = true
+        this._dragDrawingToolStart = true
         this._dragPosX = curPoint.x
+        this._dragPosY = curPoint.y
+      }
+    } else {
+      this._dragOffsetStart = true
+      this._dragPosX = curPoint.x
+      if (isSingleTouch) {
+        this._lastMovePosition = curPoint.x
+        this._lastMoveTime = ev.timeStamp
+        this.stopMomentum()
       }
     }
   }
 
-  private endHandler (ev: any) {
+  private upHandler (ev: any) {
+    const isTouchEvent = !!ev.touches
     const chartLayout = this.props.chartLayout
 
-    if (this._dragOffsetStart) {
-      if (ev.touches) {
-        if (Date.now() - this._lastMoveTime < 60 && Math.abs(this._v) > 100) {
-          this.momentumMove(this._v)
-        }
+    if (isTouchEvent) {
+      if (this._dragOffsetStart &&
+         (ev.timeStamp - this._lastMoveTime < 60 && Math.abs(this._v) > 100)) {
+        this.momentumMove(this._v)
       }
     }
 
@@ -368,18 +359,17 @@ export default class Chart extends React.Component<Prop, State> {
     chart.hitTest()
   }
 
-  private dragMoveHandler (ev: any) {
+  private dragMoveHandler (ev) {
     if (this._dragDrawingToolStart ||
-        this._dragOffsetStart ||
-        this._pinchHorzStart ||
-        this._pinchVertStart) {
+        this._dragOffsetStart) {
 
+      const isTouchEvent = !!ev.touches
       const chartLayout = this.props.chartLayout
       const chart = this.props.chart
       const axisX = chart.axisX
       const axisY = chart.axisY
       const offset = this.canvasOffset
-      const point = ev.touches ? {
+      const point = isTouchEvent ? {
           x: ev.touches[0].pageX - offset.offsetLeft,
           y: ev.touches[0].pageY - offset.offsetTop,
         } :
@@ -411,16 +401,25 @@ export default class Chart extends React.Component<Prop, State> {
         }
         const curOffset = axisX.offset
         const newOffset = curOffset + point.x - this._dragPosX
-        const now = Date.now()
+        const timeStamp = ev.timeStamp
         axisX.offset = newOffset
         this._dragPosX = point.x
-        if (ev.touches) {
-          this._v = (point.x - this._lastMovePosition) / (now - this._lastMoveTime) * 1000
+        if (isTouchEvent) {
+          this._v = (point.x - this._lastMovePosition) / (timeStamp - this._lastMoveTime) * 1000
           this._lastMovePosition = point.x
-          this._lastMoveTime = now
+          this._lastMoveTime = timeStamp
         }
+      }
+    }
+  }
+
+  private gestureMoveHandler (ev) {
+    if (this._pinchHorzStart || this._pinchVertStart) {
+      const chart = this.props.chart
+      const axisX = chart.axisX
+      const axisY = chart.axisY
       // 双指水平缩放
-      } else if (this._pinchHorzStart) {
+      if (this._pinchHorzStart) {
         const newOffset = Math.abs(ev.touches[1].pageX - ev.touches[0].pageX)
         const curBarWidth = axisX.barWidth
         const newBarWidth = curBarWidth + (newOffset - this._pinchOffset) / 100

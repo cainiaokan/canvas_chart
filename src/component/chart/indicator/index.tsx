@@ -2,7 +2,7 @@ import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
 import ChartModel from '../../../model/chart'
-import { WEEKDAYS, OPEN_HOURS } from '../../../constant'
+import { OPEN_DAYS, OPEN_TIME_RANGE } from '../../../constant'
 
 type Prop = {
   chart: ChartModel
@@ -57,11 +57,11 @@ export default class Indicator extends React.Component<Prop, State> {
     const now = this._chart.datasource.now() * 1000
     const nowTime = new Date(now)
 
-    if (WEEKDAYS.indexOf(nowTime.getDay()) === -1) {
+    if (OPEN_DAYS.indexOf(nowTime.getDay()) === -1) {
       return false
     }
 
-    return OPEN_HOURS.some(timeInterval => {
+    return OPEN_TIME_RANGE.some(timeInterval => {
       const openTime = new Date(now)
       openTime.setHours(timeInterval[0][0])
       openTime.setMinutes(timeInterval[0][1])

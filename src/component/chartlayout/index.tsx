@@ -1,5 +1,5 @@
 import './index.less'
-import * as Spinner from 'spin'
+import Spinner = require('spin')
 import * as React from 'react'
 import * as _ from 'underscore'
 import Chart from '../chart'
@@ -85,7 +85,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scrollable: true,
     shape: 'line',
     showtoolbox: true,
-    showfooterbar: false,
+    showfooterbar: true,
     shownavbar: true,
     showsidebar: true,
     type: 'realtime',
@@ -231,7 +231,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       chartLayout.pulseUpdate()
       spinner.stop()
       if (mainDatasource instanceof StockDatasource) {
-        chartLayout.emit('symbolresolved', mainDatasource.symbolInfo)
+        chartLayout.emit('symbol_resolved', mainDatasource.symbolInfo)
         this.setState({
           loaded: true,
           symbolType: mainDatasource.symbolInfo.type,
@@ -248,9 +248,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public initEvents () {
     const chartLayout = this._chartLayoutModel
-    chartLayout.axisx.addListener('offsetchange', chartLayout.fullUpdate)
-    chartLayout.axisx.addListener('barwidthchange', chartLayout.fullUpdate)
-    chartLayout.addListener('resolutionchange', resolution => {
+    chartLayout.axisx.addListener('offset_change', chartLayout.fullUpdate)
+    chartLayout.axisx.addListener('barwidth_change', chartLayout.fullUpdate)
+    chartLayout.addListener('resolution_change', resolution => {
       // 股票类型时，分时图显示线形图，其他显示蜡烛图
       if (chartLayout.mainDatasource instanceof StockDatasource && this.props.shape === 'candle') {
         const mainGraph = chartLayout.mainChart.mainGraph as StockModel
@@ -265,26 +265,28 @@ export default class ChartLayout extends React.Component<Prop, State> {
       chartLayout.resetChart()
       this.setState({ resolution })
     })
-    chartLayout.addListener('symbolchange', symbolInfo => {
+    chartLayout.addListener('symbol_change', symbolInfo => {
       chartLayout.resetChart()
       this.setState({ symbolType: symbolInfo.type })
     })
-    chartLayout.addListener('rightchange', right => {
+    chartLayout.addListener('right_change', right => {
       chartLayout.resetChart()
       this.setState({ right })
     })
-    chartLayout.addListener('hit', chartLayout.lightUpdate)
-    chartLayout.addListener('select', chartLayout.lightUpdate)
-    chartLayout.addListener('cursormove', chartLayout.lightUpdate)
-    chartLayout.addListener('barmarginchange', chartLayout.lightUpdate)
-    chartLayout.addListener('addchart', this.updateView)
-    chartLayout.addListener('deletechart', this.updateView)
-    chartLayout.addListener('addgraph', chartLayout.lightUpdate)
-    chartLayout.addListener('deletegraph', chartLayout.lightUpdate)
-    chartLayout.addListener('modifygraph', chartLayout.lightUpdate)
-    chartLayout.addListener('sidebarfoldstatechange', folded => this.setState({ sidebarFolded: folded }))
-    chartLayout.addListener('drawingtoolsetvertex', chartLayout.lightUpdate)
-    chartLayout.addListener('removedrawingtool', chartLayout.lightUpdate)
+
+    chartLayout.addListener('sidebar_toggle', folded => this.setState({ sidebarFolded: folded }))
+
+    chartLayout.addListener('chart_add', this.updateView)
+    chartLayout.addListener('chart_remove', this.updateView)
+    chartLayout.addListener('graph_add', chartLayout.lightUpdate)
+    chartLayout.addListener('graph_delete', chartLayout.lightUpdate)
+    chartLayout.addListener('graph_modify', chartLayout.lightUpdate)
+    chartLayout.addListener('graph_hover', chartLayout.lightUpdate)
+    chartLayout.addListener('graph_select', chartLayout.lightUpdate)
+    chartLayout.addListener('cursor_move', chartLayout.lightUpdate)
+    chartLayout.addListener('barmargin_change', chartLayout.lightUpdate)
+    chartLayout.addListener('drawingtool_edit', chartLayout.lightUpdate)
+    chartLayout.addListener('drawingtool_remove', chartLayout.lightUpdate)
   }
 
   public render () {

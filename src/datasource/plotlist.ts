@@ -25,7 +25,7 @@ export default class PlotList<T extends IBar> {
    */
   public search (time: number): number {
     if (this.cache.length === 0) {
-      return
+      return -1
     }
     if (time < this.cache[0].time || time > this.cache[this.cache.length - 1].time) {
       return -1

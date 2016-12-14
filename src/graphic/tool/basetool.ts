@@ -101,7 +101,7 @@ export abstract class BaseToolRenderer {
 
   public addVertex (vertex: Vertex) {
     this._vertexes.push(vertex)
-    this._isValid = true
+    this._isValid = false
   }
 
   public drawVertex () {
@@ -123,6 +123,12 @@ export abstract class BaseToolRenderer {
     }
   }
 
+  /**
+   * 设置画图工具端点的位置
+   * @param {number} index 表示修改的端点对应的数组下标
+   * @param {number} time  时间戳，精确到秒
+   * @param {number} value 值
+   */
   public setVertex (index: number, time: number, value: number) {
     const vertex = this._vertexes[index]
     vertex.time = time

@@ -12,10 +12,7 @@ function renderChart () {
       height={document.documentElement.clientHeight}
       width={document.documentElement.clientWidth}
       shape={'candle'}
-      resolution={'1'}
-      shownavbar={true}
-      showfooterbar={false}
-      showsidebar={true} />,
+      resolution={'1'} />,
     document.getElementById('chart_container')
   )
 }

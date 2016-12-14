@@ -62,15 +62,15 @@ export default class Sidebar extends React.Component<Prop, State> {
     if (!!symbolInfo) {
       this.symbolResolvedHandler(symbolInfo)
     } else {
-      chartLayout.addListener('symbolresolved', this.symbolResolvedHandler)
-      chartLayout.addListener('symbolchange', this.symbolChangeHandler)
+      chartLayout.addListener('symbol_resolved', this.symbolResolvedHandler)
+      chartLayout.addListener('symbol_change', this.symbolChangeHandler)
     }
   }
 
   public componentWillUnmount () {
     const chartLayout = this.props.chartLayout
-    chartLayout.removeListener('symbolresolved', this.symbolResolvedHandler)
-    chartLayout.removeListener('symbolchange', this.symbolChangeHandler)
+    chartLayout.removeListener('symbol_resolved', this.symbolResolvedHandler)
+    chartLayout.removeListener('symbol_change', this.symbolChangeHandler)
   }
 
   public render () {
@@ -182,11 +182,11 @@ export default class Sidebar extends React.Component<Prop, State> {
     if (this.refs.foldingBtn.classList.contains('folded')) {
       this.refs.foldingBtn.classList.remove('folded')
       this.refs.container.classList.remove('folded')
-      this.props.chartLayout.emit('sidebarfoldstatechange', false)
+      this.props.chartLayout.emit('sidebar_toggle', false)
     } else {
       this.refs.foldingBtn.classList.add('folded')
       this.refs.container.classList.add('folded')
-      this.props.chartLayout.emit('sidebarfoldstatechange', true)
+      this.props.chartLayout.emit('sidebar_toggle', true)
     }
   }
 

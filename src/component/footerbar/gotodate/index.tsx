@@ -7,7 +7,7 @@ import * as _ from 'underscore'
 import * as DatetimePicker from 'react-datetime'
 import Dialog from '../../../component/dialog'
 import ChartLayoutModel from '../../../model/chartlayout'
-import { OPEN_HOURS } from '../../../constant'
+import { OPEN_TIME_RANGE } from '../../../constant'
 
 type Prop = {
   chartLayout: ChartLayoutModel
@@ -21,7 +21,7 @@ type State = {
   showDatetimePicker?: boolean
 }
 
-export default class Datetime extends React.Component<Prop, State> {
+export default class GoToDate extends React.Component<Prop, State> {
   public refs: {
     dateInput: HTMLInputElement
   }
@@ -48,8 +48,8 @@ export default class Datetime extends React.Component<Prop, State> {
   }
 
   public render () {
-    const minHour = OPEN_HOURS[0][0][0]
-    const maxHour = OPEN_HOURS[OPEN_HOURS.length - 1][1][0]
+    const minHour = OPEN_TIME_RANGE[0][0][0]
+    const maxHour = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][0]
     const chartLayout = this.props.chartLayout
     const dontShowTime = chartLayout.mainDatasource.resolution > '60'
     const mainDatasource = chartLayout.mainDatasource
@@ -63,8 +63,8 @@ export default class Datetime extends React.Component<Prop, State> {
 
     this._inputDateValue = thisMoment
 
-    return <div className='chart-datetime chart-btn-group'>
-      <button className='btn' onClick={this.openDialogHandler}>定位时间</button>
+    return <div className='chart-gotodate chart-btn-group'>
+      <a className='mini-btn' href='javascript:;' onClick={this.openDialogHandler}>定位时间</a>
       {
         this.state.showDialog ?
         <Dialog title='定位时间' onClose={this.dialogCloseHandler}>
@@ -153,10 +153,10 @@ export default class Datetime extends React.Component<Prop, State> {
 
   // 校正日期，使其在开收盘的限制范围内
   private correctTime (date) {
-    const minHour = OPEN_HOURS[0][0][0]
-    const maxHour = OPEN_HOURS[OPEN_HOURS.length - 1][1][0]
-    const minMinute = OPEN_HOURS[0][0][1]
-    const maxMinute = OPEN_HOURS[OPEN_HOURS.length - 1][1][1]
+    const minHour = OPEN_TIME_RANGE[0][0][0]
+    const maxHour = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][0]
+    const minMinute = OPEN_TIME_RANGE[0][0][1]
+    const maxMinute = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][1]
     const hour = date.getHours()
     const minute = date.getMinutes()
 

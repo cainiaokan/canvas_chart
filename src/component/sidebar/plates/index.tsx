@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as iScroll from 'iscroll'
 import { PlateList } from '../pollmanager'
 import { getStockListByPlate } from '../../../datasource'
-import { SUPPORT_TOUCH } from '../../../constant'
 
 type Prop = {
   plates: PlateList
@@ -66,16 +65,6 @@ export default class Plates extends React.Component<Prop, State> {
 
   public render () {
     const plates = this.props.plates
-    let eventHandlers
-    if (SUPPORT_TOUCH) {
-      eventHandlers = {
-        onTouchStart: this.selectPlate,
-      }
-    } else {
-      eventHandlers = {
-        onClick: this.selectPlate,
-      }
-    }
     return plates ?
     <div className='plates' ref='plates' style={ {height: this.props.height + 'px'} }>
       <div>
@@ -87,7 +76,7 @@ export default class Plates extends React.Component<Prop, State> {
               .concat(plates.concept.map(name => { return {name, type: 'concept'} }))
               .map((stock, i) =>
               <li className={this.state.activeIndex === i ? 'active' : ''}>
-                <h4 data-index={i} data-type={stock.type} {...eventHandlers}>{stock.name}</h4>
+                <h4 data-index={i} data-type={stock.type} onClick={this.selectPlate}>{stock.name}</h4>
                 {
                   this.state.activeIndex === i ? <ul className='stocks-in-same-plate'>
                     {

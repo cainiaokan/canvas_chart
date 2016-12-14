@@ -49,29 +49,29 @@ export default class Legend extends React.Component<Prop, State> {
 
   public componentDidMount () {
     const chartLayout = this.props.chartLayout
-    chartLayout.addListener('cursormove', this.cursorMoveHandler)
-    chartLayout.addListener('hit', this.updateView)
-    chartLayout.addListener('select', this.updateView)
-    chartLayout.addListener('resolutionchange', this.updateView)
-    chartLayout.addListener('symbolchange', this.updateView)
-    chartLayout.addListener('symbolresolved', this.updateView)
-    chartLayout.addListener('addgraph', this.updateView)
-    chartLayout.addListener('deletegraph', this.updateView)
-    chartLayout.addListener('modifygraph', this.updateView)
+    chartLayout.addListener('cursor_move', this.cursorMoveHandler)
+    chartLayout.addListener('graph_hover', this.updateView)
+    chartLayout.addListener('graph_select', this.updateView)
+    chartLayout.addListener('resolution_change', this.updateView)
+    chartLayout.addListener('symbol_change', this.updateView)
+    chartLayout.addListener('symbol_resolved', this.updateView)
+    chartLayout.addListener('graph_add', this.updateView)
+    chartLayout.addListener('graph_delete', this.updateView)
+    chartLayout.addListener('graph_modify', this.updateView)
 
   }
 
   public componentWillUnmound () {
     const chartLayout = this.props.chartLayout
-    chartLayout.removeListener('cursormove', this.cursorMoveHandler)
-    chartLayout.removeListener('select', this.updateView)
-    chartLayout.removeListener('hit', this.updateView)
-    chartLayout.removeListener('resolutionchange', this.updateView)
-    chartLayout.removeListener('symbolchange', this.updateView)
-    chartLayout.removeListener('symbolresolved', this.updateView)
-    chartLayout.removeListener('addgraph', this.updateView)
-    chartLayout.removeListener('deletegraph', this.updateView)
-    chartLayout.removeListener('modifygraph', this.updateView)
+    chartLayout.removeListener('cursor_move', this.cursorMoveHandler)
+    chartLayout.removeListener('graph_hover', this.updateView)
+    chartLayout.removeListener('graph_select', this.updateView)
+    chartLayout.removeListener('resolution_change', this.updateView)
+    chartLayout.removeListener('symbol_change', this.updateView)
+    chartLayout.removeListener('symbol_resolved', this.updateView)
+    chartLayout.removeListener('graph_add', this.updateView)
+    chartLayout.removeListener('graph_delete', this.updateView)
+    chartLayout.removeListener('graph_modify', this.updateView)
   }
 
   public render () {
@@ -273,7 +273,7 @@ export default class Legend extends React.Component<Prop, State> {
         }
         {
           this.state.showSettingDialog ?
-          <Dialog title='设置' onClose={this.studySettingDialogCloseHanlder}>
+          <Dialog title='设置' className='setting-dialog' onClose={this.studySettingDialogCloseHanlder}>
             <form ref='settingForm' className='chart-study-setting' onSubmit={this.privateSubmitForm}>
             {
               input.map((value, i) => {

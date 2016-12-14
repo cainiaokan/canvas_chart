@@ -2,7 +2,6 @@ import './index.less'
 import '../../../style/btn.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import { DOWN_EVENT, DOWN_EVENT_REACT } from '../../../constant'
 import ChartLayoutModel from '../../../model/chartlayout'
 
 type Prop = {
@@ -28,11 +27,13 @@ export default class IndicatorSelector extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    document.addEventListener(DOWN_EVENT, this.hideMoreIndicatorHandler)
+    document.addEventListener('mousedown', this.hideMoreIndicatorHandler)
+    document.addEventListener('touchstart', this.hideMoreIndicatorHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener(DOWN_EVENT, this.hideMoreIndicatorHandler)
+    document.removeEventListener('mousedown', this.hideMoreIndicatorHandler)
+    document.removeEventListener('touchstart', this.hideMoreIndicatorHandler)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
@@ -45,7 +46,9 @@ export default class IndicatorSelector extends React.Component<Prop, State> {
       <button className='btn' onClick={this.showMoreIndicatorHandler}>指标</button>
       {
         this.state.showIndicatorSelector ?
-        <ul className='more-indicator' { ...{[DOWN_EVENT_REACT]: this.indicatorSelectHandler} }>
+        <ul className='more-indicator'
+            onMouseDown={this.indicatorSelectHandler}
+            onTouchStart={this.indicatorSelectHandler}>
           {
             studyNames.map(studyName =>
               <li data-value={studyName}>
@@ -62,11 +65,19 @@ export default class IndicatorSelector extends React.Component<Prop, State> {
     this.setState({ showIndicatorSelector: true })
   }
 
-  private hideMoreIndicatorHandler () {
-    this.setState({ showIndicatorSelector: false })
+  private hideMoreIndicatorHandler (ev) {
+    if (this.state.showIndicatorSelector) {
+      if (!!ev.touches) {
+        ev.preventDefault()
+      }
+      this.setState({ showIndicatorSelector: false })
+    }
   }
 
   private indicatorSelectHandler (ev) {
+    if (!!ev.touches) {
+      ev.preventDefault()
+    }
     this.props.chartLayout.addStudy(ev.target.dataset.value)
   }
 }

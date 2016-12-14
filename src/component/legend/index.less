@@ -11,12 +11,16 @@
   padding: 16px 0 0 24px;
 
   cursor: auto;
+  pointer-events: none;
   .chart-legend-line {
+    float: left;
+    clear: left;
     overflow: hidden;
 
     margin-bottom: 8px;
 
     white-space: nowrap;
+    pointer-events: auto;
     &:last-child {
       margin-bottom: 0;
     }
@@ -33,6 +37,9 @@
 
       margin-right: 8px;
     }
+  }
+  .setting-dialog {
+    pointer-events: auto;
   }
   &-btn {
     margin-left: 4px;

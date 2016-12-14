@@ -2,7 +2,7 @@ import './index.less'
 import '../../../style/btn.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import { ResolutionType, DOWN_EVENT, DOWN_EVENT_REACT } from '../../../constant'
+import { ResolutionType } from '../../../constant'
 import ChartLayoutModel from '../../../model/chartlayout'
 
 type Prop = {
@@ -41,11 +41,13 @@ export default class ResolutionOption extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    document.addEventListener(DOWN_EVENT, this.hideMoreResolutionHandler)
+    document.addEventListener('mousedown', this.hideMoreResolutionHandler)
+    document.addEventListener('touchstart', this.hideMoreResolutionHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener(DOWN_EVENT, this.hideMoreResolutionHandler)
+    document.removeEventListener('mousedown', this.hideMoreResolutionHandler)
+    document.removeEventListener('touchstart', this.hideMoreResolutionHandler)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
@@ -84,7 +86,9 @@ export default class ResolutionOption extends React.Component<Prop, State> {
           <ul className='more-resolution'>
             {
               moreResolution.map(resolution =>
-                <li data-value={resolution} { ...{[DOWN_EVENT_REACT]: this.resolutionSelectHandler} }>
+                <li data-value={resolution}
+                    onMouseDown={this.resolutionSelectHandler}
+                    onTouchStart={this.resolutionSelectHandler}>
                   {resolutionConfig[resolution]}
                 </li>
               )
@@ -95,6 +99,9 @@ export default class ResolutionOption extends React.Component<Prop, State> {
   }
 
   private resolutionSelectHandler (ev) {
+    if (!!ev.touches) {
+      ev.preventDefault()
+    }
     const resolution = ev.target.dataset.value
     if (this.props.resolution !== resolution) {
       this.props.chartLayout.setResolution(resolution)
@@ -105,7 +112,12 @@ export default class ResolutionOption extends React.Component<Prop, State> {
     this.setState({ showMoreResolution: true })
   }
 
-  private hideMoreResolutionHandler () {
-    this.setState({ showMoreResolution: false })
+  private hideMoreResolutionHandler (ev) {
+    if (this.state.showMoreResolution) {
+      if (!!ev.touches) {
+        ev.preventDefault()
+      }
+      this.setState({ showMoreResolution: false })
+    }
   }
 }

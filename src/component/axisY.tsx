@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { DOWN_EVENT_REACT, MOVE_EVENT, UP_EVENT } from '../constant'
 import AxisYModel from '../model/axisy'
 
 type Prop = {
@@ -20,7 +19,7 @@ export default class AxisY extends React.Component<Prop, any> {
   constructor () {
     super()
     this._dragMarginStart = false
-    this.mouseDownHandler = this.mouseDownHandler.bind(this)
+    this.downHandler = this.downHandler.bind(this)
     this.mouseMoveHandler = this.mouseMoveHandler.bind(this)
     this.mouseUpHandler = this.mouseUpHandler.bind(this)
   }
@@ -30,13 +29,17 @@ export default class AxisY extends React.Component<Prop, any> {
     axisY.ctx = this.refs.canvas.getContext('2d')
     axisY.width = this.props.width
     axisY.height = this.props.height
-    document.addEventListener(MOVE_EVENT, this.mouseMoveHandler)
-    document.addEventListener(UP_EVENT, this.mouseUpHandler)
+    document.addEventListener('mousemove', this.mouseMoveHandler)
+    document.addEventListener('touchmove', this.mouseMoveHandler)
+    document.addEventListener('mouseup', this.mouseUpHandler)
+    document.addEventListener('touchend', this.mouseUpHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener(MOVE_EVENT, this.mouseMoveHandler)
-    document.removeEventListener(UP_EVENT, this.mouseUpHandler)
+    document.removeEventListener('mousemove', this.mouseMoveHandler)
+    document.removeEventListener('touchmove', this.mouseMoveHandler)
+    document.removeEventListener('mouseup', this.mouseUpHandler)
+    document.removeEventListener('touchend', this.mouseUpHandler)
   }
 
   public componentDidUpdate () {
@@ -61,28 +64,31 @@ export default class AxisY extends React.Component<Prop, any> {
     const width = this.props.width
     const height = this.props.height
 
-    let eventHandlers
-    eventHandlers = {
-      [DOWN_EVENT_REACT]: this.mouseDownHandler,
-    }
-
     return (
       <div className='chart-axisy' style={ {height: height + 'px', width: width + 'px'} }>
-        <canvas ref='canvas' width={width} height={height} {...eventHandlers}></canvas>
+        <canvas ref='canvas'
+                width={width}
+                height={height}
+                onMouseDown={this.downHandler}
+                onTouchStart={this.downHandler}></canvas>
       </div>
     )
   }
 
-  private mouseDownHandler (ev: any) {
-    this._dragMarginStart = true
-    if (ev.touches) {
-      this._dragPosY = ev.touches[0].pageY
+  private downHandler (ev) {
+    if (!!ev.touches) {
+      ev.preventDefault()
+      if (ev.touches.length === 1) {
+        this._dragPosY = ev.touches[0].pageY
+        this._dragMarginStart = true
+      }
     } else {
       this._dragPosY = ev.pageY
+      this._dragMarginStart = true
     }
   }
 
-  private mouseMoveHandler (ev: any) {
+  private mouseMoveHandler (ev) {
     if (this._dragMarginStart) {
       const axisY = this.props.axis
       const pageY = ev.touches ? ev.touches[0].pageY : ev.pageY

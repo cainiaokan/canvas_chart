@@ -1,10 +1,4 @@
 import * as React from 'react'
-import {
-  SUPPORT_TOUCH,
-  MOVE_EVENT,
-  DOWN_EVENT_REACT,
-  UP_EVENT,
-} from '../constant'
 import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../model/axisx'
 
 type Prop = {
@@ -34,13 +28,17 @@ export default class AxisX extends React.Component<Prop, any> {
     axisX.ctx = this.refs.canvas.getContext('2d')
     axisX.width = this.props.width
     axisX.height = this.props.height
-    document.addEventListener(MOVE_EVENT, this.moveHandler)
-    document.addEventListener(UP_EVENT, this.endHandler)
+    document.addEventListener('mousemove', this.moveHandler)
+    document.addEventListener('touchmove', this.moveHandler)
+    document.addEventListener('mouseup', this.endHandler)
+    document.addEventListener('touchend', this.endHandler)
   }
 
   public componentWillUnmount () {
-    document.removeEventListener(MOVE_EVENT, this.moveHandler)
-    document.removeEventListener(UP_EVENT, this.endHandler)
+    document.removeEventListener('mousemove', this.moveHandler)
+    document.removeEventListener('touchmove', this.moveHandler)
+    document.removeEventListener('mouseup', this.endHandler)
+    document.removeEventListener('touchend', this.endHandler)
   }
 
   public componentDidUpdate () {
@@ -65,17 +63,16 @@ export default class AxisX extends React.Component<Prop, any> {
     const width = this.props.width
     const height = this.props.height
 
-    let eventHandlers
-
-    eventHandlers = {
-      [DOWN_EVENT_REACT]: this.startHandler,
-    }
-
     return (
       <div className='chart-line'>
         <div className='chart-axisx'
           style={ {height: height, width: width} }>
-          <canvas ref='canvas' width={width} height={height} {...eventHandlers}></canvas>
+          <canvas ref='canvas'
+                  width={width}
+                  height={height}
+                  onMouseDown={this.startHandler}
+                  onTouchStart={this.startHandler}>
+          </canvas>
         </div>
       </div>
     )
@@ -84,7 +81,7 @@ export default class AxisX extends React.Component<Prop, any> {
   private moveHandler (ev) {
     if (this._dragBarWidthStart) {
       const axisX = this.props.axis
-      const pageX = SUPPORT_TOUCH ? ev.touches[0].pageX : ev.pageX
+      const pageX = ev.touches ? ev.touches[0].pageX : ev.pageX
       const curBarWidth = axisX.barWidth
       const newBarWidth = curBarWidth - (pageX - this._dragPosX) / 100
       if (newBarWidth < MIN_BAR_WIDTH) {
@@ -100,8 +97,16 @@ export default class AxisX extends React.Component<Prop, any> {
   }
 
   private startHandler (ev) {
-    this._dragPosX = SUPPORT_TOUCH ? ev.touches[0].pageX : ev.pageX
-    this._dragBarWidthStart = true
+    if (!!ev.touches) {
+      ev.preventDefault()
+      if (ev.touches.length === 1) {
+        this._dragPosX = ev.touches[0].pageX
+        this._dragBarWidthStart = true
+      }
+    } else {
+      this._dragPosX = ev.pageX
+      this._dragBarWidthStart = true
+    }
   }
 
   private endHandler () {

@@ -1,9 +1,8 @@
 import './index.less'
 import * as React from 'react'
-import { ResolutionType, SUPPORT_TOUCH } from '../../constant'
+import { ResolutionType } from '../../constant'
 import ResolutionOption from './resolution'
 import SearchBox from './searchbox'
-import DateTimePicker from './datetime'
 import Compare from './compare'
 import IndicatorSelector from './indicator'
 import FullScreen from './fullscreen'
@@ -45,10 +44,7 @@ export default class Navbar extends React.Component<Prop, any> {
                    autofill={true}
                    onSelect={this.selectSymbolHandler} />
         <ResolutionOption chartLayout={chartLayout} resolution={this.props.resolution} />
-        <DateTimePicker chartLayout={chartLayout} />
-        {
-          !SUPPORT_TOUCH ? <FullScreen /> : null
-        }
+        <FullScreen />
         <Compare chartLayout={chartLayout} />
         <IndicatorSelector chartLayout={chartLayout} />
         {

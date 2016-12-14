@@ -185,11 +185,11 @@ export default class ChartModel extends EventEmitter {
 
     if (hit !== this._isHit) {
       this._isHit = hit
-      this._chartLayout.emit('hit', hit)
+      this._chartLayout.emit('graph_hover', hit)
     }
 
     if (select) {
-      this._chartLayout.emit('select', hit)
+      this._chartLayout.emit('graph_select', hit)
     }
 
     return hit
