@@ -181,23 +181,23 @@ export class StockDatasource extends Datasource {
 
     switch (this._resolution) {
       case '1':
-        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT + 0.5) * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT + 1) * 24 * 3600
         maxTimeSpan = 10 * 24 * 3600
         break
       case '5':
-        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 5 + 0.5) * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 5 + 1) * 24 * 3600
         maxTimeSpan = 20 * 24 * 3600
         break
       case '15':
-        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 15 + 0.5) * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 15 + 1) * 24 * 3600
         maxTimeSpan = 45 * 24 * 3600
         break
       case '30':
-        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 30 + 0.5) * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 30 + 1) * 24 * 3600
         maxTimeSpan = 90 * 24 * 3600
         break
       case '60':
-        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 60 + 0.5) * 24 * 3600
+        fromTime = toTime - ~~(requiredNum / OPEN_MINITES_COUNT * 60 + 1) * 24 * 3600
         maxTimeSpan = 180 * 24 * 3600
         break
       case 'D':
