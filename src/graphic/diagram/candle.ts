@@ -3,6 +3,7 @@ import { BaseChartRenderer, ChartStyle } from './basechart'
 import PlotModel from '../../model/plot'
 import { YRange } from '../../model/axisy'
 import { isPointInRect } from '../../util'
+import { HIT_TEST_TOLERANCE } from '../../constant'
 
 enum PLOT_DATA {
   X = 0,
@@ -36,13 +37,14 @@ export class CandleChartRenderer extends BaseChartRenderer {
       return false
     }
     const point = chart.crosshair.point
-    const candleWidth = axisX.barWidth * 0.6
+    const candleWidth = ~~(axisX.barWidth * 0.6 + 0.5) % 2 === 0 ?
+      ~~(axisX.barWidth * 0.6 + 0.5) - 1 : ~~(axisX.barWidth * 0.6 + 0.5)
     const x0 = point.x
     const y0 = point.y
-    const x1 = curBar[PLOT_DATA.X] - candleWidth / 2
-    const y1 = axisY.getYByValue(curBar[PLOT_DATA.HIGH], rangeY)
-    const x2 = x1 + candleWidth
-    const y2 = axisY.getYByValue(curBar[PLOT_DATA.LOW], rangeY)
+    const x1 = ~~curBar[PLOT_DATA.X] - ~~(candleWidth / 2) - HIT_TEST_TOLERANCE
+    const y1 = ~~axisY.getYByValue(curBar[PLOT_DATA.HIGH], rangeY) - HIT_TEST_TOLERANCE
+    const x2 = x1 + candleWidth + HIT_TEST_TOLERANCE
+    const y2 = ~~axisY.getYByValue(curBar[PLOT_DATA.LOW], rangeY) + HIT_TEST_TOLERANCE
     return isPointInRect(
       x0, y0,
       x1, y1,
@@ -73,7 +75,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
     }, range)
   }
 
-  public draw () {
+  public draw (ctx: CanvasRenderingContext2D) {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
 
@@ -83,13 +85,11 @@ export class CandleChartRenderer extends BaseChartRenderer {
 
     const graph = plot.graph
     const chart = graph.chart
-    const ctx = chart.ctx
     const axisX = chart.axisX
     const axisY = chart.axisY
-    const barWidth = ~~axisX.barWidth % 2 === 1 ? ~~axisX.barWidth : ~~axisX.barWidth - 1
-    const candleWidth = ~~(barWidth * 0.6)
+    const candleWidth = ~~(axisX.barWidth * 0.6 + 0.5) % 2 === 0 ?
+      ~~(axisX.barWidth * 0.6 + 0.5) - 1 : ~~(axisX.barWidth * 0.6 + 0.5)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-    ctx.save()
     ctx.translate(0.5, 0)
     ctx.lineWidth = 1
 
@@ -112,19 +112,17 @@ export class CandleChartRenderer extends BaseChartRenderer {
       color = isUp ? this.style.color : this.style.colorDown
       ctx.strokeStyle = color
       ctx.fillStyle = color
-      x = ~~(bar[PLOT_DATA.X] - candleWidth / 2 + 0.5)
+      x = ~~bar[PLOT_DATA.X] - ~~(candleWidth / 2)
       y = ~~axisY.getYByValue(isUp ? bar[PLOT_DATA.CLOSE] : bar[PLOT_DATA.OPEN], rangeY)
       ctx.fillRect(
         x,
         y,
-        ~~candleWidth,
+        candleWidth,
         ~~Math.abs(
           axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY) - y
         )
       )
     }
-
-    ctx.restore()
   }
 
   protected getSelectionYByBar (bar: any[]): number {

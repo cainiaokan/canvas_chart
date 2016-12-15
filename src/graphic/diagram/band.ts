@@ -12,7 +12,7 @@ enum PLOT_DATA {
 
 const DEFAULT_STYLE = {
   color: '#000080',
-  transparency: .3,
+  opacity: .3,
 }
 
 export class BandRenderer extends BaseChartRenderer {
@@ -25,7 +25,7 @@ export class BandRenderer extends BaseChartRenderer {
     return false
   }
 
-  public draw (): void {
+  public draw (ctx: CanvasRenderingContext2D) {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
 
@@ -35,11 +35,10 @@ export class BandRenderer extends BaseChartRenderer {
 
     const graph = plot.graph
     const chart = graph.chart
-    const ctx = chart.ctx
     const axisY = chart.axisY
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
 
-    ctx.globalAlpha = this.style.transparency
+    ctx.globalAlpha = this.style.opacity
     ctx.fillStyle = this.style.color
     ctx.beginPath()
 

@@ -14,7 +14,7 @@ export type ChartStyle = {
   fillColor?: string
   histogramBase?: number
   scale?: number
-  transparency?: number
+  opacity?: number
   noLegend?: boolean
 }
 
@@ -58,7 +58,7 @@ export abstract class BaseChartRenderer {
 
   public abstract calcRangeY (): YRange
 
-  public abstract draw (): void
+  public abstract draw (ctx: CanvasRenderingContext2D): void
 
   public abstract hitTest (): boolean
 

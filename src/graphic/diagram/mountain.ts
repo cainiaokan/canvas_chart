@@ -79,7 +79,7 @@ export class MountainChartRenderer extends BaseChartRenderer {
     }, range)
   }
 
-  public draw (): void {
+  public draw (ctx: CanvasRenderingContext2D) {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
 
@@ -90,7 +90,6 @@ export class MountainChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const ctx = chart.ctx
     const height = chart.height
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const histogramBase = this.style.histogramBase

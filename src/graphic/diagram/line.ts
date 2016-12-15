@@ -77,7 +77,7 @@ export class LineChartRenderer extends BaseChartRenderer {
     }, range)
   }
 
-  public draw () {
+  public draw (ctx: CanvasRenderingContext2D) {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
 
@@ -87,12 +87,12 @@ export class LineChartRenderer extends BaseChartRenderer {
 
     const graph = plot.graph
     const chart = graph.chart
-    const ctx = chart.ctx
     const axisY = chart.axisY
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
 
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
+    ctx.translate(0.5, 0.5)
     ctx.beginPath()
 
     const len = bars.length

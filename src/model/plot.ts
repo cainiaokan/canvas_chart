@@ -72,7 +72,10 @@ export default class PlotModel {
   }
 
   public draw (): void {
-    this._graphic.draw()
+    const ctx = this._graph.chart.ctx
+    ctx.save()
+    this._graphic.draw(ctx)
+    ctx.restore()
     if (this._graph.selected) {
       this._graphic.drawSelection()
     }

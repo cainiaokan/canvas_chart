@@ -15,6 +15,7 @@ const DEFAULT_STYLE = {
   color: '#ff524f',
   colorDown: '#2bbe65',
   lineWidth: 1,
+  opacity: 1,
 }
 
 export class ColumnChartRenderer extends BaseChartRenderer {
@@ -27,7 +28,6 @@ export class ColumnChartRenderer extends BaseChartRenderer {
     const plot = this.plotModel
     const graph = plot.graph
     const chart = graph.chart
-    const ctx = chart.ctx
     const axisX = chart.axisX
     const axisY = chart.axisY
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
@@ -104,7 +104,7 @@ export class ColumnChartRenderer extends BaseChartRenderer {
     }, range)
   }
 
-  public draw () {
+  public draw (ctx: CanvasRenderingContext2D) {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
 
@@ -114,27 +114,30 @@ export class ColumnChartRenderer extends BaseChartRenderer {
 
     const graph = plot.graph
     const chart = graph.chart
-    const ctx = chart.ctx
     const axisY = chart.axisY
-    const height = ~~chart.height
-    const barWidth = chart.axisX.barWidth
+    const height = chart.height
+    const barWidth = ~~chart.axisX.barWidth
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     const style = this.style
     const margin = axisY.margin
     const scale = style.scale || 1
     const histogramBase = style.histogramBase
 
+    let x
+    let y
+    let y1
+    let bar
     let lastBarX = 0
     let lastBarY = 0
 
     ctx.lineWidth = 1
-    ctx.globalAlpha = 0.6
+    ctx.globalAlpha = style.opacity
     ctx.strokeStyle = 'black'
+    ctx.translate(0.5, 0.5)
     ctx.beginPath()
-
-    for (let i = 0, bar, len = bars.length, x, y, y1; i < len; i++) {
+    for (let i = 0, len = bars.length; i < len; i++) {
       bar = bars[i]
-      x = ~~(bar[PLOT_DATA.X] - barWidth / 2 + 0.5)
+      x = ~~bar[PLOT_DATA.X] - ~~(barWidth / 2)
       y1 = ~~axisY.getYByValue(bar[PLOT_DATA.VOLUME], rangeY)
 
       // 如果设置了基准线baseline
@@ -185,9 +188,7 @@ export class ColumnChartRenderer extends BaseChartRenderer {
       lastBarX = x + barWidth
       lastBarY = y
     }
-
     ctx.stroke()
-    ctx.globalAlpha = 1
   }
 
   protected getSelectionYByBar (bar: any[]): number {

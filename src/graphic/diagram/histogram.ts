@@ -28,15 +28,16 @@ export class HistogramChartRenderer extends BaseChartRenderer {
       return false
     }
     const point = chart.crosshair.point
-    const width = axisX.barWidth * 0.5
+    const width = ~~(axisX.barWidth / 2 + 0.5) % 2 === 0 ?
+      ~~(axisX.barWidth / 2 + 0.5) - 1 : ~~(axisX.barWidth / 2 + 0.5)
     const style = this.style
     const histogramBase = style.histogramBase
     const x0 = point.x
     const y0 = point.y
-    const x1 = curBar[PLOT_DATA.X] - width / 2 - HIT_TEST_TOLERANCE
-    const y1 = axisY.getYByValue(curBar[PLOT_DATA.VALUE], rangeY)
-    const x2 = x1 + width + 2 * HIT_TEST_TOLERANCE
-    const y2 = axisY.getYByValue(histogramBase, rangeY)
+    const x1 = ~~curBar[PLOT_DATA.X] - ~~(width / 2) - HIT_TEST_TOLERANCE
+    const y1 = ~~axisY.getYByValue(curBar[PLOT_DATA.VALUE], rangeY) - HIT_TEST_TOLERANCE
+    const x2 = x1 + width + HIT_TEST_TOLERANCE
+    const y2 = ~~axisY.getYByValue(histogramBase, rangeY) + HIT_TEST_TOLERANCE
     return isPointInRect(x0, y0, x1, y1, x2, y2)
   }
 
@@ -64,7 +65,7 @@ export class HistogramChartRenderer extends BaseChartRenderer {
     }, range)
   }
 
-  public draw (): void {
+  public draw (ctx: CanvasRenderingContext2D) {
     const plot = this.plotModel
     const bars = plot.getVisibleBars()
 
@@ -74,11 +75,11 @@ export class HistogramChartRenderer extends BaseChartRenderer {
 
     const graph = plot.graph
     const chart = graph.chart
-    const ctx = chart.ctx
     const axisY = chart.axisY
     const axisX = chart.axisX
     // 宽度为bar宽度的一半
-    const width = ~~(axisX.barWidth * 0.5)
+    const histWidth = ~~(axisX.barWidth / 2 + 0.5) % 2 === 0 ?
+      ~~(axisX.barWidth / 2 + 0.5) - 1 : ~~(axisX.barWidth / 2 + 0.5)
     const style = this.style
     const histogramBase = style.histogramBase
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
@@ -86,10 +87,10 @@ export class HistogramChartRenderer extends BaseChartRenderer {
 
     for (let i = 0, len = bars.length, data, x, y; i < len; i++) {
       data = bars[i]
-      x = data[PLOT_DATA.X]
+      x = ~~data[PLOT_DATA.X] - ~~(histWidth / 2)
       y = ~~axisY.getYByValue(data[PLOT_DATA.VALUE], rangeY)
       ctx.fillStyle = data[PLOT_DATA.VALUE] > histogramBase ? style.color : style.colorDown
-      ctx.fillRect(~~(x - width / 2), y, width, base - y)
+      ctx.fillRect(x, y, histWidth, base - y)
     }
   }
 

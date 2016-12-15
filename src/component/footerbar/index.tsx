@@ -62,7 +62,7 @@ export default class FooterBar extends React.Component<Prop, State> {
     const openMoment = moment({ hour: openTime[0], minute: openTime[1]})
     const closeMoment = moment({ hour: closeTime[0], minute: closeTime[1]})
 
-    const toTime = ~~(thisMoment.toDate().getTime() / 1000)
+    const toTime = ~~(thisMoment.toDate().getTime() / 1000) + 3600
     const fromTime = ~~(function (): number {
       switch (range) {
         case '1天':
