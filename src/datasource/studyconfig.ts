@@ -1,7 +1,7 @@
 import { ChartStyle } from '../graphic/diagram'
 import { ShapeType } from '../constant'
 import { Datasource, IStockBar, DataAdapter } from '../datasource'
-import { MA, STD, AVEDEV, EMA, LLV, HHV, SMA, REF } from './studyhelper'
+import { $MA, MA, STD, AVEDEV, EMA, LLV, HHV, SMA, REF } from './studyhelper'
 
 export type DataConverter = {
   (
@@ -14,8 +14,8 @@ export type DataConverter = {
 type StudyConfig = {
   [propName: string]: {
     stockAdapter: DataAdapter
-    input: any[]
-    inputLabels: string[]
+    input?: any[]
+    inputLabels?: string[]
     isPrice: boolean
     output: DataConverter
     plots: Array<{
@@ -33,6 +33,31 @@ const CLOSE = {
 }
 
 export const studyConfig: StudyConfig = {
+  '均价': {
+    stockAdapter (bar: IStockBar) {
+      return [0, bar.time, bar.amount, bar.volume]
+    },
+    isPrice: true,
+    output: (data: any[], index: number, input: any[]): any[][] => {
+      const ma = $MA(index)
+      return ma !== null ? [
+        [
+          0,
+          data[1],
+          ma,
+        ],
+      ] : null
+    },
+    plots: [
+      {
+        shape: 'line',
+        style: {
+          color: 'orange',
+          lineWidth: 1,
+        },
+      },
+    ],
+  },
   'MA': {
     stockAdapter (bar: IStockBar) {
       return [0, bar.time, bar.close]

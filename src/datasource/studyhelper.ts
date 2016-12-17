@@ -1,4 +1,6 @@
 import { Datasource, DataAdapter } from './'
+import moment = require('moment')
+import { OPEN_DAYS, OPEN_TIME_RANGE } from '../constant'
 
 let context: {
   datasource: Datasource
@@ -23,6 +25,56 @@ export function clearContext () {
   context = null
 }
 
+/**
+ * 获取最近一个交易日的开盘时间对应的数据bar索引
+ * @param  {Datasource} datasource 数据源
+ * @return {number}                数据Bar的索引
+ */
+function getLastOpenIndex (datasource: Datasource): number {
+  const m = moment(datasource.now() * 1000)
+  m.hours(OPEN_TIME_RANGE[0][0][0])
+  m.minute(OPEN_TIME_RANGE[0][0][1])
+  while (OPEN_DAYS.indexOf(m.weekday()) === -1) {
+    m.subtract(1, 'days')
+  }
+  const openIndex = datasource.search(~~(m.toDate().getTime() / 1000))
+  return openIndex !== -1 ? openIndex : 0
+}
+
+/**
+ * 均价
+ * @param  {number} c 当前的索引标号
+ * @return {number}   均值
+ */
+export function $MA (c: number): number {
+  const { datasource, adapter, cacheObj } = context
+  const cacheKey = `$ma_openIndex`
+  const openIndex = cacheObj[cacheKey] || getLastOpenIndex(datasource)
+  cacheObj[cacheKey] = openIndex
+
+  if (c < openIndex) {
+    return null
+  }
+
+  let amount = 0
+  let volume = 0
+
+  for (let i = openIndex, data; i <= c; i++) {
+    data = adapter(datasource.barAt(i))
+    amount += data[2]
+    volume += data[3] * 100
+  }
+
+  return amount / volume
+}
+
+/**
+ * 均线
+ * @param  {number} c    当前的索引标号
+ * @param  {number} n    均线参数，5日均线，10日均线等
+ * @param  {Attr}   attr
+ * @return {number}      均值
+ */
 export function MA (c: number, n: number, attr: Attr): number {
   const { datasource, adapter } = context
   const { get } = attr

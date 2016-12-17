@@ -33,7 +33,6 @@ export abstract class Datasource extends EventEmitter {
   protected _timeDiff: number
   protected _hasMoreHistory: boolean = true
   // 保存上次请求的起始时间，用来记录loadHistory上次加载到哪个时间点
-  protected _requestFromTime: number
   protected _pulseInterval = 60
 
   constructor (resolution: ResolutionType, timeDiff: number = 0) {
@@ -82,7 +81,7 @@ export abstract class Datasource extends EventEmitter {
    * @param  {number}  startFrom 从某个基准点时刻加载历史数据
    * @return {Promise}
    */
-  public abstract loadHistory(loadNum: number): Promise<any>
+  public abstract loadHistory(loadNum: number, loaded?: number, lastRequestTime?: number): Promise<any>
 
   public abstract loadTimeRange(from: number, to: number): Promise<any>
 
@@ -91,9 +90,8 @@ export abstract class Datasource extends EventEmitter {
   /**
    * 清空缓存
    */
-  public clearCache(): void {
+  public clearCache() {
     this._hasMoreHistory = true
-    this._requestFromTime = null
   }
 
   public now(): number {

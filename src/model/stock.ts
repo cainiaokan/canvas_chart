@@ -34,7 +34,7 @@ export default class StockModel extends GraphModel {
     isComparison: boolean,
     shape: ShapeType,
     style?: ChartStyle) {
-    super(datasource, chart, isPrice, isMain, isComparison, adaptorFuncs[shape], bar => [bar])
+    super(datasource, chart, isPrice, isMain, isComparison, true, adaptorFuncs[shape], bar => [bar])
     this._plots.push(
       new PlotModel(
         this,

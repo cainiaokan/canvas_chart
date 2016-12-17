@@ -59,7 +59,11 @@ export default class ChartModel extends EventEmitter {
   }
 
   get graphs (): GraphModel[] {
-    return this._graphs
+    return this._graphs.slice(0)
+  }
+
+  get visibleGraphs (): GraphModel[] {
+    return this._graphs.filter(graph => graph.isVisible)
   }
 
   get studies (): StudyModel[] {
@@ -75,7 +79,11 @@ export default class ChartModel extends EventEmitter {
   }
 
   get tools (): BaseToolRenderer[] {
-    return this._tools
+    return this._tools.slice(0)
+  }
+
+  get visibleTools (): BaseToolRenderer[] {
+    return this._tools.filter(tool => tool.isNowVisible())
   }
 
   get datasource (): Datasource {
@@ -118,12 +126,12 @@ export default class ChartModel extends EventEmitter {
   }
 
   public addGraph (graph: GraphModel) {
-    this.graphs.push(graph)
+    this._graphs.push(graph)
     this._isValid = false
   }
 
   public removeGraph (graph: GraphModel) {
-    this.graphs.splice(this.graphs.indexOf(graph), 1)
+    this._graphs.splice(this._graphs.indexOf(graph), 1)
     this._isValid = false
   }
 
@@ -167,21 +175,21 @@ export default class ChartModel extends EventEmitter {
   public hitTest (select = false): boolean  {
     let hit = false
 
-    for (let i = this._tools.length - 1; i >= 0; i--) {
+    this.visibleTools.reverse().forEach(tool => {
       if (hit) {
-        this._tools[i].hover = false
-      } else if (this._tools[i].isNowVisible() && this._tools[i].hitTest(select)) {
+        tool.hover = false
+      } else if (tool.hitTest(select)) {
         hit = true
       }
-    }
+    })
 
-    for (let i = this._graphs.length - 1; i >= 0; i--) {
+    this.visibleGraphs.reverse().forEach(graph => {
       if (hit) {
-        this._graphs[i].hover = false
-      } else if (this._graphs[i].hitTest(select)) {
+        graph.hover = false
+      } else if (graph.hitTest(select)) {
         hit = true
       }
-    }
+    })
 
     if (hit !== this._isHit) {
       this._isHit = hit
@@ -196,6 +204,7 @@ export default class ChartModel extends EventEmitter {
   }
 
   public draw () {
+    const visibleGraphs = this.visibleGraphs
     // 首先绘制背景色
     this.drawBg()
     // 如果是主chart就绘制趣炒股水印
@@ -205,11 +214,11 @@ export default class ChartModel extends EventEmitter {
     // 绘制网格
     this._grid.draw()
     // 先绘制没有hover的图形
-    this._graphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
+    visibleGraphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
     // 后绘制hover的图形，这样hover的图形就不会被其他图形遮挡
-    this._graphs.filter(graph => graph.hover).forEach(graph => graph.draw())
+    visibleGraphs.filter(graph => graph.hover).forEach(graph => graph.draw())
     // 绘制当前可见的画图工具
-    this._tools.filter(tool => tool.isNowVisible()).forEach(tool => tool.draw())
+    this.visibleTools.forEach(tool => tool.draw())
 
     this._isValid = true
   }

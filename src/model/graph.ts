@@ -16,6 +16,7 @@ abstract class GraphModel {
   protected _isPrice: boolean
   protected _ismain: boolean
   protected _isComparison: boolean
+  protected _isVisible: boolean
   protected _id: number
 
   private _hover: boolean = false
@@ -30,6 +31,7 @@ abstract class GraphModel {
     isPrice: boolean,
     isMain: boolean,
     isComparison: boolean,
+    isVisible: boolean,
     adapter: DataAdapter,
     calc: DataConverter,
     input: any = null) {
@@ -38,6 +40,7 @@ abstract class GraphModel {
     this._isPrice = isPrice
     this._ismain = isMain
     this._isComparison = isComparison
+    this._isVisible = isVisible
     this._adapter = adapter
     this._calc = calc
     this._input = input
@@ -75,6 +78,15 @@ abstract class GraphModel {
     return this._selected
   }
 
+  get isVisible (): boolean {
+    return this._isVisible
+  }
+
+  set isVisible (visible: boolean) {
+    this.isVisible = visible
+    this._isValid = false
+  }
+
   set selected (selected: boolean) {
     if (this._selected !== selected) {
       this._selected = selected
@@ -98,7 +110,7 @@ abstract class GraphModel {
   }
 
   get plots (): PlotModel[] {
-    return this._plots
+    return this._plots.slice(0)
   }
 
   get datasource (): Datasource {

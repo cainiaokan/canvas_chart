@@ -144,11 +144,41 @@ export default class GoToDate extends React.Component<Prop, State> {
     })
   }
 
-  // 校验日期是否可选。晚于当前日期都不可选。
+  // 校验日期是否可选。晚于当前日期都不可选。太早的日期也不可选。
   private checkDateHandler (currentDate: moment.Moment, selectedDate: moment.Moment) {
-    const now = this.props.chartLayout.mainDatasource.now()
+    const chartLayout = this.props.chartLayout
+    const resolution = chartLayout.mainDatasource.resolution
+    const now = chartLayout.mainDatasource.now()
     const thisMoment = moment(now * 1000)
-    return !currentDate.isAfter(thisMoment)
+    const constraintMoment = moment(now * 1000)
+
+    if (currentDate.isAfter(thisMoment)) {
+      return false
+    }
+
+    switch (resolution) {
+      case '1':
+        constraintMoment.subtract(1, 'months')
+        return currentDate.isAfter(constraintMoment)
+      case '5':
+        constraintMoment.subtract(2, 'months')
+        return currentDate.isAfter(constraintMoment)
+      case '15':
+        constraintMoment.subtract(6, 'months')
+        return currentDate.isAfter(constraintMoment)
+      case '30':
+        constraintMoment.subtract(1, 'years')
+        return currentDate.isAfter(constraintMoment)
+      case '60':
+        constraintMoment.subtract(2, 'years')
+        return currentDate.isAfter(constraintMoment)
+      case 'D':
+      case 'W':
+      case 'M':
+        return true
+      default:
+        throw new Error('Unsupported resolution')
+    }
   }
 
   // 校正日期，使其在开收盘的限制范围内

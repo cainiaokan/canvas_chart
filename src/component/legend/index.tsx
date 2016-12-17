@@ -56,7 +56,7 @@ export default class Legend extends React.Component<Prop, State> {
     chartLayout.addListener('symbol_change', this.updateView)
     chartLayout.addListener('symbol_resolved', this.updateView)
     chartLayout.addListener('graph_add', this.updateView)
-    chartLayout.addListener('graph_delete', this.updateView)
+    chartLayout.addListener('graph_remove', this.updateView)
     chartLayout.addListener('graph_modify', this.updateView)
 
   }
@@ -70,7 +70,7 @@ export default class Legend extends React.Component<Prop, State> {
     chartLayout.removeListener('symbol_change', this.updateView)
     chartLayout.removeListener('symbol_resolved', this.updateView)
     chartLayout.removeListener('graph_add', this.updateView)
-    chartLayout.removeListener('graph_delete', this.updateView)
+    chartLayout.removeListener('graph_remove', this.updateView)
     chartLayout.removeListener('graph_modify', this.updateView)
   }
 
@@ -81,9 +81,9 @@ export default class Legend extends React.Component<Prop, State> {
     // 过滤出所有指标图
     const studies = chart.studies
     // 过滤出所有均线指标图
-    const maStudies = studies.filter(graph => graph.studyType === 'MA') as Array<StudyModel>
+    const maStudies = studies.filter(graph => graph.studyType === 'MA' && graph.isVisible) as Array<StudyModel>
     // 过滤出所有非均线指标
-    const nonMAStudies = studies.filter(graph => graph.studyType !== 'MA') as Array<StudyModel>
+    const nonMAStudies = studies.filter(graph => graph.studyType !== 'MA' && graph.isVisible) as Array<StudyModel>
 
     const studyInSetting = this._studyInSetting
     const input = this.state.showSettingDialog ? studyInSetting.input : null
@@ -249,13 +249,15 @@ export default class Legend extends React.Component<Prop, State> {
               return <div className='chart-legend-line'
                 style={ {fontWeight: study.hover || study.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item'>
-                  {study.studyType}({study.input.join(',')})
+                  {study.studyType}{
+                    study.input ? `(${study.input.join(',')})` : ''
+                  }
                 </div>
                 {
-                  curBar && curBar.map((bar, index) => !study.styles[index].noLegend ?
+                  study.plots.map((__, index) => !study.styles[index].noLegend ?
                     <div className='chart-legend-item'
                     style={ {color: study.styles[index].color} }>
-                      {bar[2].toFixed(4)}
+                      {curBar ? curBar[index][2].toFixed(4) : 'N/A'}
                     </div> : null
                   )
                 }
@@ -317,7 +319,7 @@ export default class Legend extends React.Component<Prop, State> {
 
   private studyDeleteHandler (ev) {
     const studyId = +ev.currentTarget.dataset.id
-    this.props.chartLayout.deleteStudy(this.props.chartModel, studyId)
+    this.props.chartLayout.removeStudy(this.props.chartModel, studyId)
   }
 
   /**

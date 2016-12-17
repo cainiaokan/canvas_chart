@@ -104,7 +104,7 @@ export default class Compare extends React.Component<Prop, State> {
     if (checked) {
       _.extend(indexesCheckState, this.state.indexesCheckState, { [symbol]: chartLayout.addComparison(symbol) })
     } else {
-      chartLayout.deleteComparison(this.state.indexesCheckState[symbol])
+      chartLayout.removeComparison(this.state.indexesCheckState[symbol])
       _.extend(indexesCheckState, this.state.indexesCheckState, { [symbol]: null })
     }
     this.setState({ indexesCheckState })

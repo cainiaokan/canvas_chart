@@ -23,12 +23,6 @@ type State = {
 }
 
 export default class Sidebar extends React.Component<Prop, State> {
-  public refs: {
-    dataPageList: HTMLElement
-    container: HTMLElement
-    foldingBtn: HTMLElement
-  }
-
   private _pollManager: PollManager
   private _data: PollData = {}
 
@@ -121,7 +115,7 @@ export default class Sidebar extends React.Component<Prop, State> {
       default:
     }
 
-    return <div className='chart-sidebar' ref='container' style={ {
+    return <div className={`chart-sidebar ${this.props.folded ? 'folded' : ''}`} style={ {
       height: this.props.height,
       width: this.props.width,
     } }>
@@ -169,25 +163,17 @@ export default class Sidebar extends React.Component<Prop, State> {
             )
           }
         </ul>
-        <div className='data-page-list' ref='dataPageList'>
+        <div className='data-page-list'>
           { tabPage }
         </div>
       </div>
-      <a href='javascript:;' ref='foldingBtn' className='sidebar-folding-btn'
+      <a href='javascript:;' className={`sidebar-folding-btn ${this.props.folded ? 'folded' : ''}`}
         onClick={this.foldingBtnClickHandler.bind(this)}></a>
     </div>
   }
 
   private foldingBtnClickHandler () {
-    if (this.refs.foldingBtn.classList.contains('folded')) {
-      this.refs.foldingBtn.classList.remove('folded')
-      this.refs.container.classList.remove('folded')
-      this.props.chartLayout.emit('sidebar_toggle', false)
-    } else {
-      this.refs.foldingBtn.classList.add('folded')
-      this.refs.container.classList.add('folded')
-      this.props.chartLayout.emit('sidebar_toggle', true)
-    }
+    this.props.chartLayout.emit('sidebar_toggle', !this.props.folded)
   }
 
   private switchTabPage (ev) {
@@ -195,7 +181,7 @@ export default class Sidebar extends React.Component<Prop, State> {
       return
     }
     // 如果侧边栏已经收起状态，则先展开侧边栏
-    if (this.refs.container.classList.contains('folded')) {
+    if (this.props.folded) {
       this.foldingBtnClickHandler()
     }
 

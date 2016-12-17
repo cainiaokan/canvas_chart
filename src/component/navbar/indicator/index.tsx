@@ -12,7 +12,7 @@ type State = {
   showIndicatorSelector?: boolean
 }
 
-const studyNames = ['MA', 'MACD', 'KDJ', 'RSI', 'BOLL', 'CCI']
+const studyNames = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI']
 
 export default class IndicatorSelector extends React.Component<Prop, State> {
 

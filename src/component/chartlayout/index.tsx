@@ -26,7 +26,6 @@ import {
 import AxisXModel from '../../model/axisx'
 import AxisYModel from '../../model/axisy'
 import StockModel from '../../model/stock'
-import StudyModel from '../../model/study'
 import ChartLayoutModel from '../../model/chartlayout'
 
 type AxisType = 'left' | 'right' | 'both'
@@ -148,62 +147,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.axisx = axisX
     chartLayout.mainDatasource = mainDatasource
 
-    chart.graphs.push(
-      new StudyModel(
-        mainDatasource,
-        chart,
-        'MA',
-        [5],
-        [{
-          color: 'red',
-          lineWidth: 1,
-        }]
-      ))
-
-    chart.graphs.push(
-      new StudyModel(
-        mainDatasource,
-        chart,
-        'MA',
-        [10],
-        [{
-          color: 'blue',
-          lineWidth: 1,
-        }]
-      ))
-
-    chart.graphs.push(
-      new StudyModel(
-        mainDatasource,
-        chart,
-        'MA',
-        [20],
-        [{
-          color: 'purple',
-          lineWidth: 1,
-        }]
-      ))
-
-    chart.graphs.push(
-      new StudyModel(
-        mainDatasource,
-        chart,
-        'MA',
-        [30],
-        [{
-          color: 'green',
-          lineWidth: 1,
-        }]
-      ))
-
-    chart.graphs.push(
-      new StudyModel(
-        mainDatasource,
-        chart,
-        'VOLUME'
-      ))
-
-    chart.graphs.push(
+    chart.addGraph(
       new StockModel(
         mainDatasource,
         chart,
@@ -214,7 +158,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
         { lineWidth: 2 }
       ))
 
-    chartLayout.charts.push(chart)
+    chartLayout.addChart(chart)
+    chartLayout.resetStudies()
   }
 
   public componentDidMount () {
@@ -250,36 +195,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
     const chartLayout = this._chartLayoutModel
     chartLayout.axisx.addListener('offset_change', chartLayout.fullUpdate)
     chartLayout.axisx.addListener('barwidth_change', chartLayout.fullUpdate)
-    chartLayout.addListener('resolution_change', resolution => {
-      // 股票类型时，分时图显示线形图，其他显示蜡烛图
-      if (chartLayout.mainDatasource instanceof StockDatasource && this.props.shape === 'candle') {
-        const mainGraph = chartLayout.mainChart.mainGraph as StockModel
-        if (resolution === '1') {
-          mainGraph.setShape('line')
-          mainGraph.plots[0].shape = 'line'
-        } else {
-          mainGraph.setShape(this.props.shape)
-          mainGraph.plots[0].shape = this.props.shape
-        }
-      }
-      chartLayout.resetChart()
-      this.setState({ resolution })
-    })
-    chartLayout.addListener('symbol_change', symbolInfo => {
-      chartLayout.resetChart()
-      this.setState({ symbolType: symbolInfo.type })
-    })
-    chartLayout.addListener('right_change', right => {
-      chartLayout.resetChart()
-      this.setState({ right })
-    })
-
+    chartLayout.addListener('resolution_change', resolution => this.setState({ resolution }))
+    chartLayout.addListener('symbol_change', symbolInfo => this.setState({ symbolType: symbolInfo.type }))
+    chartLayout.addListener('right_change', right => this.setState({ right }))
     chartLayout.addListener('sidebar_toggle', folded => this.setState({ sidebarFolded: folded }))
-
     chartLayout.addListener('chart_add', this.updateView)
     chartLayout.addListener('chart_remove', this.updateView)
     chartLayout.addListener('graph_add', chartLayout.lightUpdate)
-    chartLayout.addListener('graph_delete', chartLayout.lightUpdate)
+    chartLayout.addListener('graph_remove', chartLayout.lightUpdate)
     chartLayout.addListener('graph_modify', chartLayout.lightUpdate)
     chartLayout.addListener('graph_hover', chartLayout.lightUpdate)
     chartLayout.addListener('graph_select', chartLayout.lightUpdate)

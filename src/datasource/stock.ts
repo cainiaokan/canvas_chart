@@ -114,7 +114,7 @@ export class StockDatasource extends Datasource {
     const right = this._right
 
     if (from > to) {
-      return Promise.resolve()
+      return Promise.resolve([])
       // throw TypeError('from must less than to.')
     }
 
@@ -167,13 +167,13 @@ export class StockDatasource extends Datasource {
    * @param  {number}  loaded      已经加载的条数
    * @return {Promise}
    */
-  public loadHistory (requiredNum: number, loaded = 0): Promise<any> {
+  public loadHistory (requiredNum: number, loaded = 0, lastRequestFromTime?: number): Promise<any> {
     if (!this._hasMoreHistory) {
       return Promise.resolve()
     }
 
-    const toTime = this._requestFromTime ?
-                     this._requestFromTime : this._plotList.first() ?
+    const toTime = lastRequestFromTime ?
+                     lastRequestFromTime : this._plotList.first() ?
                        this._plotList.first().time : this.now()
 
     let fromTime = 0
@@ -225,8 +225,6 @@ export class StockDatasource extends Datasource {
 
     fromTime = ~~(fromMoment.toDate().getTime() / 1000)
 
-    this._requestFromTime = fromTime
-
     return new Promise((resolve, reject) =>
       this.loadTimeRange(fromTime, toTime)
         .then(stockBars => {
@@ -240,11 +238,11 @@ export class StockDatasource extends Datasource {
           if (loaded >= requiredNum) {
             resolve()
           // 如果请求的时长大于了最大时间跨度值时，认为已经没有新数据了。
-          } else if (requestToTime - this._requestFromTime >= maxTimeSpan) {
+          } else if (requestToTime - fromTime >= maxTimeSpan) {
             this._hasMoreHistory = false
             resolve()
           } else {
-            this.loadHistory(requiredNum, loaded)
+            this.loadHistory(requiredNum, loaded, fromTime)
               .then(resolve)
               .catch(reject)
           }

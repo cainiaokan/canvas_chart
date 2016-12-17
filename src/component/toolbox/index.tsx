@@ -93,7 +93,8 @@ export default class ToolBox extends React.Component<Prop, State> {
                       <a href='javascript:;'
                          data-index1={i}
                          data-index2={j}
-                         onMouseDown={this.selectToolHandler}>
+                         onMouseDown={this.selectToolHandler}
+                         onTouchStart={this.selectToolHandler}>
                         <span className={tool[0]}></span>{tool[1]}
                       </a>
                     )
@@ -134,6 +135,9 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   private selectToolHandler (ev) {
+    if (ev.touches) {
+      ev.preventDefault()
+    }
     this.selectTool(+ev.currentTarget.dataset.index1, +ev.currentTarget.dataset.index2)
   }
 

@@ -1,9 +1,10 @@
 import * as EventEmitter from 'eventemitter3'
 import * as _ from 'underscore'
+import * as moment from 'moment'
 import randomColor = require('randomcolor')
 import ChartModel from './chart'
 import StockModel from './stock'
-import AxisXModel from './axisx'
+import AxisXModel, { INITIAL_OFFSET } from './axisx'
 import StudyModel from './study'
 import CrosshairModel from './crosshair'
 import AxisYModel from './axisy'
@@ -17,7 +18,38 @@ import {
   getServerTime,
 } from '../datasource'
 import { Point } from '../model/crosshair'
-import { ResolutionType, StudyType } from '../constant'
+import { ResolutionType, StudyType, OPEN_TIME_RANGE, OPEN_DAYS } from '../constant'
+
+export const preferredTimeRange = ['1天', '5天', '1月', '1年', '全部']
+const perferredResolution = ['1', '5', '30', 'D', 'M'] as ResolutionType[]
+
+type MA_PROP = {
+  length: number
+  color: string
+  isVisible: boolean
+}
+
+const DEFAULT_MA_PROPS: MA_PROP[] = [{
+  length: 5,
+  color: 'red',
+  isVisible: true,
+}, {
+  length: 10,
+  color: 'blue',
+  isVisible: false,
+}, {
+  length: 20,
+  color: 'purple',
+  isVisible: true,
+}, {
+  length: 30,
+  color: 'green',
+  isVisible: false,
+}, {
+  length: 60,
+  color: 'orange',
+  isVisible: false,
+}]
 
 export default class ChartLayoutModel extends EventEmitter {
   public selectedDrawingTool: BaseToolRenderer
@@ -29,6 +61,9 @@ export default class ChartLayoutModel extends EventEmitter {
   private _charts: ChartModel[]
   private _axisx: AxisXModel
   private _mainDatasource: Datasource
+  private _mainChart: ChartModel
+
+  private _maProps: MA_PROP[]
 
   /**
    * 用于标记chart正在加载中，避免重复加载
@@ -49,6 +84,7 @@ export default class ChartLayoutModel extends EventEmitter {
   constructor () {
     super()
     this._charts = []
+    this._maProps = []
     this.pulseUpdate = this.pulseUpdate.bind(this)
     this.fullUpdate = this.fullUpdate.bind(this)
     this.lightUpdate = this.lightUpdate.bind(this)
@@ -59,7 +95,7 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   get charts (): ChartModel[] {
-    return this._charts
+    return this._charts.slice(0)
   }
 
   set axisx (axisx: AxisXModel) {
@@ -71,7 +107,7 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   get mainChart (): ChartModel {
-    return this._charts.filter(chart => chart.isMain)[0] || null
+    return this._mainChart
   }
 
   set mainDatasource (datasource: Datasource) {
@@ -178,11 +214,10 @@ export default class ChartLayoutModel extends EventEmitter {
   /**
    * 重置chart
    */
-  public resetChart () {
+  public restartPulseUpdate () {
     this._loading = false
-    this.stopPulseUpdate()
-    this.loadHistory()
-      .then(this.pulseUpdate)
+    clearTimeout(this._pulseUpdateTimer)
+    this.pulseUpdate()
   }
 
   /**
@@ -198,7 +233,7 @@ export default class ChartLayoutModel extends EventEmitter {
     this._loading = true
     const axisX = this.axisx
     const datasources = []
-    const requiredNum = ~~(axisX.width / axisX.barWidth + 0.5)
+    const requiredNum = ~~(1.5 * axisX.width / axisX.barWidth)
 
     this.charts.forEach(chart => {
       chart.graphs.forEach(graph => {
@@ -251,7 +286,8 @@ export default class ChartLayoutModel extends EventEmitter {
   public pulseUpdate () {
     const mainDatasource = this.mainDatasource
     // 使用最后一个bar的时间或者当前时间的前一分钟
-    const from = mainDatasource.loaded() ? mainDatasource.last().time : mainDatasource.now() - 60
+    const from = mainDatasource.loaded() ?
+      mainDatasource.last().time : mainDatasource.now()
     // 未来一天，因为用户的PC可能进入休眠状态，待恢复时一次性要把休眠错过的数据全部请求过来。
     // 不过极端情况下一天未必会足够
     const to = from + 24 * 60 * 60
@@ -287,24 +323,32 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
-   * 停止搏动更新
-   */
-  public stopPulseUpdate () {
-    clearTimeout(this._pulseUpdateTimer)
-  }
-
-  /**
    * 设置解析度
    * @param {ResolutionType} resolution
    */
   public setResolution (resolution: ResolutionType) {
-    this.clearCharts()
+    // 股票类型时，分时图显示线形图，其他显示蜡烛图
+    if (this.mainDatasource instanceof StockDatasource) {
+      const mainGraph = this.mainChart.mainGraph as StockModel
+      if (resolution === '1') {
+        mainGraph.setShape('line')
+        mainGraph.plots[0].shape = 'line'
+      } else {
+        mainGraph.setShape('candle')
+        mainGraph.plots[0].shape = 'candle'
+      }
+    }
+
     // 批量设置数据源的解析度
     _.unique(
       this._charts.reduce((datasources, chart) =>
         datasources.concat(chart.graphs.map(graph => graph.datasource)
       ), [])
     ).forEach(datasource => datasource.resolution = resolution)
+
+    this.clearCache()
+    this.resetStudies()
+    this.restartPulseUpdate()
     this._axisx.resetOffset()
     this.emit('resolution_change', resolution)
   }
@@ -320,12 +364,14 @@ export default class ChartLayoutModel extends EventEmitter {
           .then(data => {
             const symbolInfo: SymbolInfo = data
             const mainDatasource = this._mainDatasource
-            this.clearCharts()
             if (mainDatasource instanceof StockDatasource) {
               mainDatasource.symbolInfo = symbolInfo
             } else {
               throw 'mainDatasource required to be an instance of StockDatasource.'
             }
+            this.clearCache()
+            this.resetStudies()
+            this.restartPulseUpdate()
             this._axisx.resetOffset()
             this.emit('symbol_change', symbolInfo)
           })
@@ -338,13 +384,14 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public setRight (right: number) {
     const datasources: Datasource[] = []
-    this.clearCharts()
     // 批量设置数据源的解析度
     _.unique(datasources).forEach(datasource => {
       if (datasource instanceof StockDatasource) {
         datasource.right = right
       }
     })
+    this.clearCache()
+    this.restartPulseUpdate()
     this._axisx.resetOffset()
     this.emit('right_change', right)
   }
@@ -371,6 +418,79 @@ export default class ChartLayoutModel extends EventEmitter {
     this.emit('cursor_change', cursor)
   }
 
+  public addChart (chart: ChartModel) {
+    if (chart.isMain) {
+      if (this._mainChart) {
+        throw new Error('can only has one main chart')
+      }
+      this._mainChart = chart
+    }
+    this._charts.push(chart)
+    this.emit('chart_add', chart)
+  }
+
+  public removeChart (chart: ChartModel) {
+    this._charts.splice(this._charts.indexOf(chart), 1)
+    this.emit('chart_remove', chart)
+  }
+
+  public resetStudies () {
+    const mainChart = this._mainChart
+    const datasource = mainChart.datasource
+
+    // 移除所有study
+    this.charts.reverse().forEach(chart => {
+      chart.graphs
+        .filter(graph => graph instanceof StudyModel)
+        .forEach(study => this.removeStudy(chart, study.id))
+    })
+
+    if (mainChart.isMain) {
+        if (datasource.resolution === '1') {
+          if (datasource instanceof StockDatasource &&
+              datasource.symbolInfo &&
+              datasource.symbolInfo.type === 'stock') {
+            mainChart.addGraph(
+              new StudyModel(
+                mainChart,
+                '均价',
+              ))
+          }
+        } else {
+          DEFAULT_MA_PROPS.forEach((defaultMAProps, i) => {
+            const maProps = this._maProps[i]
+            mainChart.addGraph(
+              maProps ? new StudyModel(
+                mainChart,
+                'MA',
+                maProps.isVisible,
+                [maProps.length],
+                [{
+                  color: maProps.color,
+                  lineWidth: 1,
+                }]
+              ) : new StudyModel(
+                mainChart,
+                'MA',
+                defaultMAProps.isVisible,
+                [defaultMAProps.length],
+                [{
+                  color: defaultMAProps.color,
+                  lineWidth: 1,
+                }]
+              )
+            )
+          })
+
+          mainChart.addGraph(
+            new StudyModel(
+              mainChart,
+              'VOLUME'
+            ))
+        }
+      }
+  }
+
   /**
    * 增加指标
    * @param {StudyType} study
@@ -379,19 +499,10 @@ export default class ChartLayoutModel extends EventEmitter {
     const config = studyConfig[study]
     if (config.isPrice) {
       const studyModel = new StudyModel(
-        this._mainDatasource,
-        this.mainChart,
+        this._mainChart,
         study,
-        null,
-        study === 'MA' ? [{
-          color: randomColor({
-            luminosity: 'bright',
-            hue: 'random',
-          }),
-          lineWidth: 1,
-        }] : null
       )
-      this.mainChart.addGraph(studyModel)
+      this._mainChart.addGraph(studyModel)
       this.emit('graph_add')
     } else {
       const mainDatasource = this._mainDatasource
@@ -406,7 +517,6 @@ export default class ChartLayoutModel extends EventEmitter {
         config.isPrice
       )
       const studyModel = new StudyModel(
-        this.mainDatasource,
         chart,
         study
       )
@@ -415,8 +525,8 @@ export default class ChartLayoutModel extends EventEmitter {
       crosshair.chart = chart
 
       chart.addGraph(studyModel)
-      this.charts.push(chart)
-      this.emit('chart_add')
+      this._charts.push(chart)
+      this.emit('chart_add', chart)
     }
   }
 
@@ -424,7 +534,7 @@ export default class ChartLayoutModel extends EventEmitter {
    * 移除指标
    * @param {StudyType} study
    */
-  public deleteStudy (chart: ChartModel, studyId: number) {
+  public removeStudy (chart: ChartModel, studyId: number) {
     if (chart.graphs.some(graph => {
       if (graph instanceof StudyModel && graph.id === studyId) {
         chart.removeGraph(graph)
@@ -435,10 +545,9 @@ export default class ChartLayoutModel extends EventEmitter {
     })) {
       // 如果此时chart中已经没有其他图形了，则把整个chart都移除
       if (!chart.graphs.length) {
-        this.charts.splice(this.charts.indexOf(chart), 1)
-        this.emit('chart_remove')
+        this.removeChart(chart)
       } else {
-        this.emit('graph_delete')
+        this.emit('graph_remove')
       }
       return true
     } else {
@@ -463,7 +572,7 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public addComparison (symbol: string) {
     const mainDatasource = this.mainDatasource as StockDatasource
-    const mainChart = this.mainChart
+    const mainChart = this._mainChart
     const datasource = new StockDatasource(symbol, mainDatasource.resolution, mainDatasource.right, mainDatasource.timeDiff)
     const stockModel = new StockModel(
       datasource,
@@ -496,11 +605,11 @@ export default class ChartLayoutModel extends EventEmitter {
     return stockModel.id
   }
 
-  public deleteComparison (graphId: number) {
-    this.mainChart.graphs.some((graph, j) => {
+  public removeComparison (graphId: number) {
+    this._mainChart.graphs.some(graph => {
       if (graph.isComparison && graph.id === graphId) {
-        this.mainChart.graphs.splice(j, 1)
-        this.emit('graph_delete')
+        this._mainChart.removeGraph(graph)
+        this.emit('graph_remove')
         return true
       } else {
         return false
@@ -553,7 +662,11 @@ export default class ChartLayoutModel extends EventEmitter {
       return
     }
 
-    const index = time < mainDatasource.last().time ? mainDatasource.search(time) : mainDatasource.loaded() - 1
+    const index =
+      mainDatasource.hasMoreHistory ?
+        time < mainDatasource.last().time ?
+          mainDatasource.search(time) : mainDatasource.loaded() - 1
+        : mainDatasource.first().time
 
     if (index !== -1) {
       axisX.offset =  (mainDatasource.loaded() - 1.5 - index) * axisX.barWidth - axisX.width / 2
@@ -581,10 +694,74 @@ export default class ChartLayoutModel extends EventEmitter {
     }
   }
 
+  public setTimeRange (range: string) {
+    const resolution = perferredResolution[preferredTimeRange.indexOf(range)]
+    const mainDatasource = this.mainDatasource
+    const axisX = this.axisx
+
+    const openTime = OPEN_TIME_RANGE[0][0]
+    const closeTime = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1]
+    const thisMoment = moment(mainDatasource.now() * 1000)
+    const openMoment = moment({ hour: openTime[0], minute: openTime[1]})
+    const closeMoment = moment({ hour: closeTime[0], minute: closeTime[1]})
+
+    const toTime = ~~(thisMoment.toDate().getTime() / 1000)
+    const fromTime = ~~(function (): number {
+      switch (range) {
+        case '1天':
+          return thisMoment.isAfter(closeMoment) ?
+            openMoment.toDate().getTime() :
+            openMoment.subtract(1, 'days').toDate().getTime()
+        case '5天':
+          let retMoment = thisMoment.isAfter(closeMoment) ?
+            openMoment :
+            openMoment.subtract(1, 'days')
+          let loop = 4
+          while (loop--) {
+            retMoment.subtract(1, 'days')
+            if (OPEN_DAYS.indexOf(retMoment.day()) === -1) {
+              loop++
+            }
+          }
+          return retMoment.toDate().getTime()
+        case '1月':
+          return openMoment.subtract(1, 'months').toDate().getTime()
+        case '1年':
+          return openMoment.subtract(1, 'years').toDate().getTime()
+        case '全部':
+          return 0
+        default:
+          throw 'unsupport range type'
+      }
+    }() / 1000)
+
+    if (resolution !== this.mainDatasource.resolution) {
+      this.setResolution(resolution)
+    }
+
+    const fromIndex = mainDatasource.search(fromTime)
+
+    if (fromIndex === -1) {
+      mainDatasource.loadTimeRange(fromTime, toTime)
+        .then(bars => {
+          if (bars.length) {
+            axisX.barWidth = (axisX.width - INITIAL_OFFSET) / bars.length
+          } else {
+            // 加载不到数据说明有停牌的可能因此之间返回
+            return
+          }
+        })
+    } else {
+      axisX.barWidth = (axisX.width - INITIAL_OFFSET) / (mainDatasource.loaded() -  fromIndex)
+    }
+
+    axisX.resetOffset()
+  }
+
   /**
    * 清理chart的所有缓存
    */
-  private clearCharts () {
+  private clearCache () {
     this._charts.forEach(chart => {
       chart.tools.length = 0
       chart.graphs.forEach(graph => {

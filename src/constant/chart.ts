@@ -1,6 +1,6 @@
 export type ResolutionType = '1' | '5' | '15' | '30' | '60' | 'D' | 'W' | 'M'
 export type ShapeType = 'line' | 'column' | 'histogram' | 'bar' | 'mountain' | 'candle' | 'band'
-export type StudyType = 'MA' | 'MACD' | 'KDJ' | 'BOLL' | 'RSI' | 'CCI' | 'VOLUME'
+export type StudyType = 'MA' | 'MACD' | 'KDJ' | 'BOLL' | 'RSI' | 'CCI' | 'VOLUME' | '均价'
 export const OPEN_DAYS = [1, 2, 3, 4, 5]
 export const OPEN_TIME_RANGE = [
   [[9, 30], [11, 30]],
