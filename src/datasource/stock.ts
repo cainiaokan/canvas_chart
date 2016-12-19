@@ -3,7 +3,7 @@ import moment = require('moment')
 import * as RPC from './rpc'
 import PlotList  from './plotlist'
 import { ResolutionType, OPEN_DAYS, OPEN_MINITES_COUNT } from '../constant'
-import { IBar, Datasource, SymbolInfo } from './datasource'
+import { IBar, Datasource } from './base'
 
 /**
  * 股票信息的数据规格
@@ -17,6 +17,13 @@ export interface IStockBar extends IBar {
   volume: number
   turnover?: number
   changerate?: number
+}
+
+export type SymbolInfo = {
+  symbol: string
+  type: 'stock' | 'index',
+  exchange: string
+  description: string
 }
 
 /**
@@ -100,6 +107,24 @@ export class StockDatasource extends Datasource {
 
   public search (time): number {
     return this._plotList.search(time)
+  }
+
+  public max (fromIndex: number, toIndex = this.loaded() - 1) {
+    const bars = this.slice(fromIndex, toIndex)
+
+    let max = -Number.MAX_VALUE
+    bars.forEach(bar => max = bar.high > max ? bar.high : max)
+
+    return max
+  }
+
+  public min (fromIndex: number, toIndex = this.loaded() - 1) {
+    const bars = this.slice(fromIndex, toIndex)
+
+    let min = Number.MAX_VALUE
+    bars.forEach(bar => min = bar.low < min ? bar.low : min)
+
+    return min
   }
 
   /**

@@ -18,7 +18,15 @@ import {
   getServerTime,
 } from '../datasource'
 import { Point } from '../model/crosshair'
-import { ResolutionType, StudyType, OPEN_TIME_RANGE, OPEN_DAYS } from '../constant'
+import {
+  ResolutionType,
+  StudyType,
+  OPEN_HOUR,
+  OPEN_MINUTE,
+  CLOSE_HOUR,
+  CLOSE_MINUTE,
+  OPEN_DAYS,
+} from '../constant'
 
 export const preferredTimeRange = ['1天', '5天', '1月', '1年', '全部']
 const perferredResolution = ['1', '5', '30', 'D', 'M'] as ResolutionType[]
@@ -60,7 +68,7 @@ export default class ChartLayoutModel extends EventEmitter {
   private _defaultCursor: 'crosshair' | 'default'
   private _charts: ChartModel[]
   private _axisx: AxisXModel
-  private _mainDatasource: Datasource
+  private _mainDatasource: StockDatasource
   private _mainChart: ChartModel
 
   private _maProps: MA_PROP[]
@@ -110,11 +118,11 @@ export default class ChartLayoutModel extends EventEmitter {
     return this._mainChart
   }
 
-  set mainDatasource (datasource: Datasource) {
+  set mainDatasource (datasource: StockDatasource) {
     this._mainDatasource = datasource
   }
 
-  get mainDatasource (): Datasource {
+  get mainDatasource (): StockDatasource {
     return this._mainDatasource
   }
 
@@ -446,49 +454,48 @@ export default class ChartLayoutModel extends EventEmitter {
     })
 
     if (mainChart.isMain) {
-        if (datasource.resolution === '1') {
-          if (datasource instanceof StockDatasource &&
-              datasource.symbolInfo &&
-              datasource.symbolInfo.type === 'stock') {
-            mainChart.addGraph(
-              new StudyModel(
-                mainChart,
-                '均价',
-              ))
-          }
-        } else {
-          DEFAULT_MA_PROPS.forEach((defaultMAProps, i) => {
-            const maProps = this._maProps[i]
-            mainChart.addGraph(
-              maProps ? new StudyModel(
-                mainChart,
-                'MA',
-                maProps.isVisible,
-                [maProps.length],
-                [{
-                  color: maProps.color,
-                  lineWidth: 1,
-                }]
-              ) : new StudyModel(
-                mainChart,
-                'MA',
-                defaultMAProps.isVisible,
-                [defaultMAProps.length],
-                [{
-                  color: defaultMAProps.color,
-                  lineWidth: 1,
-                }]
-              )
-            )
-          })
-
+      if (datasource.resolution === '1') {
+        if (datasource instanceof StockDatasource &&
+            datasource.symbolInfo &&
+            datasource.symbolInfo.type === 'stock') {
           mainChart.addGraph(
             new StudyModel(
               mainChart,
-              'VOLUME'
+              '均价',
             ))
         }
+      } else {
+        DEFAULT_MA_PROPS.forEach((defaultMAProps, i) => {
+          const maProps = this._maProps[i]
+          mainChart.addGraph(
+            maProps ? new StudyModel(
+              mainChart,
+              'MA',
+              maProps.isVisible,
+              [maProps.length],
+              [{
+                color: maProps.color,
+                lineWidth: 1,
+              }]
+            ) : new StudyModel(
+              mainChart,
+              'MA',
+              defaultMAProps.isVisible,
+              [defaultMAProps.length],
+              [{
+                color: defaultMAProps.color,
+                lineWidth: 1,
+              }]
+            )
+          )
+        })
       }
+      mainChart.addGraph(
+        new StudyModel(
+          mainChart,
+          'VOLUME'
+        ))
+    }
   }
 
   /**
@@ -573,7 +580,12 @@ export default class ChartLayoutModel extends EventEmitter {
   public addComparison (symbol: string) {
     const mainDatasource = this.mainDatasource as StockDatasource
     const mainChart = this._mainChart
-    const datasource = new StockDatasource(symbol, mainDatasource.resolution, mainDatasource.right, mainDatasource.timeDiff)
+    const datasource = new StockDatasource(
+      symbol,
+      mainDatasource.resolution,
+      mainDatasource.right,
+      mainDatasource.timeDiff
+    )
     const stockModel = new StockModel(
       datasource,
       mainChart,
@@ -699,11 +711,9 @@ export default class ChartLayoutModel extends EventEmitter {
     const mainDatasource = this.mainDatasource
     const axisX = this.axisx
 
-    const openTime = OPEN_TIME_RANGE[0][0]
-    const closeTime = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1]
     const thisMoment = moment(mainDatasource.now() * 1000)
-    const openMoment = moment({ hour: openTime[0], minute: openTime[1]})
-    const closeMoment = moment({ hour: closeTime[0], minute: closeTime[1]})
+    const openMoment = moment({ hour: OPEN_HOUR, minute: OPEN_MINUTE})
+    const closeMoment = moment({ hour: CLOSE_HOUR, minute: CLOSE_MINUTE})
 
     const toTime = ~~(thisMoment.toDate().getTime() / 1000)
     const fromTime = ~~(function (): number {

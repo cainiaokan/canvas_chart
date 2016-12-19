@@ -7,9 +7,8 @@ export default class GridRenderer {
     this._chart = chart
   }
 
-  public draw () {
+  public draw (ctx: CanvasRenderingContext2D) {
     const chart = this._chart
-    const ctx = chart.ctx
     const axisX = chart.axisX
     const axisY = chart.axisY
     const width = ~~chart.width

@@ -6,6 +6,10 @@ export const OPEN_TIME_RANGE = [
   [[9, 30], [11, 30]],
   [[13, 0], [15, 0]],
 ]
+export const OPEN_HOUR = OPEN_TIME_RANGE[0][0][0]
+export const OPEN_MINUTE = OPEN_TIME_RANGE[0][0][1]
+export const CLOSE_HOUR = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][0]
+export const CLOSE_MINUTE = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][1]
 export const OPEN_MINITES_COUNT = OPEN_TIME_RANGE.reduce((count, timeRange) => {
   count += (timeRange[1][0] - timeRange[0][0]) * 60 + (timeRange[1][1] - timeRange[0][1])
   return count

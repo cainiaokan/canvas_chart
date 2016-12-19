@@ -14,7 +14,7 @@ abstract class GraphModel {
   protected _calc: DataConverter
   protected _input: any[]
   protected _isPrice: boolean
-  protected _ismain: boolean
+  protected _isMain: boolean
   protected _isComparison: boolean
   protected _isVisible: boolean
   protected _id: number
@@ -38,7 +38,7 @@ abstract class GraphModel {
     this._datasource = datasource
     this._chart = chart
     this._isPrice = isPrice
-    this._ismain = isMain
+    this._isMain = isMain
     this._isComparison = isComparison
     this._isVisible = isVisible
     this._adapter = adapter
@@ -67,7 +67,7 @@ abstract class GraphModel {
   }
 
   get isMain (): boolean {
-    return this._ismain
+    return this._isMain
   }
 
   get isComparison (): boolean {
@@ -121,8 +121,8 @@ abstract class GraphModel {
     return this._chart
   }
 
-  public draw () {
-    this._plots.forEach(plot => plot.draw())
+  public draw (ctx: CanvasRenderingContext2D) {
+    this._plots.forEach(plot => plot.draw(ctx))
     this._isValid = true
   }
 

@@ -17,6 +17,7 @@ type StudyConfig = {
     input?: any[]
     inputLabels?: string[]
     isPrice: boolean
+    noLegend: boolean
     output: DataConverter
     plots: Array<{
       style: ChartStyle
@@ -38,6 +39,7 @@ export const studyConfig: StudyConfig = {
       return [0, bar.time, bar.amount, bar.volume]
     },
     isPrice: true,
+    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const ma = $MA(index)
       return ma !== null ? [
@@ -65,6 +67,7 @@ export const studyConfig: StudyConfig = {
     input: [5],
     inputLabels: ['长度'],
     isPrice: true,
+    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const n = input[0]
       const ma = MA(index, n, CLOSE)
@@ -93,6 +96,7 @@ export const studyConfig: StudyConfig = {
     input: [],
     inputLabels: [],
     isPrice: false,
+    noLegend: true,
     output: (data: any[]): any[][] => {
       return [
         data,
@@ -117,6 +121,7 @@ export const studyConfig: StudyConfig = {
     input: [20, 2],
     inputLabels: [],
     isPrice: true,
+    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
       if (index - input[0] < 0) {
@@ -191,15 +196,14 @@ export const studyConfig: StudyConfig = {
     input: [12, 26, 9],
     inputLabels: [],
     isPrice: false,
+    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
       const fast = input[0]
       const slow = input[1]
       const signal = input[2]
       const time = data[1]
-      if (index - 3 * Math.max.apply(Math, input) < 0) {
-        return null
-      }
+
       const DIF = EMA(index, fast, CLOSE) - EMA(index, slow, CLOSE)
       const DIFT = {
         prop: 'dif',
@@ -245,6 +249,7 @@ export const studyConfig: StudyConfig = {
     input: [9, 3, 3],
     inputLabels: [],
     isPrice: false,
+    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const signal = input[0]
       if (index - signal < 0) {
@@ -329,6 +334,7 @@ export const studyConfig: StudyConfig = {
     input: [6, 12, 24],
     inputLabels: [],
     isPrice: false,
+    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       if (index - Math.max.apply(Math, input) < 0) {
         return null
@@ -380,6 +386,7 @@ export const studyConfig: StudyConfig = {
     input: [14],
     inputLabels: [],
     isPrice: false,
+    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const len = input[0]
       if (index - len < 0) {

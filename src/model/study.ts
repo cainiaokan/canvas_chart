@@ -11,6 +11,7 @@ export default class StudyModel extends Graph {
   private _studyType: StudyType
   private _styles: ChartStyle[]
   private _inputLabels: string[]
+  private _noLegend: boolean
 
   constructor (
     chart: ChartModel,
@@ -24,7 +25,7 @@ export default class StudyModel extends Graph {
     this._studyType = study
     this._styles = style || _.pluck(config.plots, 'style')
     this._inputLabels = config.inputLabels || []
-
+    this._noLegend = !!config.noLegend
     config.plots.forEach((plotConfig, index) => {
       this._plots.push(
         new PlotModel(
@@ -35,6 +36,10 @@ export default class StudyModel extends Graph {
         )
       )
     })
+  }
+
+  get noLegend (): boolean {
+    return this._noLegend
   }
 
   get studyType (): StudyType {

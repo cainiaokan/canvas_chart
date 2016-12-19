@@ -1,6 +1,6 @@
 import { Datasource, DataAdapter } from './'
 import moment = require('moment')
-import { OPEN_DAYS, OPEN_TIME_RANGE } from '../constant'
+import { OPEN_DAYS, OPEN_HOUR, OPEN_MINUTE } from '../constant'
 
 let context: {
   datasource: Datasource
@@ -32,8 +32,8 @@ export function clearContext () {
  */
 function getLastOpenIndex (datasource: Datasource): number {
   const m = moment(datasource.now() * 1000)
-  m.hours(OPEN_TIME_RANGE[0][0][0])
-  m.minute(OPEN_TIME_RANGE[0][0][1])
+  m.hours(OPEN_HOUR)
+  m.minute(OPEN_MINUTE)
   while (OPEN_DAYS.indexOf(m.weekday()) === -1) {
     m.subtract(1, 'days')
   }

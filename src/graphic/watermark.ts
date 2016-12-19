@@ -7,9 +7,8 @@ export default class WatermarkRenderer {
     this._chart = chart
   }
 
-  public draw () {
+  public draw (ctx: CanvasRenderingContext2D) {
     const chart = this._chart
-    const ctx = chart.ctx
     const width = chart.width
     const height = chart.height
 

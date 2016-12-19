@@ -1,4 +1,4 @@
-import { IBar } from './datasource'
+import { IBar } from './base'
 
 /**
  * @class
@@ -88,7 +88,7 @@ export default class PlotList<T extends IBar> {
   }
 
   /**
-   * 讲新的数据集合并到当前数据集中
+   * 将新的数据集合并到当前数据集中
    * @param {T[]} newData 新数据集
    */
   public merge(newData: T[]): void {
@@ -96,6 +96,7 @@ export default class PlotList<T extends IBar> {
       return
     }
     newData = newData.sort((a, b) => a.time - b.time)
+    const oldData = this.cache
     const newDataFrom = newData[0]
     const newDataTo = newData[newData.length - 1]
     const cacheDataFrom = this.cache[0]
@@ -103,19 +104,20 @@ export default class PlotList<T extends IBar> {
     if (!cacheDataFrom || !cacheDataTo) {
       this.cache = newData
     } else if (newDataFrom.time > cacheDataTo.time) {
-      this.cache = this.cache.concat(newData)
+      this.cache = oldData.concat(newData)
     } else if (newDataTo.time < cacheDataFrom.time) {
-      this.cache = newData.concat(this.cache)
+      this.cache = newData.concat(oldData)
     } else {
-      if (newDataFrom.time < cacheDataFrom.time) {
-        if (newDataTo.time >= cacheDataTo.time) {
-          this.cache = newData
-        } else {
-          this.cache = newData.concat(this.cache.slice(this.search(newDataTo.time) + 1))
-        }
-      } else if (newDataTo.time > cacheDataTo.time) {
-        this.cache = this.cache.slice(0, this.search(newDataFrom.time)).concat(newData)
+      let data
+      if (cacheDataFrom.time < newDataFrom.time) {
+        data = oldData.slice(0, this.search(newDataFrom.time)).concat(newData)
+      } else {
+        data = newData
       }
+      if (cacheDataTo.time > newDataTo.time) {
+        data = data.concat(oldData.slice(this.search(newDataTo.time) + 1))
+      }
+      this.cache = data
     }
   }
 

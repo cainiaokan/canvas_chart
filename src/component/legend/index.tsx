@@ -7,7 +7,6 @@ import { StockDatasource } from '../../datasource'
 import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import StudyModel from '../../model/study'
-import StockModel from '../../model/stock'
 import Dialog from '../../component/dialog'
 import { formatNumber } from '../../util'
 
@@ -94,112 +93,110 @@ export default class Legend extends React.Component<Prop, State> {
         {
           nonStudies.map(graph => {
             // 股票类图形
-            if (graph instanceof StockModel) {
-              const curBar = graph.getCurBar()
-              const prevBar = graph.getPrevBar()
-              const datasource = graph.datasource as StockDatasource
-              const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
-              const prev = prevBar ? datasource.barAt(datasource.search(prevBar[0][1])) : null
-              const colorUp = '#FF0000'
-              const colorDown = '#008000'
-              const resolution = datasource.resolution
-              let resolutionText = null
-              switch (resolution) {
-                case '1':
-                  resolutionText = '分时线'
-                  break
-                case '5':
-                  resolutionText = '5分钟线'
-                  break
-                case '15':
-                  resolutionText = '15分钟线'
-                  break
-                case '30':
-                  resolutionText = '30分钟线'
-                  break
-                case '60':
-                  resolutionText = '60分钟线'
-                  break
-                case 'D':
-                  resolutionText = '日K线'
-                  break
-                case 'W':
-                  resolutionText = '周K线'
-                  break
-                case 'M':
-                  resolutionText = '月K线'
-                  break
-                default:
-                  break
-              }
-              return [
-                <div className='chart-legend-line'
-                  style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
-                  <div className='chart-legend-item main'>
-                    {!datasource.symbolInfo ? '加载中' : `${datasource.symbolInfo.description},${resolutionText}`}
-                  </div>
-                  <div className='chart-legend-item' style={ cur ? {
+            const curBar = graph.getCurBar()
+            const prevBar = graph.getPrevBar()
+            const datasource = graph.datasource as StockDatasource
+            const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
+            const prev = prevBar ? datasource.barAt(datasource.search(prevBar[0][1])) : null
+            const colorUp = '#FF0000'
+            const colorDown = '#008000'
+            const resolution = datasource.resolution
+            let resolutionText = null
+            switch (resolution) {
+              case '1':
+                resolutionText = '分时线'
+                break
+              case '5':
+                resolutionText = '5分钟线'
+                break
+              case '15':
+                resolutionText = '15分钟线'
+                break
+              case '30':
+                resolutionText = '30分钟线'
+                break
+              case '60':
+                resolutionText = '60分钟线'
+                break
+              case 'D':
+                resolutionText = '日K线'
+                break
+              case 'W':
+                resolutionText = '周K线'
+                break
+              case 'M':
+                resolutionText = '月K线'
+                break
+              default:
+                break
+            }
+            return [
+              <div className='chart-legend-line'
+                style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
+                <div className='chart-legend-item main'>
+                  {!datasource.symbolInfo ? '加载中' : `${datasource.symbolInfo.description},${resolutionText}`}
+                </div>
+                <div className='chart-legend-item' style={ cur ? {
+                  color: cur.changerate > 0 ?
+                    colorUp : cur.changerate < 0 ?
+                      colorDown : 'inherit',
+                  display: resolution === '1' ? '' : 'none'} : {display : 'none'} }>
+                  现价&nbsp;{cur ? formatNumber(cur.close) : 'N/A'}
+                </div>
+                <div className='chart-legend-item' style={ cur ? {
+                  color: prev ? cur.open > prev.close ?
+                    colorUp : cur.open < prev.close ?
+                      colorDown : 'inherit' : 'inherit',
+                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                  开盘&nbsp;{cur ? formatNumber(cur.open) : 'N/A'}
+                </div>
+                <div className='chart-legend-item' style={ cur ? {
+                  color: prev ? cur.high > prev.close ?
+                    colorUp : cur.high < prev.close ?
+                      colorDown : 'inherit' : 'inherit',
+                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                  最高&nbsp;{cur ? formatNumber(cur.high) : 'N/A'}
+                </div>
+                <div className='chart-legend-item' style={ cur ? {
+                  color: prev ? cur.low > prev.close ?
+                    colorUp : cur.low < prev.close ?
+                      colorDown : 'inherit' : 'inherit',
+                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                  最低&nbsp;{cur ? formatNumber(cur.low) : 'N/A'}
+                </div>
+                <div className='chart-legend-item' style={ cur ? {
+                  color: prev ? cur.close > prev.close ?
+                    colorUp : cur.close < prev.close ?
+                      colorDown : 'inherit' : 'inherit',
+                  display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
+                  收盘&nbsp;{cur ? formatNumber(cur.close) : 'N/A'}
+                </div>
+                <div className='chart-legend-item'
+                  style={ cur ? {
                     color: cur.changerate > 0 ?
                       colorUp : cur.changerate < 0 ?
                         colorDown : 'inherit',
-                    display: resolution === '1' ? '' : 'none'} : {display : 'none'} }>
-                    现价&nbsp;{cur ? formatNumber(cur.close) : 'N/A'}
-                  </div>
-                  <div className='chart-legend-item' style={ cur ? {
-                    color: prev ? cur.open > prev.close ?
-                      colorUp : cur.open < prev.close ?
-                        colorDown : 'inherit' : 'inherit',
-                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                    开盘&nbsp;{cur ? formatNumber(cur.open) : 'N/A'}
-                  </div>
-                  <div className='chart-legend-item' style={ cur ? {
-                    color: prev ? cur.high > prev.close ?
-                      colorUp : cur.high < prev.close ?
-                        colorDown : 'inherit' : 'inherit',
-                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                    最高&nbsp;{cur ? formatNumber(cur.high) : 'N/A'}
-                  </div>
-                  <div className='chart-legend-item' style={ cur ? {
-                    color: prev ? cur.low > prev.close ?
-                      colorUp : cur.low < prev.close ?
-                        colorDown : 'inherit' : 'inherit',
-                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                    最低&nbsp;{cur ? formatNumber(cur.low) : 'N/A'}
-                  </div>
-                  <div className='chart-legend-item' style={ cur ? {
-                    color: prev ? cur.close > prev.close ?
-                      colorUp : cur.close < prev.close ?
-                        colorDown : 'inherit' : 'inherit',
-                    display: resolution > '1' ? '' : 'none'} : {display : 'none'} }>
-                    收盘&nbsp;{cur ? formatNumber(cur.close) : 'N/A'}
-                  </div>
-                  <div className='chart-legend-item'
-                    style={ cur ? {
-                      color: cur.changerate > 0 ?
-                        colorUp : cur.changerate < 0 ?
-                          colorDown : 'inherit',
-                      display: typeof cur.changerate === 'number' ? '' : 'none'} : {display: 'none'}}>
-                    涨跌幅&nbsp;
-                    {
-                      cur && typeof cur.changerate === 'number' ?
-                        (cur.changerate > 0 ? '+' : '') +
-                        (cur.changerate * 100).toFixed(2) + '%'
-                        :'N/A'
-                    }
-                  </div>
-                  <div className='chart-legend-item'
-                  style={ {display: cur && typeof cur.turnover === 'string' ? '' : 'none'} }>
-                    换手率&nbsp;{ cur && typeof cur.turnover === 'string' ? (+cur.turnover * 100).toFixed(2) + '%' : 'N/A'}
-                  </div>
-                  <div className='chart-legend-item' style={ {display:cur ? '' : 'none'} }>
-                    成交量&nbsp;{cur ? formatNumber(cur.volume) + '手' : 'N/A'}
-                  </div>
-                  <div className='chart-legend-item' style={ {display:cur ? '' : 'none'} }>
-                    成交额&nbsp;{cur ? formatNumber(cur.amount) : 'N/A'}
-                  </div>
-                </div>,
-              ]
-            }
+                    display: typeof cur.changerate === 'number' ? '' : 'none'} : {display: 'none'}}>
+                  涨跌幅&nbsp;
+                  {
+                    cur && typeof cur.changerate === 'number' ?
+                      (cur.changerate > 0 ? '+' : '') +
+                      (cur.changerate * 100).toFixed(2) + '%'
+                      :'N/A'
+                  }
+                </div>
+                <div className='chart-legend-item'
+                style={ {display: cur && typeof cur.turnover === 'string' ? '' : 'none'} }>
+                  换手率&nbsp;{ cur && typeof cur.turnover === 'string' ? (+cur.turnover * 100).toFixed(2) + '%' : 'N/A'}
+                </div>
+                <div className='chart-legend-item' style={ {display:cur ? '' : 'none'} }>
+                  成交量&nbsp;{cur ? formatNumber(cur.volume) + '手' : 'N/A'}
+                </div>
+                <div className='chart-legend-item' style={ {display:cur ? '' : 'none'} }>
+                  成交额&nbsp;{cur ? formatNumber(cur.amount) : 'N/A'}
+                </div>
+              </div>,
+            ]
           })
         }
         {
@@ -244,7 +241,7 @@ export default class Legend extends React.Component<Prop, State> {
         }
         {
           nonMAStudies.map(study => {
-            if (study.studyType !== 'VOLUME') {
+            if (!study.noLegend) {
               const curBar = study.getCurBar()
               return <div className='chart-legend-line'
                 style={ {fontWeight: study.hover || study.selected ? 600 : 'normal'} }>

@@ -7,7 +7,7 @@ import * as _ from 'underscore'
 import * as DatetimePicker from 'react-datetime'
 import Dialog from '../../../component/dialog'
 import ChartLayoutModel from '../../../model/chartlayout'
-import { OPEN_TIME_RANGE } from '../../../constant'
+import { OPEN_HOUR, OPEN_MINUTE, CLOSE_HOUR, CLOSE_MINUTE } from '../../../constant'
 
 type Prop = {
   chartLayout: ChartLayoutModel
@@ -48,8 +48,6 @@ export default class GoToDate extends React.Component<Prop, State> {
   }
 
   public render () {
-    const minHour = OPEN_TIME_RANGE[0][0][0]
-    const maxHour = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][0]
     const chartLayout = this.props.chartLayout
     const dontShowTime = chartLayout.mainDatasource.resolution > '60'
     const mainDatasource = chartLayout.mainDatasource
@@ -83,7 +81,7 @@ export default class GoToDate extends React.Component<Prop, State> {
             isValidDate={this.checkDateHandler}
             dateFormat={true}
             timeFormat={dontShowTime ? null : true}
-            timeConstraints={ { hours: { min: minHour, max: maxHour }, minutes: { step: 5 } } }
+            timeConstraints={ { hours: { min: OPEN_HOUR, max: CLOSE_HOUR }, minutes: { step: 5 } } }
             closeOnSelect={true}
             disableOnClickOutside={true}
             locale={'zh-cn'}
@@ -183,19 +181,15 @@ export default class GoToDate extends React.Component<Prop, State> {
 
   // 校正日期，使其在开收盘的限制范围内
   private correctTime (date) {
-    const minHour = OPEN_TIME_RANGE[0][0][0]
-    const maxHour = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][0]
-    const minMinute = OPEN_TIME_RANGE[0][0][1]
-    const maxMinute = OPEN_TIME_RANGE[OPEN_TIME_RANGE.length - 1][1][1]
     const hour = date.getHours()
     const minute = date.getMinutes()
 
-    if (hour < minHour || (hour === minHour && minute < minMinute)) {
-      date.setHours(minHour)
-      date.setMinutes(minMinute)
-    } else if (hour > maxHour || (hour === maxHour && minute > maxMinute)) {
-      date.setHours(maxHour)
-      date.setMinutes(maxMinute)
+    if (hour < OPEN_HOUR || (hour === OPEN_HOUR && minute < OPEN_MINUTE)) {
+      date.setHours(OPEN_HOUR)
+      date.setMinutes(OPEN_MINUTE)
+    } else if (hour > CLOSE_HOUR || (hour === CLOSE_HOUR && minute > CLOSE_MINUTE)) {
+      date.setHours(CLOSE_HOUR)
+      date.setMinutes(CLOSE_MINUTE)
     }
   }
 }

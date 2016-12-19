@@ -5,6 +5,7 @@ import { ChartStyle } from '../graphic/diagram'
 import ChartModel from './chart'
 import PlotModel from './plot'
 import GraphModel from './graph'
+import GapRenderer from '../graphic/gap'
 
 const adaptorFuncs = {
   line(bar) {
@@ -26,6 +27,7 @@ const adaptorFuncs = {
 }
 
 export default class StockModel extends GraphModel {
+  private _gapRenderer: GapRenderer
   constructor (
     datasource: Datasource,
     chart: ChartModel,
@@ -43,9 +45,25 @@ export default class StockModel extends GraphModel {
         _.extend({}, style ? style : {})
       )
     )
+    if (isMain) {
+      this._gapRenderer = new GapRenderer(this)
+    }
   }
 
   public setShape (shape: ShapeType) {
     this._adapter = adaptorFuncs[shape]
+  }
+
+  public draw () {
+    const ctx = this._chart.ctx
+    super.draw(ctx)
+    if (this._isMain && this._datasource.resolution > '1') {
+      this._gapRenderer.draw(ctx)
+    }
+  }
+
+  public clearCache () {
+    super.clearCache()
+    this._gapRenderer.clearCache()
   }
 }

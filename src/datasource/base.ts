@@ -13,13 +13,6 @@ export type DataAdapter = {
   (bar: IBar): any[]
 }
 
-export type SymbolInfo = {
-  symbol: string
-  type: 'stock' | 'index',
-  exchange: string
-  description: string
-}
-
 /**
  * @class
  * 数据源
@@ -84,8 +77,6 @@ export abstract class Datasource extends EventEmitter {
   public abstract loadHistory(loadNum: number, loaded?: number, lastRequestTime?: number): Promise<any>
 
   public abstract loadTimeRange(from: number, to: number): Promise<any>
-
-  public abstract resolveSymbol(): Promise<SymbolInfo>
 
   /**
    * 清空缓存

@@ -175,15 +175,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.initEvents()
       chartLayout.pulseUpdate()
       spinner.stop()
-      if (mainDatasource instanceof StockDatasource) {
-        chartLayout.emit('symbol_resolved', mainDatasource.symbolInfo)
-        this.setState({
-          loaded: true,
-          symbolType: mainDatasource.symbolInfo.type,
-        })
-      } else {
-        this.setState({ loaded: true })
-      }
+      chartLayout.emit('symbol_resolved', mainDatasource.symbolInfo)
+      this.setState({
+        loaded: true,
+        symbolType: mainDatasource.symbolInfo.type,
+      })
     })
   }
 

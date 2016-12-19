@@ -71,8 +71,7 @@ export default class PlotModel {
     return this._graph
   }
 
-  public draw (): void {
-    const ctx = this._graph.chart.ctx
+  public draw (ctx: CanvasRenderingContext2D) {
     ctx.save()
     this._graphic.draw(ctx)
     ctx.restore()

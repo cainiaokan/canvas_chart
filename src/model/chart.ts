@@ -205,18 +205,19 @@ export default class ChartModel extends EventEmitter {
 
   public draw () {
     const visibleGraphs = this.visibleGraphs
+    const ctx = this.ctx
     // 首先绘制背景色
-    this.drawBg()
+    this.drawBg(ctx)
     // 如果是主chart就绘制趣炒股水印
     if (this._isMain) {
-      this._watermark.draw()
+      this._watermark.draw(ctx)
     }
     // 绘制网格
-    this._grid.draw()
+    this._grid.draw(ctx)
     // 先绘制没有hover的图形
-    visibleGraphs.filter(graph => !graph.hover).forEach(graph => graph.draw())
+    visibleGraphs.filter(graph => !graph.hover).forEach(graph => graph.draw(ctx))
     // 后绘制hover的图形，这样hover的图形就不会被其他图形遮挡
-    visibleGraphs.filter(graph => graph.hover).forEach(graph => graph.draw())
+    visibleGraphs.filter(graph => graph.hover).forEach(graph => graph.draw(ctx))
     // 绘制当前可见的画图工具
     this.visibleTools.forEach(tool => tool.draw())
 
@@ -235,9 +236,7 @@ export default class ChartModel extends EventEmitter {
     this.graphs.forEach(graph => graph.clearVisibleBarCache())
   }
 
-  private drawBg () {
-    const ctx = this.ctx
-
+  private drawBg (ctx: CanvasRenderingContext2D) {
     ctx.save()
     ctx.fillStyle = '#fff'
     ctx.fillRect(0, 0, this.width, this.height)
