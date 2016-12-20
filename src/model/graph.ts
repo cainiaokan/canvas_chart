@@ -1,5 +1,6 @@
 import { Datasource, IBar, DataAdapter, DataConverter } from '../datasource'
 import { setContext, clearContext } from '../datasource'
+import { ChartStyle } from '../graphic/diagram'
 import ChartModel from './chart'
 import PlotModel from './plot'
 import { YRange } from './axisy'
@@ -17,6 +18,7 @@ abstract class GraphModel {
   protected _isMain: boolean
   protected _isComparison: boolean
   protected _isVisible: boolean
+  protected _styles: ChartStyle[]
   protected _id: number
 
   private _hover: boolean = false
@@ -32,6 +34,7 @@ abstract class GraphModel {
     isMain: boolean,
     isComparison: boolean,
     isVisible: boolean,
+    styles: ChartStyle[],
     adapter: DataAdapter,
     calc: DataConverter,
     input: any = null) {
@@ -41,6 +44,7 @@ abstract class GraphModel {
     this._isMain = isMain
     this._isComparison = isComparison
     this._isVisible = isVisible
+    this._styles = styles
     this._adapter = adapter
     this._calc = calc
     this._input = input
@@ -56,6 +60,10 @@ abstract class GraphModel {
   set input (input: any[]) {
     this._input = input
     this._isValid = false
+  }
+
+  get styles (): ChartStyle[] {
+    return this._styles
   }
 
   get id (): number {
@@ -210,6 +218,8 @@ abstract class GraphModel {
       return this._visibleBarCache
     }
 
+    const datasource = this._datasource
+    // const loaded = datasource.loaded()
     const timeBars = this._chart.axisX.getVisibleTimeBars()
     const firstTimeBar = timeBars[0]
     const lastTimeBar = timeBars[timeBars.length - 1]
@@ -218,9 +228,7 @@ abstract class GraphModel {
       return []
     }
 
-    let bars =
-      this._datasource
-        .range(firstTimeBar.time, lastTimeBar.time)
+    let bars = datasource.range(firstTimeBar.time, lastTimeBar.time)
 
     if (!bars.length) {
       return []
@@ -228,24 +236,27 @@ abstract class GraphModel {
 
     const data = []
 
-    setContext(this._datasource, this._adapter)
+    setContext(datasource, this._adapter)
 
     for (
       let i = 0,
           len = bars.length,
           bar,
-          start = this._datasource.search(bars[0].time),
+          start = datasource.search(bars[0].time),
           cache; i < len; i++, start++) {
       bar = bars[i]
       cache = this._cache[bar.time]
-      if (!cache) {
-        cache = this._calc(
-          this._adapter(bar),
-          start,
-          this._input
-        )
-        this._cache[bar.time] = cache
-      }
+
+      // 纠结，😖这里没法直接永久缓存
+      // 1. 指标计算时，历史数据可能还没加载足够，这时候即使缓存了数据，也是不正确的
+      // 2. pulse update来新数据的时候，指标需要重新计算，因此必须使得lastBar的缓存失效
+      cache = this._calc(
+        this._adapter(bar),
+        start,
+        this._input
+      )
+      this._cache[bar.time] = cache
+
       data.push(cache)
     }
 

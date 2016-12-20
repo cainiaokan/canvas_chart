@@ -37,7 +37,7 @@ type MA_PROP = {
   isVisible: boolean
 }
 
-const DEFAULT_MA_PROPS: MA_PROP[] = [{
+export const DEFAULT_MA_PROPS: MA_PROP[] = [{
   length: 5,
   color: 'red',
   isVisible: true,
@@ -64,14 +64,15 @@ export default class ChartLayoutModel extends EventEmitter {
   public creatingDrawingTool: BaseToolRenderer
   public editingDrawingTool: BaseToolRenderer
   public willEraseDrawingTool: boolean = false
+  public maProps: {
+    [propName: string]: MA_PROP[]
+  }
 
   private _defaultCursor: 'crosshair' | 'default'
   private _charts: ChartModel[]
   private _axisx: AxisXModel
   private _mainDatasource: StockDatasource
   private _mainChart: ChartModel
-
-  private _maProps: MA_PROP[]
 
   /**
    * 用于标记chart正在加载中，避免重复加载
@@ -91,8 +92,8 @@ export default class ChartLayoutModel extends EventEmitter {
 
   constructor () {
     super()
+    this.maProps = {}
     this._charts = []
-    this._maProps = []
     this.pulseUpdate = this.pulseUpdate.bind(this)
     this.fullUpdate = this.fullUpdate.bind(this)
     this.lightUpdate = this.lightUpdate.bind(this)
@@ -295,10 +296,10 @@ export default class ChartLayoutModel extends EventEmitter {
     const mainDatasource = this.mainDatasource
     // 使用最后一个bar的时间或者当前时间的前一分钟
     const from = mainDatasource.loaded() ?
-      mainDatasource.last().time : mainDatasource.now()
+      mainDatasource.last().time : mainDatasource.now() - 60
     // 未来一天，因为用户的PC可能进入休眠状态，待恢复时一次性要把休眠错过的数据全部请求过来。
     // 不过极端情况下一天未必会足够
-    const to = from + 24 * 60 * 60
+    const to = from + 10e6
     const datasources = []
     const reqs = []
 
@@ -335,8 +336,10 @@ export default class ChartLayoutModel extends EventEmitter {
    * @param {ResolutionType} resolution
    */
   public setResolution (resolution: ResolutionType) {
+    const mainDatasource = this._mainDatasource
+    const oldResolution = mainDatasource.resolution
     // 股票类型时，分时图显示线形图，其他显示蜡烛图
-    if (this.mainDatasource instanceof StockDatasource) {
+    if (mainDatasource instanceof StockDatasource) {
       const mainGraph = this.mainChart.mainGraph as StockModel
       if (resolution === '1') {
         mainGraph.setShape('line')
@@ -354,8 +357,15 @@ export default class ChartLayoutModel extends EventEmitter {
       ), [])
     ).forEach(datasource => datasource.resolution = resolution)
 
+    // 只有分时和K线之间切换时，才需要重置所有指标
+    if (oldResolution === '1' ||
+       (oldResolution > '1' && resolution === '1')) {
+      this.removeAllStudies()
+      this.resetStudies()
+    }
+
+    this.removeAllTools()
     this.clearCache()
-    this.resetStudies()
     this.restartPulseUpdate()
     this._axisx.resetOffset()
     this.emit('resolution_change', resolution)
@@ -377,8 +387,8 @@ export default class ChartLayoutModel extends EventEmitter {
             } else {
               throw 'mainDatasource required to be an instance of StockDatasource.'
             }
+            this.removeAllTools()
             this.clearCache()
-            this.resetStudies()
             this.restartPulseUpdate()
             this._axisx.resetOffset()
             this.emit('symbol_change', symbolInfo)
@@ -398,6 +408,7 @@ export default class ChartLayoutModel extends EventEmitter {
         datasource.right = right
       }
     })
+    this.removeAllTools()
     this.clearCache()
     this.restartPulseUpdate()
     this._axisx.resetOffset()
@@ -446,56 +457,37 @@ export default class ChartLayoutModel extends EventEmitter {
     const mainChart = this._mainChart
     const datasource = mainChart.datasource
 
-    // 移除所有study
-    this.charts.reverse().forEach(chart => {
-      chart.graphs
-        .filter(graph => graph instanceof StudyModel)
-        .forEach(study => this.removeStudy(chart, study.id))
-    })
-
-    if (mainChart.isMain) {
-      if (datasource.resolution === '1') {
-        if (datasource instanceof StockDatasource &&
-            datasource.symbolInfo &&
-            datasource.symbolInfo.type === 'stock') {
-          mainChart.addGraph(
-            new StudyModel(
-              mainChart,
-              '均价',
-            ))
-        }
-      } else {
-        DEFAULT_MA_PROPS.forEach((defaultMAProps, i) => {
-          const maProps = this._maProps[i]
-          mainChart.addGraph(
-            maProps ? new StudyModel(
-              mainChart,
-              'MA',
-              maProps.isVisible,
-              [maProps.length],
-              [{
-                color: maProps.color,
-                lineWidth: 1,
-              }]
-            ) : new StudyModel(
-              mainChart,
-              'MA',
-              defaultMAProps.isVisible,
-              [defaultMAProps.length],
-              [{
-                color: defaultMAProps.color,
-                lineWidth: 1,
-              }]
-            )
-          )
-        })
+    if (datasource.resolution === '1') {
+      if (datasource instanceof StockDatasource &&
+          datasource.symbolInfo &&
+          datasource.symbolInfo.type === 'stock') {
+        mainChart.addGraph(
+          new StudyModel(
+            mainChart,
+            '均价',
+          ))
       }
-      mainChart.addGraph(
-        new StudyModel(
-          mainChart,
-          'VOLUME'
-        ))
+    } else {
+      DEFAULT_MA_PROPS.forEach((defaultMAProps, i) => {
+        mainChart.addGraph(
+          new StudyModel(
+            mainChart,
+            'MA',
+            defaultMAProps.isVisible,
+            [defaultMAProps.length],
+            [{
+              color: defaultMAProps.color,
+              lineWidth: 1,
+            }]
+          )
+        )
+      })
     }
+    mainChart.addGraph(
+      new StudyModel(
+        mainChart,
+        'VOLUME'
+      ))
   }
 
   /**
@@ -510,7 +502,7 @@ export default class ChartLayoutModel extends EventEmitter {
         study,
       )
       this._mainChart.addGraph(studyModel)
-      this.emit('graph_add')
+      this.emit('graph_add', studyModel)
     } else {
       const mainDatasource = this._mainDatasource
       const crosshair = new CrosshairModel(this)
@@ -532,8 +524,7 @@ export default class ChartLayoutModel extends EventEmitter {
       crosshair.chart = chart
 
       chart.addGraph(studyModel)
-      this._charts.push(chart)
-      this.emit('chart_add', chart)
+      this.addChart(chart)
     }
   }
 
@@ -545,6 +536,7 @@ export default class ChartLayoutModel extends EventEmitter {
     if (chart.graphs.some(graph => {
       if (graph instanceof StudyModel && graph.id === studyId) {
         chart.removeGraph(graph)
+        this.emit('graph_remove', graph)
         return true
       } else {
         return false
@@ -553,12 +545,7 @@ export default class ChartLayoutModel extends EventEmitter {
       // 如果此时chart中已经没有其他图形了，则把整个chart都移除
       if (!chart.graphs.length) {
         this.removeChart(chart)
-      } else {
-        this.emit('graph_remove')
       }
-      return true
-    } else {
-      return false
     }
   }
 
@@ -621,7 +608,7 @@ export default class ChartLayoutModel extends EventEmitter {
     this._mainChart.graphs.some(graph => {
       if (graph.isComparison && graph.id === graphId) {
         this._mainChart.removeGraph(graph)
-        this.emit('graph_remove')
+        this.emit('graph_remove', graph)
         return true
       } else {
         return false
@@ -773,11 +760,31 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   private clearCache () {
     this._charts.forEach(chart => {
-      chart.tools.length = 0
       chart.graphs.forEach(graph => {
         graph.clearCache()
         graph.datasource.clearCache()
       })
+    })
+  }
+
+  /**
+   * 移除所有指标
+   */
+  private removeAllStudies () {
+    // 移除所有study
+    this.charts.reverse().forEach(chart => {
+      chart.graphs
+        .filter(graph => graph instanceof StudyModel)
+        .forEach(study => this.removeStudy(chart, study.id))
+    })
+  }
+
+  /**
+   * 移除所有画线工具
+   */
+  private removeAllTools () {
+    this._charts.forEach(chart => {
+      chart.removeAllTools()
     })
   }
 

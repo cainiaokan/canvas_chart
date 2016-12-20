@@ -35,14 +35,14 @@ export default class StockModel extends GraphModel {
     isMain: boolean,
     isComparison: boolean,
     shape: ShapeType,
-    style?: ChartStyle) {
-    super(datasource, chart, isPrice, isMain, isComparison, true, adaptorFuncs[shape], bar => [bar])
+    styles?: ChartStyle) {
+    super(datasource, chart, isPrice, isMain, isComparison, true, !!styles ? [styles] : null, adaptorFuncs[shape], bar => [bar])
     this._plots.push(
       new PlotModel(
         this,
         0,
         shape,
-        _.extend({}, style ? style : {})
+        _.extend({}, styles ? styles : {})
       )
     )
     if (isMain) {
@@ -64,6 +64,8 @@ export default class StockModel extends GraphModel {
 
   public clearCache () {
     super.clearCache()
-    this._gapRenderer.clearCache()
+    if (this._isMain) {
+      this._gapRenderer.clearCache()
+    }
   }
 }

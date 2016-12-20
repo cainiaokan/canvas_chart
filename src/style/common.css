@@ -28,6 +28,7 @@ body {
 input,
 textarea,
 select {
+  font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
   font-size: .3125rem;
   line-height: inherit;
 

@@ -70,12 +70,12 @@ export default class ChartModel extends EventEmitter {
     return this.graphs.filter(graph => graph instanceof StudyModel) as StudyModel[]
   }
 
-  get nonStudies (): GraphModel[] {
-    return this.graphs.filter(graph => !(graph instanceof StudyModel)) as StudyModel[]
+  get compares (): GraphModel[] {
+    return this.graphs.filter(graph => graph.isComparison)
   }
 
   get mainGraph (): GraphModel {
-    return this.graphs.filter(graph => graph.isMain)[0] || null
+    return this.graphs.filter(graph => graph.isMain)[0]
   }
 
   get tools (): BaseToolRenderer[] {
@@ -230,6 +230,10 @@ export default class ChartModel extends EventEmitter {
     const height = this.height
 
     ctx.clearRect(0, 0, width, height)
+  }
+
+  public removeAllTools () {
+    this._tools.length = 0
   }
 
   public clearCache () {

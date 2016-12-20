@@ -363,7 +363,7 @@ export default class AxisXModel extends EventEmitter {
       nextDate.setTime(nextDate.getTime() + diffDays * (24 * 3600 * 1000))
     }
 
-    return ~~(nextDate.getTime() / 1000)
+    return nextDate.getTime() / 1000
   }
 
   public getPrevTickTime (time: number, resolution: ResolutionType) {

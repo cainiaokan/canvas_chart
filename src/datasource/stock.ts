@@ -199,7 +199,7 @@ export class StockDatasource extends Datasource {
 
     const toTime = lastRequestFromTime ?
                      lastRequestFromTime : this._plotList.first() ?
-                       this._plotList.first().time : this.now()
+                       this._plotList.first().time : this.now() + 60
 
     let fromTime = 0
     let maxTimeSpan = 0

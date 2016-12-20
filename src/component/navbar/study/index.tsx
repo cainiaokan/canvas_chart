@@ -9,17 +9,17 @@ type Prop = {
 }
 
 type State = {
-  showIndicatorSelector?: boolean
+  showStudySelector?: boolean
 }
 
 const studyNames = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI']
 
-export default class IndicatorSelector extends React.Component<Prop, State> {
+export default class StudySelector extends React.Component<Prop, State> {
 
   constructor () {
     super()
     this.state = {
-      showIndicatorSelector: false,
+      showStudySelector: false,
     }
     this.showMoreIndicatorHandler = this.showMoreIndicatorHandler.bind(this)
     this.hideMoreIndicatorHandler = this.hideMoreIndicatorHandler.bind(this)
@@ -45,7 +45,7 @@ export default class IndicatorSelector extends React.Component<Prop, State> {
     return <div className='chart-indicator-selector chart-btn-group'>
       <button className='btn' onClick={this.showMoreIndicatorHandler}>指标</button>
       {
-        this.state.showIndicatorSelector ?
+        this.state.showStudySelector ?
         <ul className='more-indicator'
             onMouseDown={this.indicatorSelectHandler}
             onTouchStart={this.indicatorSelectHandler}>
@@ -62,15 +62,15 @@ export default class IndicatorSelector extends React.Component<Prop, State> {
   }
 
   private showMoreIndicatorHandler () {
-    this.setState({ showIndicatorSelector: true })
+    this.setState({ showStudySelector: true })
   }
 
   private hideMoreIndicatorHandler (ev) {
-    if (this.state.showIndicatorSelector) {
+    if (this.state.showStudySelector) {
       if (!!ev.touches) {
         ev.preventDefault()
       }
-      this.setState({ showIndicatorSelector: false })
+      this.setState({ showStudySelector: false })
     }
   }
 

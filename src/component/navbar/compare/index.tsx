@@ -12,7 +12,6 @@ type Prop = {
 
 type State = {
   showCompareDialog?: boolean,
-  indexesCheckState?: { [propName: string]: number },
 }
 
 const indexes = [
@@ -30,17 +29,26 @@ const indexes = [
 ]
 
 export default class Compare extends React.Component<Prop, State> {
+  private _indexesCheckState: { [propName: string]: number } = {}
 
   constructor () {
     super()
     this.state = {
       showCompareDialog: false,
-      indexesCheckState: {},
     }
     this.showDialogHandler = this.showDialogHandler.bind(this)
     this.dialogCloseHandler = this.dialogCloseHandler.bind(this)
     this.selectSymbolHandler = this.selectSymbolHandler.bind(this)
-    this.onCheckedChangeHandler = this.onCheckedChangeHandler.bind(this)
+    this.checkChangeHandler = this.checkChangeHandler.bind(this)
+    this.graphRemoveHandler = this.graphRemoveHandler.bind(this)
+  }
+
+  public componentDidMount () {
+    this.props.chartLayout.addListener('graph_remove', this.graphRemoveHandler)
+  }
+
+  public componentDidUnMount () {
+    this.props.chartLayout.removeListener('graph_remove', this.graphRemoveHandler)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
@@ -69,8 +77,8 @@ export default class Compare extends React.Component<Prop, State> {
                       <input id={`index_${indexInfo[0]}`}
                              type='checkbox'
                              value={indexInfo[0]}
-                             checked={!!this.state.indexesCheckState[indexInfo[0]]}
-                             onChange={this.onCheckedChangeHandler} />
+                             defaultChecked={!!this._indexesCheckState[indexInfo[0]]}
+                             onChange={this.checkChangeHandler} />
                       <label htmlFor={`index_${indexInfo[0]}`}>{indexInfo[1]}</label>
                     </div>
                   )
@@ -95,18 +103,25 @@ export default class Compare extends React.Component<Prop, State> {
     this.props.chartLayout.addComparison(symbol)
   }
 
-  private onCheckedChangeHandler (ev) {
+  private checkChangeHandler (ev) {
     const checked = ev.target.checked
     const symbol = ev.target.value
     const chartLayout = this.props.chartLayout
-    const indexesCheckState = {}
 
     if (checked) {
-      _.extend(indexesCheckState, this.state.indexesCheckState, { [symbol]: chartLayout.addComparison(symbol) })
+      this._indexesCheckState[symbol] = chartLayout.addComparison(symbol)
     } else {
-      chartLayout.removeComparison(this.state.indexesCheckState[symbol])
-      _.extend(indexesCheckState, this.state.indexesCheckState, { [symbol]: null })
+      chartLayout.removeComparison(this._indexesCheckState[symbol])
+      this._indexesCheckState[symbol] = null
     }
-    this.setState({ indexesCheckState })
+  }
+
+  private graphRemoveHandler (graph) {
+    const indexesCheckState = this._indexesCheckState
+    Object.keys(indexesCheckState).forEach(key => {
+      if (graph.id === indexesCheckState[key]) {
+        indexesCheckState[key] = null
+      }
+    })
   }
 }

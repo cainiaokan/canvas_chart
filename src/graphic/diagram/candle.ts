@@ -118,9 +118,9 @@ export class CandleChartRenderer extends BaseChartRenderer {
         x,
         y,
         candleWidth,
-        ~~Math.abs(
+        ~~Math.ceil(Math.abs(
           axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY) - y
-        )
+        ))
       )
     }
   }

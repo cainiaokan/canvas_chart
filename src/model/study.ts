@@ -9,7 +9,6 @@ import Graph from './graph'
 export default class StudyModel extends Graph {
 
   private _studyType: StudyType
-  private _styles: ChartStyle[]
   private _inputLabels: string[]
   private _noLegend: boolean
 
@@ -18,12 +17,11 @@ export default class StudyModel extends Graph {
     study: StudyType,
     visible = true,
     input?: any,
-    style?: ChartStyle[]) {
-
+    styles?: ChartStyle[]) {
     const config = studyConfig[study]
-    super(chart.datasource, chart, config.isPrice, false, false, visible, config.stockAdapter, config.output, input || config.input)
+    styles = styles || _.pluck(config.plots, 'style')
+    super(chart.datasource, chart, config.isPrice, false, false, visible, styles, config.stockAdapter, config.output, input || config.input)
     this._studyType = study
-    this._styles = style || _.pluck(config.plots, 'style')
     this._inputLabels = config.inputLabels || []
     this._noLegend = !!config.noLegend
     config.plots.forEach((plotConfig, index) => {
@@ -32,7 +30,7 @@ export default class StudyModel extends Graph {
           this,
           index,
           plotConfig.shape,
-          _.extend({}, plotConfig.style, style ? style[index] : {})
+          _.extend({}, plotConfig.style, styles ? styles[index] : {})
         )
       )
     })

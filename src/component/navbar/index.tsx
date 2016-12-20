@@ -4,9 +4,10 @@ import { ResolutionType } from '../../constant'
 import ResolutionOption from './resolution'
 import SearchBox from './searchbox'
 import Compare from './compare'
-import IndicatorSelector from './indicator'
+import StudySelector from './study'
 import FullScreen from './fullscreen'
 import RightOption from './right'
+import MASetting from './ma'
 import ChartLayoutModel from '../../model/chartlayout'
 
 type Prop = {
@@ -46,7 +47,10 @@ export default class Navbar extends React.Component<Prop, any> {
         <ResolutionOption chartLayout={chartLayout} resolution={this.props.resolution} />
         <FullScreen />
         <Compare chartLayout={chartLayout} />
-        <IndicatorSelector chartLayout={chartLayout} />
+        <StudySelector chartLayout={chartLayout} />
+        {
+          this.props.resolution > '1' ? <MASetting chartLayout={chartLayout} /> : null
+        }
         {
           this.props.symbolType === 'stock' ?
           <RightOption chartLayout={chartLayout} right={this.props.right} /> : null

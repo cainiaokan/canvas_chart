@@ -252,9 +252,6 @@ export const studyConfig: StudyConfig = {
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const signal = input[0]
-      if (index - signal < 0) {
-        return null
-      }
       const HIGH = {
         prop: 'high',
         get (c: number, n: number, datasource: Datasource, adapter: DataAdapter): number {
@@ -285,21 +282,6 @@ export const studyConfig: StudyConfig = {
       let d = SMA(index, input[2], 1, K)
       let j = 3 * k - 2 * d
       const time = data[1]
-      if (k < 0) {
-        k = 0
-      } else if (k > 100) {
-        k = 100
-      }
-      if (d < 0) {
-        d = 0
-      } else if (d > 100) {
-        d = 100
-      }
-      if (j < 0) {
-        j = 0
-      } else if (j > 100) {
-        j = 100
-      }
       return [
         [0, time, k],
         [0, time, d],

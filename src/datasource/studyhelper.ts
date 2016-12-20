@@ -159,7 +159,8 @@ export function EMA (c: number, n: number, attr: Attr): number {
     return cacheObj[cacheKey] =
       2 / (n + 1) * (get(c, n, datasource, adapter) - cacheObj[prevKey]) + cacheObj[prevKey]
   } else {
-    const start = c - n * 3 < 0 ? 0 : c - n * 3
+    // 回溯5倍的n，过小的倍数会导致计算精确度不够
+    const start = c - n * 5 < 0 ? 0 : c - n * 5
     let ema = 0
     for (let i = start + 1, end = c + 1; i < end; i++) {
       ema = 2 / (n + 1) * (get(i, n, datasource, adapter) - ema) + ema
@@ -181,7 +182,8 @@ export function SMA (c: number, n: number, w: number, attr: Attr): number {
     return cacheObj[cacheKey] =
       (w * get(c, n, datasource, adapter) + (n - w) * cacheObj[prevKey]) / n
   } else {
-    const start = c - n * 5 < 0 ? 0 : c - n * 5
+    // 回溯8倍的n，过小的倍数会导致计算精确度不够
+    const start = c - n * 8 < 0 ? 0 : c - n * 8
     const end = c + 1
     let sma = 50
     for (let i = start + 1; i < end; i++) {

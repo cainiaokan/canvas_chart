@@ -3,7 +3,7 @@ import GraphModel from '../model/graph'
 
 export default class GapRenderer {
   private _graph: GraphModel
-  private _gapCache: { time1: number, time2: number, value1: number, value2: number, low: number, high: number} = null
+  private _gapCache: { time1: number, time2: number, value1: number, value2: number, from: number, to: number, lastBarTime: number} = null
 
   constructor (graph: GraphModel) {
     this._graph = graph
@@ -21,53 +21,56 @@ export default class GapRenderer {
       return null
     }
 
-    const gapCache = this._gapCache
+    let gapCache = this._gapCache
+    const datasource = graph.datasource as StockDatasource
 
-    if (gapCache) {
+    /*
+     * lastBarTime用来记录bars是否有更新，如果有更新的话，需要重新计算跳空。
+     */
+    if (gapCache &&
+        gapCache.lastBarTime === datasource.last().time &&
+        gapCache.time2 > visibleTimeBars[0].time &&
+        gapCache.time2 < visibleTimeBars[visibleTimeBars.length - 1].time) {
       return gapCache
     }
 
-    if (gapCache &&
-        gapCache.time2 > visibleTimeBars[0].time &&
-        gapCache.time2 < visibleTimeBars[visibleTimeBars.length - 1].time) {
-      return this._gapCache
-    }
-
-    const datasource = graph.datasource as StockDatasource
-
-    const firstIndex = visibleTimeBars[0].time > datasource.first().time ?
-      datasource.search(visibleTimeBars[0].time) : 0
-    let curIndex = visibleTimeBars[visibleTimeBars.length - 1].time < datasource.last().time ?
-      datasource.search(visibleTimeBars[visibleTimeBars.length - 1].time) : datasource.loaded() - 1
+    const firstIndex = 0
+    let curIndex = datasource.loaded() - 1
+    const lastBarTime = datasource.last().time
     let findGap = false
 
     let time1
     let time2
     let value1
     let value2
-    let low
-    let high
+    let from
+    let to
     let curBar
     let lastBar
+    let max
+    let min
 
     while (curIndex > firstIndex) {
       curBar = datasource.barAt(curIndex)
       lastBar = datasource.barAt(curIndex - 1)
 
+      max = datasource.max(curIndex + 1)
+      min = datasource.min(curIndex + 1)
+
       time1 = lastBar.time
       time2 = curBar.time
 
-      if (lastBar.low - curBar.high > 0.01 && datasource.max(curIndex + 1) < curBar.high) {
+      if (lastBar.low > curBar.high && max < lastBar.low) {
         findGap = true
-        low = curBar.high
-        high = lastBar.low
+        to =  max > curBar.high ? max : curBar.high
+        from = lastBar.low
         value1 = lastBar.low
         value2 = curBar.high
         break
-      } else if (curBar.low - lastBar.high > 0.01 && datasource.min(curIndex + 1) > curBar.low) {
+      } else if (curBar.low > lastBar.high && min > lastBar.high) {
         findGap = true
-        low = lastBar.high
-        high = curBar.low
+        from = min < curBar.low ? min : lastBar.high
+        to = curBar.low
         value1 = curBar.low
         value2 = lastBar.high
         break
@@ -75,7 +78,14 @@ export default class GapRenderer {
       curIndex--
     }
 
-    return this._gapCache = findGap ? { time1, value1, time2, value2, low, high} : null
+    if (findGap) {
+      this._gapCache = gapCache = findGap ? { time1, value1, time2, value2, from, to, lastBarTime} : null
+      return gapCache &&
+          gapCache.time2 > visibleTimeBars[0].time &&
+          gapCache.time2 < visibleTimeBars[visibleTimeBars.length - 1].time ? gapCache : null
+    } else {
+      return null
+    }
   }
 
   public draw (ctx: CanvasRenderingContext2D) {
@@ -95,11 +105,11 @@ export default class GapRenderer {
       ctx.font = '12 px Verdana, Arial, sans-serif'
       ctx.fillRect(
         x2,
-        y1,
+        y1 - 1,
         width - x2,
         Math.ceil(y2 - y1 + 0.5))
       ctx.fillStyle = 'black'
-      ctx.fillText(Number(gap.low).toFixed(2) + '-' + Number(gap.high).toFixed(2), x2, y1 - 2)
+      ctx.fillText(Number(gap.from).toFixed(2) + '-' + Number(gap.to).toFixed(2), x2, y1 - 2)
       ctx.restore()
     }
 
