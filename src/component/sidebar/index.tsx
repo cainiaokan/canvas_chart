@@ -1,7 +1,6 @@
 import './index.less'
 import * as React from 'react'
 import ChartLayoutModel from '../../model/chartlayout'
-import { StockDatasource } from '../../datasource'
 import PollManager, { PollData } from './pollmanager'
 import Realtime from './realtime'
 import Indexes from './indexes'
@@ -31,7 +30,6 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.state = {
       tabIndex: 0,
     }
-    this.symbolResolvedHandler = this.symbolResolvedHandler.bind(this)
     this.symbolChangeHandler = this.symbolChangeHandler.bind(this)
   }
 
@@ -45,25 +43,19 @@ export default class Sidebar extends React.Component<Prop, State> {
 
   public componentDidMount () {
     const chartLayout = this.props.chartLayout
-    const symbolInfo = (chartLayout.mainDatasource as StockDatasource).symbolInfo
+    const symbolInfo = chartLayout.mainDatasource.symbolInfo
 
-    this._pollManager = new PollManager()
+    this._pollManager = new PollManager(symbolInfo)
     this._pollManager.on('data', data => {
       this._data = data
       this.forceUpdate()
     })
-
-    if (!!symbolInfo) {
-      this.symbolResolvedHandler(symbolInfo)
-    } else {
-      chartLayout.addListener('symbol_resolved', this.symbolResolvedHandler)
-      chartLayout.addListener('symbol_change', this.symbolChangeHandler)
-    }
+    this._pollManager.start()
+    chartLayout.addListener('symbol_change', this.symbolChangeHandler)
   }
 
   public componentWillUnmount () {
     const chartLayout = this.props.chartLayout
-    chartLayout.removeListener('symbol_resolved', this.symbolResolvedHandler)
     chartLayout.removeListener('symbol_change', this.symbolChangeHandler)
   }
 
@@ -76,7 +68,7 @@ export default class Sidebar extends React.Component<Prop, State> {
       ['tools', '更多工具'],
     ]
     const chartLayout = this.props.chartLayout
-    const symbolInfo = (chartLayout.mainDatasource as StockDatasource).symbolInfo
+    const symbolInfo = chartLayout.mainDatasource.symbolInfo
 
     const stockInfo = this._data.stockInfo
     const height = this.props.height - STOCK_PANEL_HEIGHT
@@ -196,11 +188,6 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.setState({
       tabIndex: index,
     })
-  }
-
-  private symbolResolvedHandler (symbolInfo) {
-    this._pollManager.symbolInfo = symbolInfo
-    this._pollManager.start()
   }
 
   private symbolChangeHandler (symbolInfo) {

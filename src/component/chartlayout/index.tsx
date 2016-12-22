@@ -105,6 +105,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       symbolType: '',
     }
     this.updateView = this.updateView.bind(this)
+    this._chartLayoutModel = new ChartLayoutModel()
   }
 
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
@@ -118,8 +119,34 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
     this.state.resolution = this.props.resolution
     this.state.right = this.props.right
-    this._chartLayoutModel = new ChartLayoutModel()
+  }
+
+  public componentDidMount () {
+    const chartLayout = this._chartLayoutModel
+    const spinner = new Spinner({}).spin(this.refs.root)
+
     this.prepareMainChart()
+
+    const mainDatasource = chartLayout.mainDatasource
+
+    Promise.all([
+      chartLayout.getServerTime(),
+      mainDatasource.resolveSymbol(),
+      chartLayout.loadHistory(),
+    ])
+    .then(() => {
+      this.initEvents()
+      chartLayout.pulseUpdate()
+      spinner.stop()
+      this.setState({
+        loaded: true,
+        symbolType: mainDatasource.symbolInfo.type,
+      })
+    })
+  }
+
+  public componentDidUpdate () {
+    this._chartLayoutModel.fullUpdate()
   }
 
   public prepareMainChart () {
@@ -162,31 +189,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.resetStudies()
   }
 
-  public componentDidMount () {
-    const chartLayout = this._chartLayoutModel
-    const mainDatasource = chartLayout.mainDatasource
-    const spinner = new Spinner({}).spin(this.refs.root)
-    Promise.all([
-      chartLayout.getServerTime(),
-      mainDatasource.resolveSymbol(),
-      chartLayout.loadHistory(),
-    ])
-    .then(() => {
-      this.initEvents()
-      chartLayout.pulseUpdate()
-      spinner.stop()
-      chartLayout.emit('symbol_resolved', mainDatasource.symbolInfo)
-      this.setState({
-        loaded: true,
-        symbolType: mainDatasource.symbolInfo.type,
-      })
-    })
-  }
-
-  public componentDidUpdate () {
-    this._chartLayoutModel.fullUpdate()
-  }
-
   public initEvents () {
     const chartLayout = this._chartLayoutModel
     chartLayout.axisx.addListener('offset_change', chartLayout.fullUpdate)
@@ -209,10 +211,17 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public render () {
-    const chartLayoutModel = this._chartLayoutModel
     const width = this.props.width
     const height = this.props.height
 
+    if (!this.state.loaded) {
+      return <div className='chart-layout'
+                  ref='root'
+                  style={ {height: height + 'px',width: width + 'px'} }>
+              </div>
+    }
+
+    const chartLayoutModel = this._chartLayoutModel
     // 根据屏幕宽度重置选项
     const showSideBar = width > 768 ? this.props.showsidebar : false
     const showToolBox = width > 768 ? this.props.showtoolbox : false

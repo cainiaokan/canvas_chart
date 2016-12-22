@@ -26,7 +26,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
   }
 
   public hitTest (): boolean {
-    const plot = this.plotModel
+    const plot = this._plotModel
     const graph = plot.graph
     const chart = graph.chart
     const axisX = chart.axisX
@@ -53,7 +53,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
   }
 
   public calcRangeY (): YRange {
-    const bars = this.plotModel.getVisibleBars()
+    const bars = this._plotModel.getVisibleBars()
 
     if (!bars.length) {
       return null
@@ -76,7 +76,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
   }
 
   public draw (ctx: CanvasRenderingContext2D) {
-    const plot = this.plotModel
+    const plot = this._plotModel
     const bars = plot.getVisibleBars()
 
     if (!bars.length) {
@@ -126,7 +126,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
   }
 
   protected getSelectionYByBar (bar: any[]): number {
-    const plot = this.plotModel
+    const plot = this._plotModel
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY

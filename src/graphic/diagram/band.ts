@@ -26,7 +26,7 @@ export class BandRenderer extends BaseChartRenderer {
   }
 
   public draw (ctx: CanvasRenderingContext2D) {
-    const plot = this.plotModel
+    const plot = this._plotModel
     const bars = plot.getVisibleBars()
 
     if (!bars.length) {
@@ -65,7 +65,7 @@ export class BandRenderer extends BaseChartRenderer {
   }
 
   public calcRangeY (): YRange {
-    const bars = this.plotModel.getVisibleBars()
+    const bars = this._plotModel.getVisibleBars()
 
     if (!bars.length) {
       return null

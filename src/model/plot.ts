@@ -32,6 +32,15 @@ export default class PlotModel {
     this.shape = shape
   }
 
+  get style (): ChartStyle {
+    return this._style
+  }
+
+  set style (style: ChartStyle) {
+    this._style = style
+    this._graphic.style = style
+  }
+
   set shape (shape: ShapeType) {
     const style = shape === this._originalShape ? this._style : {}
     this._shape = shape

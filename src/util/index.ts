@@ -1,3 +1,20 @@
+export function cloneObj (source: Object) {
+  return JSON.parse(JSON.stringify(source))
+}
+
+export function darkenRGB (rgbColor: string) {
+  const matches = rgbColor.match(/\((.*?)\)/)
+  if (!matches) {
+    throw new Error('rgbColor is not a valid rgb color string.')
+  }
+  const params = matches[1].split(',')
+  const colors = params.slice(0, 3).map(color => (+color - 50 > 0 ? +color - 50 : 0) + '')
+  if (params.length === 4) {
+    colors.push(params[3])
+  }
+  return 'rgb(' + colors.join(',') + ')'
+}
+
 export function pad (n = '', width, z = '0') {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n
 }

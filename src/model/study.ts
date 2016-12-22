@@ -44,10 +44,6 @@ export default class StudyModel extends Graph {
     return this._studyType
   }
 
-  get styles (): ChartStyle[] {
-    return this._styles
-  }
-
   get inputLabels (): string[] {
     return this._inputLabels
   }

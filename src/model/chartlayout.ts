@@ -8,12 +8,12 @@ import AxisXModel, { INITIAL_OFFSET } from './axisx'
 import StudyModel from './study'
 import CrosshairModel from './crosshair'
 import AxisYModel from './axisy'
+import { ChartStyle } from '../graphic/diagram'
 import { BaseToolRenderer } from '../graphic/tool'
 import {
   Datasource,
   StockDatasource,
   resolveSymbol,
-  SymbolInfo,
   studyConfig,
   getServerTime,
 } from '../datasource'
@@ -31,31 +31,35 @@ import {
 export const preferredTimeRange = ['1天', '5天', '1月', '1年', '全部']
 const perferredResolution = ['1', '5', '30', 'D', 'M'] as ResolutionType[]
 
-type MA_PROP = {
+export type MA_PROP = {
   length: number
   color: string
   isVisible: boolean
 }
 
+export type MA_PROPS = {
+  [propName: string]: MA_PROP[]
+}
+
 export const DEFAULT_MA_PROPS: MA_PROP[] = [{
   length: 5,
-  color: 'red',
+  color: 'rgb(255,0,0)',
   isVisible: true,
 }, {
   length: 10,
-  color: 'blue',
+  color: 'rgb(0,0,255)',
   isVisible: false,
 }, {
   length: 20,
-  color: 'purple',
+  color: 'rgb(255,0,255)',
   isVisible: true,
 }, {
   length: 30,
-  color: 'green',
+  color: 'rgb(0,255,0)',
   isVisible: false,
 }, {
   length: 60,
-  color: 'orange',
+  color: 'rgb(255,152,0)',
   isVisible: false,
 }]
 
@@ -64,12 +68,11 @@ export default class ChartLayoutModel extends EventEmitter {
   public creatingDrawingTool: BaseToolRenderer
   public editingDrawingTool: BaseToolRenderer
   public willEraseDrawingTool: boolean = false
-  public maProps: {
-    [propName: string]: MA_PROP[]
-  }
 
+  private _maProps: MA_PROPS = {}
+  private _maStudies: StudyModel[] = []
   private _defaultCursor: 'crosshair' | 'default'
-  private _charts: ChartModel[]
+  private _charts: ChartModel[] = []
   private _axisx: AxisXModel
   private _mainDatasource: StockDatasource
   private _mainChart: ChartModel
@@ -92,8 +95,6 @@ export default class ChartLayoutModel extends EventEmitter {
 
   constructor () {
     super()
-    this.maProps = {}
-    this._charts = []
     this.pulseUpdate = this.pulseUpdate.bind(this)
     this.fullUpdate = this.fullUpdate.bind(this)
     this.lightUpdate = this.lightUpdate.bind(this)
@@ -133,6 +134,14 @@ export default class ChartLayoutModel extends EventEmitter {
 
   get defaultCursor (): 'crosshair' | 'default' {
     return this._defaultCursor
+  }
+
+  get maProps (): MA_PROPS {
+    return this._maProps
+  }
+
+  get maStudies (): StudyModel[] {
+    return this._maStudies.slice(0)
   }
 
   /**
@@ -266,7 +275,7 @@ export default class ChartLayoutModel extends EventEmitter {
                 promises.push(
                   datasource.loadTimeRange(
                     mainDatasource.first().time,
-                    mainDatasource.last().time
+                    mainDatasource.last().time + 24 * 3600
                   )
                 )
                 return promises
@@ -299,7 +308,7 @@ export default class ChartLayoutModel extends EventEmitter {
       mainDatasource.last().time : mainDatasource.now() - 60
     // 未来一天，因为用户的PC可能进入休眠状态，待恢复时一次性要把休眠错过的数据全部请求过来。
     // 不过极端情况下一天未必会足够
-    const to = from + 10e6
+    const to = from + 24 * 3600
     const datasources = []
     const reqs = []
 
@@ -357,15 +366,9 @@ export default class ChartLayoutModel extends EventEmitter {
       ), [])
     ).forEach(datasource => datasource.resolution = resolution)
 
-    // 只有分时和K线之间切换时，才需要重置所有指标
-    if (oldResolution === '1' ||
-       (oldResolution > '1' && resolution === '1')) {
-      this.removeAllStudies()
-      this.resetStudies()
-    }
-
-    this.removeAllTools()
     this.clearCache()
+    this.switchStudies(oldResolution)
+    this.removeAllTools()
     this.restartPulseUpdate()
     this._axisx.resetOffset()
     this.emit('resolution_change', resolution)
@@ -380,18 +383,20 @@ export default class ChartLayoutModel extends EventEmitter {
       .then(response =>
         response.json()
           .then(data => {
-            const symbolInfo: SymbolInfo = data
             const mainDatasource = this._mainDatasource
+            const newSymbolInfo = data
             if (mainDatasource instanceof StockDatasource) {
-              mainDatasource.symbolInfo = symbolInfo
+              mainDatasource.symbolInfo = newSymbolInfo
             } else {
               throw 'mainDatasource required to be an instance of StockDatasource.'
             }
-            this.removeAllTools()
+
             this.clearCache()
+            this.switchStudies()
+            this.removeAllTools()
             this.restartPulseUpdate()
             this._axisx.resetOffset()
-            this.emit('symbol_change', symbolInfo)
+            this.emit('symbol_change', newSymbolInfo)
           })
       )
   }
@@ -408,8 +413,9 @@ export default class ChartLayoutModel extends EventEmitter {
         datasource.right = right
       }
     })
-    this.removeAllTools()
+
     this.clearCache()
+    this.removeAllTools()
     this.restartPulseUpdate()
     this._axisx.resetOffset()
     this.emit('right_change', right)
@@ -461,26 +467,30 @@ export default class ChartLayoutModel extends EventEmitter {
       if (datasource instanceof StockDatasource &&
           datasource.symbolInfo &&
           datasource.symbolInfo.type === 'stock') {
-        mainChart.addGraph(
+        this._maStudies.length = 0
+        this._maStudies.push(
           new StudyModel(
             mainChart,
             '均价',
-          ))
+          )
+        )
+        mainChart.addGraph(this._maStudies[0])
       }
     } else {
       DEFAULT_MA_PROPS.forEach((defaultMAProps, i) => {
-        mainChart.addGraph(
-          new StudyModel(
-            mainChart,
-            'MA',
-            defaultMAProps.isVisible,
-            [defaultMAProps.length],
-            [{
-              color: defaultMAProps.color,
-              lineWidth: 1,
-            }]
-          )
+        this._maStudies.length = 0
+        const ma = new StudyModel(
+          mainChart,
+          'MA',
+          defaultMAProps.isVisible,
+          [defaultMAProps.length],
+          [{
+            color: defaultMAProps.color,
+            lineWidth: 1,
+          }]
         )
+        this._maStudies.push(ma)
+        mainChart.addGraph(ma)
       })
     }
     mainChart.addGraph(
@@ -488,6 +498,61 @@ export default class ChartLayoutModel extends EventEmitter {
         mainChart,
         'VOLUME'
       ))
+  }
+
+  public switchStudies (fromResolution?: ResolutionType) {
+    const mainChart = this._mainChart
+    const datasource = this._mainDatasource
+    const resolution = datasource.resolution
+    const symbolInfo = datasource.symbolInfo
+    const maStudies = this._maStudies
+    const maProps = this._maProps[resolution] || DEFAULT_MA_PROPS
+    const reset = (fromResolution > '1' && resolution === '1') ||
+                  (fromResolution === '1' && resolution > '1')
+
+    // 分时和K线之间切换时，清空所有指标
+    if (reset) {
+      this.removeAllStudies()
+    } else {
+      this.removeAllMAStudies()
+    }
+
+    if (resolution === '1') {
+      if (symbolInfo.type === 'stock') {
+        maStudies.length = 0
+        maStudies[0] = new StudyModel(
+          mainChart,
+          '均价',
+        )
+        mainChart.addGraph(maStudies[0])
+      } else {
+        // 指数类暂时不显示任何均线
+      }
+    } else {
+      maStudies.length = 0
+      maProps.forEach((defaultMAProps, i) => {
+        const ma = new StudyModel(
+          mainChart,
+          'MA',
+          defaultMAProps.isVisible,
+          [defaultMAProps.length],
+          [{
+            color: defaultMAProps.color,
+            lineWidth: 1,
+          }]
+        )
+        maStudies.push(ma)
+        mainChart.addGraph(ma)
+      })
+    }
+
+    if (reset) {
+      mainChart.addGraph(
+        new StudyModel(
+          mainChart,
+          'VOLUME'
+        ))
+    }
   }
 
   /**
@@ -550,13 +615,13 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
-   * 修改指标参数
-   * @param {StudyModel} study    指标对象
-   * @param {any[]}      newInput 参数
+   * 修改图形参数
+   * @param {StudyModel}                              study           指标对象
+   * @param {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}      config   参数
    */
-  public modifyStudy (study: StudyModel, newInput: any[]) {
+  public modifyGraph (study: StudyModel, config: {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}) {
     study.clearCache()
-    study.input = newInput
+    Object.keys(config).forEach(key => study[key] = config[key])
     this.emit('graph_modify')
   }
 
@@ -594,7 +659,7 @@ export default class ChartLayoutModel extends EventEmitter {
           .then(data => {
             datasource.symbolInfo = data
             datasource
-              .loadHistory(mainDatasource.loaded())
+              .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time + 24 * 3600)
               .then(() => {
                 mainChart.addGraph(stockModel)
                 this.emit('graph_add', data)
@@ -777,6 +842,14 @@ export default class ChartLayoutModel extends EventEmitter {
         .filter(graph => graph instanceof StudyModel)
         .forEach(study => this.removeStudy(chart, study.id))
     })
+  }
+
+  /**
+   * 移除均线类指标 MA以及均价指标
+   */
+  private removeAllMAStudies () {
+    const mainChart = this._mainChart
+    this._maStudies.forEach(ma => this.removeStudy(mainChart, ma.id))
   }
 
   /**

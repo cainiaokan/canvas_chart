@@ -30,7 +30,6 @@ textarea,
 select {
   font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
   font-size: .3125rem;
-  line-height: inherit;
 
   box-sizing: border-box;
 }

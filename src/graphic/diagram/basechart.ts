@@ -19,16 +19,24 @@ export type ChartStyle = {
 }
 
 export abstract class BaseChartRenderer {
-  protected plotModel: PlotModel
-  protected style: ChartStyle
+  protected _plotModel: PlotModel
+  private _style: ChartStyle
 
   constructor (plotModel: PlotModel, style: ChartStyle) {
-    this.plotModel = plotModel
-    this.style = style
+    this._plotModel = plotModel
+    this._style = style
+  }
+
+  get style (): ChartStyle {
+    return this._style
+  }
+
+  set style (style: ChartStyle) {
+    this._style = style
   }
 
   public drawSelection () {
-    const plot = this.plotModel
+    const plot = this._plotModel
     const graph = plot.graph
     const chart = graph.chart
     const ctx = chart.ctx

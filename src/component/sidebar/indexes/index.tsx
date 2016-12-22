@@ -106,7 +106,7 @@ export default class Indexes extends React.Component<Prop, State> {
             <h3>股指</h3>
             <table className='index-table s-table stripe'>
               <tbody>
-                <tr data-symbol={'sh000001'} onMouseDown={this.selectIndex} onTouchStart={this.selectIndex}>
+                <tr data-symbol={'sh000001'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
                   <td width='70'>上证指数</td>
                   <td width='70' className={`${classList.sh000001} ${mutations.sh000001}`}>
                     <span>{indexesInfo.sh000001.price}</span>
@@ -116,7 +116,7 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399001'} onMouseDown={this.selectIndex} onTouchStart={this.selectIndex}>
+                <tr data-symbol={'sz399001'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
                   <td>深证成指</td>
                   <td className={`${classList.sz399001} ${mutations.sz399001}`}>
                     <span>{indexesInfo.sz399001.price}</span>
@@ -126,7 +126,7 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sz399001.changeRate > 0 ? '+' : '') + indexesInfo.sz399001.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399300'} onMouseDown={this.selectIndex} onTouchStart={this.selectIndex}>
+                <tr data-symbol={'sz399300'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
                   <td>沪深300</td>
                   <td className={`${classList.sz399300} ${mutations.sz399300}`}>
                     <span>{indexesInfo.sz399300.price}</span>
@@ -136,7 +136,7 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sz399300.changeRate > 0 ? '+' : '') + indexesInfo.sz399300.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399005'} onMouseDown={this.selectIndex} onTouchStart={this.selectIndex}>
+                <tr data-symbol={'sz399005'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
                   <td>中小板指</td>
                   <td className={`${classList.sz399005} ${mutations.sz399005}`}>
                     <span>{indexesInfo.sz399005.price}</span>
@@ -146,7 +146,7 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sz399005.changeRate > 0 ? '+' : '') + indexesInfo.sz399005.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399006'} onMouseDown={this.selectIndex} onTouchStart={this.selectIndex}>
+                <tr data-symbol={'sz399006'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
                   <td>创业板指</td>
                   <td className={`${classList.sz399006} ${mutations.sz399006}`}>
                     <span>{indexesInfo.sz399006.price}</span>

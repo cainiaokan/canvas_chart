@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as _ from 'underscore'
 import ChartLayoutModel from '../../../model/chartlayout'
 import SearchBox from '../searchbox'
-import Dialog from '../../dialog'
+import Dialog from '../../widget/dialog'
 
 type Prop = {
   chartLayout: ChartLayoutModel

@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as moment from 'moment'
 import * as _ from 'underscore'
 import * as DatetimePicker from 'react-datetime'
-import Dialog from '../../../component/dialog'
+import Dialog from '../../../component/widget/dialog'
 import ChartLayoutModel from '../../../model/chartlayout'
 import { OPEN_HOUR, OPEN_MINUTE, CLOSE_HOUR, CLOSE_MINUTE } from '../../../constant'
 

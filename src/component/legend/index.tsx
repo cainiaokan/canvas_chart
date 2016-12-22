@@ -7,7 +7,7 @@ import { StockDatasource } from '../../datasource'
 import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import StudyModel from '../../model/study'
-import Dialog from '../../component/dialog'
+import Dialog from '../../component/widget/dialog'
 import { formatNumber } from '../../util'
 
 /** 这里有性能问题，鼠标频繁重绘legend，windows Edge浏览器卡顿。想办法解决 */
@@ -54,11 +54,9 @@ export default class Legend extends React.Component<Prop, State> {
     chartLayout.addListener('graph_select', this.updateView)
     chartLayout.addListener('resolution_change', this.updateView)
     chartLayout.addListener('symbol_change', this.updateView)
-    chartLayout.addListener('symbol_resolved', this.updateView)
     chartLayout.addListener('graph_add', this.updateView)
     chartLayout.addListener('graph_remove', this.updateView)
     chartLayout.addListener('graph_modify', this.updateView)
-
   }
 
   public componentWillUnmound () {
@@ -68,7 +66,6 @@ export default class Legend extends React.Component<Prop, State> {
     chartLayout.removeListener('graph_select', this.updateView)
     chartLayout.removeListener('resolution_change', this.updateView)
     chartLayout.removeListener('symbol_change', this.updateView)
-    chartLayout.removeListener('symbol_resolved', this.updateView)
     chartLayout.removeListener('graph_add', this.updateView)
     chartLayout.removeListener('graph_remove', this.updateView)
     chartLayout.removeListener('graph_modify', this.updateView)
@@ -332,8 +329,8 @@ export default class Legend extends React.Component<Prop, State> {
 
   private confirmBtnClickHanler () {
     const settingForm = this.refs.settingForm
-    const newInput = this._studyInSetting.input.map((value, i) => settingForm[i].tagName.toUpperCase() === 'INPUT' ? +settingForm[i].value : Boolean(settingForm[i].value))
-    this.props.chartLayout.modifyStudy(this._studyInSetting, newInput)
+    const input = this._studyInSetting.input.map((value, i) => settingForm[i].tagName.toUpperCase() === 'INPUT' ? +settingForm[i].value : Boolean(settingForm[i].value))
+    this.props.chartLayout.modifyGraph(this._studyInSetting, { input })
     this.studySettingDialogCloseHanlder()
   }
 

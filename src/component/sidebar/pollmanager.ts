@@ -187,8 +187,9 @@ export default class PollManager extends EventEmitter {
 
   private _data: PollData = {}
 
-  constructor (tabIndex = 0) {
+  constructor (symbolInfo: SymbolInfo, tabIndex = 0) {
     super()
+    this._symbolInfo = symbolInfo
     this._tabIndex = tabIndex
     this.pollStockInfo = this.pollStockInfo.bind(this)
     this.pollCapitalFlow = this.pollCapitalFlow.bind(this)

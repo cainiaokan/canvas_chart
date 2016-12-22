@@ -72,6 +72,10 @@ export class StockDatasource extends Datasource {
     this._right = right
   }
 
+  get symbol (): string {
+    return this._symbol
+  }
+
   get symbolInfo (): SymbolInfo {
     return this._symbolInfo
   }
@@ -199,7 +203,7 @@ export class StockDatasource extends Datasource {
 
     const toTime = lastRequestFromTime ?
                      lastRequestFromTime : this._plotList.first() ?
-                       this._plotList.first().time : this.now() + 60
+                       this._plotList.first().time : this.now() + 24 * 3600
 
     let fromTime = 0
     let maxTimeSpan = 0

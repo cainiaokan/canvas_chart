@@ -1,18 +1,37 @@
 .chart-ma-settings {
-  padding-right: 100px;
-
   td:first-child {
-    padding-right: 12px;
+    margin-right: 12px;
+  }
+  table {
+    margin-right: 80px;
   }
   label {
     margin-left: 4px;
+    vertical-align: middle;
   }
   input {
     height: 27px;
 
     vertical-align: middle;
+    &[type=text] {
+      width: 112px;
+    }
   }
   tr {
     line-height: 32px;
+  }
+  .color-picker-wrapper {
+    position: absolute;
+    z-index: 99;
+    top: 25px;
+    left: 0;
+  }
+  &-btn-group {
+    padding-top: 25px;
+    .btn {
+      float: right;
+
+      margin-left: 8px;
+    }
   }
 }

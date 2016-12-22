@@ -66,6 +66,12 @@ abstract class GraphModel {
     return this._styles
   }
 
+  set styles (styles: ChartStyle[]) {
+    this._styles = styles
+    this._plots.forEach((plot, i) => plot.style = styles[i])
+    this._isValid = false
+  }
+
   get id (): number {
     return this._id
   }
@@ -91,7 +97,7 @@ abstract class GraphModel {
   }
 
   set isVisible (visible: boolean) {
-    this.isVisible = visible
+    this._isVisible = visible
     this._isValid = false
   }
 
