@@ -10,7 +10,7 @@ module.exports = {
     'static/js/vendor': [
       'react',
       'react-dom',
-      'react-color'
+      'react-color',
       'react-datetime',
       'underscore',
       'es6-promise',

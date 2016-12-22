@@ -13,7 +13,6 @@ type State = {
 }
 
 export default class Indicator extends React.Component<Prop, State> {
-  private _chart: ChartModel
   private _intervalCheckStatus: number
 
   constructor () {
@@ -24,11 +23,9 @@ export default class Indicator extends React.Component<Prop, State> {
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    return !_.isEqual(this.state, nextState)
-  }
-
-  public componentWillMount() {
-    this._chart = this.props.chart
+    const curProps = this.props
+    return curProps.chart !== nextProps.chart ||
+           !_.isEqual(this.state, nextState)
   }
 
   public componentDidMount () {
@@ -54,7 +51,7 @@ export default class Indicator extends React.Component<Prop, State> {
   }
 
   private isOpen (): boolean {
-    const now = this._chart.datasource.now() * 1000
+    const now = this.props.chart.datasource.now() * 1000
     const nowTime = new Date(now)
 
     if (OPEN_DAYS.indexOf(nowTime.getDay()) === -1) {

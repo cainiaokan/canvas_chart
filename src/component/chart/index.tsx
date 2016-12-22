@@ -62,7 +62,8 @@ export default class Chart extends React.Component<Prop, State> {
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
     const curProp = this.props
     const curState = this.state
-    return nextProp.width !== curProp.width ||
+    return nextProp.chart !== curProp.chart ||
+           nextProp.width !== curProp.width ||
            nextProp.height !== curProp.height ||
            nextState.hover !== curState.hover ||
            nextState.cursor !== curState.cursor
