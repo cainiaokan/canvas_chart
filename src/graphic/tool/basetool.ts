@@ -1,7 +1,7 @@
 import ChartModel from '../../model/chart'
 import { HIT_TEST_TOLERANCE } from '../../constant'
 
-type Vertex = { time: number, value: number }
+export type Vertex = { time: number, value: number }
 
 export abstract class BaseToolRenderer {
   protected _chart: ChartModel
@@ -76,7 +76,10 @@ export abstract class BaseToolRenderer {
 
   public abstract isFinished (): boolean
 
-  public isNowVisible () {
+  /**
+   * 画图工具当前是否可见
+   */
+  public isNowVisible (): boolean {
     const visibleRange = this._chart.axisX.getVisibleTimeBars()
     const firstBar = visibleRange[0]
     const lastBar = visibleRange[visibleRange.length - 1]
@@ -109,13 +112,14 @@ export abstract class BaseToolRenderer {
     const chart = this._chart
     const axisX = chart.axisX
     const axisY = chart.axisY
+    const vertexes = this.vertexes
     ctx.strokeStyle = 'rgba( 128, 128, 128, 1)'
     ctx.lineWidth = this._selected ? 4 : 2
     ctx.fillStyle = '#fff'
-    for (let i = 0, len = this._vertexes.length; i < len; i++) {
+    for (let i = 0, len = vertexes.length; i < len; i++) {
       ctx.beginPath()
-      ctx.arc(axisX.getXByTime(this._vertexes[i].time),
-              axisY.getYByValue(this._vertexes[i].value),
+      ctx.arc(axisX.getXByTime(vertexes[i].time),
+              axisY.getYByValue(vertexes[i].value),
               5, 0, 2 * Math.PI)
       ctx.closePath()
       ctx.fill()
@@ -133,22 +137,6 @@ export abstract class BaseToolRenderer {
     const vertex = this._vertexes[index]
     vertex.time = time
     vertex.value = value
-  }
-
-  public range (): {left: number, right: number} {
-    let range = {
-      left: Number.MAX_VALUE,
-      right: -Number.MAX_VALUE,
-    }
-    this._vertexes.forEach(vertex => {
-      if (vertex.time < range.left) {
-        range.left = vertex.time
-      }
-      if (vertex.time > range.right) {
-        range.right = vertex.time
-      }
-    })
-    return range
   }
 
   public hitTest (select: boolean): boolean {

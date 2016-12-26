@@ -3,8 +3,9 @@ import GraphModel from '../model/graph'
 
 export default class GapRenderer {
   private _graph: GraphModel
-  private _gapCache: { time1: number, time2: number, value1: number, value2: number, from: number, to: number, lastBarTime: number} = null
-
+  private _gapCache: { time1: number, time2: number, from: number, to: number, lastBarTime: number} = null
+  // 记住firstBar的时间，以便之后再次计算跳空缺口时，直接从此位置开始，而不需要从头计算
+  private _firstBarTime: number = 0
   constructor (graph: GraphModel) {
     this._graph = graph
   }
@@ -15,75 +16,76 @@ export default class GapRenderer {
   public findLastGap () {
     const graph = this._graph
     const axisX = graph.chart.axisX
-    const visibleTimeBars = axisX.getVisibleTimeBars()
+    const datasource = graph.datasource as StockDatasource
 
-    if (!visibleTimeBars.length) {
+    if (datasource.loaded() < 2) {
       return null
     }
 
     let gapCache = this._gapCache
-    const datasource = graph.datasource as StockDatasource
+    const visibleTimeBars = axisX.getVisibleTimeBars()
 
     /*
      * lastBarTime用来记录bars是否有更新，如果有更新的话，需要重新计算跳空。
      */
     if (gapCache &&
-        gapCache.lastBarTime === datasource.last().time &&
-        gapCache.time2 > visibleTimeBars[0].time &&
-        gapCache.time2 < visibleTimeBars[visibleTimeBars.length - 1].time) {
-      return gapCache
+        gapCache.lastBarTime === datasource.last().time) {
+      if (gapCache.time2 > visibleTimeBars[0].time &&
+          gapCache.time2 < visibleTimeBars[visibleTimeBars.length - 1].time) {
+        return gapCache
+      } else {
+        return null
+      }
     }
 
-    const firstIndex = 0
-    let curIndex = datasource.loaded() - 1
+    let curIndex = this._firstBarTime ? datasource.search(this._firstBarTime) : datasource.loaded() - 1
+
     const lastBarTime = datasource.last().time
     let findGap = false
 
     let time1
     let time2
-    let value1
-    let value2
     let from
     let to
     let curBar
     let lastBar
-    let max
-    let min
+    let max = datasource.max(curIndex)
+    let min = datasource.min(curIndex)
 
-    while (curIndex > firstIndex) {
+    while (curIndex) {
       curBar = datasource.barAt(curIndex)
       lastBar = datasource.barAt(curIndex - 1)
 
-      max = datasource.max(curIndex + 1)
-      min = datasource.min(curIndex + 1)
+      max = Math.max(max, curBar.high)
+      min = Math.min(min, curBar.low)
 
       time1 = lastBar.time
       time2 = curBar.time
 
-      if (lastBar.low > curBar.high && max < lastBar.low) {
+      if (lastBar.low > max) {
         findGap = true
-        to =  max > curBar.high ? max : curBar.high
         from = lastBar.low
-        value1 = lastBar.low
-        value2 = curBar.high
+        to = max
         break
-      } else if (curBar.low > lastBar.high && min > lastBar.high) {
+      } else if (lastBar.high < min) {
         findGap = true
-        from = min < curBar.low ? min : lastBar.high
-        to = curBar.low
-        value1 = curBar.low
-        value2 = lastBar.high
+        from = lastBar.high
+        to = min
         break
       }
       curIndex--
     }
 
     if (findGap) {
-      this._gapCache = gapCache = findGap ? { time1, value1, time2, value2, from, to, lastBarTime} : null
-      return gapCache &&
-          gapCache.time2 > visibleTimeBars[0].time &&
-          gapCache.time2 < visibleTimeBars[visibleTimeBars.length - 1].time ? gapCache : null
+      this._gapCache = gapCache = findGap ? { time1, time2, from, to, lastBarTime} : null
+      if (gapCache.time2 > visibleTimeBars[0].time &&
+          gapCache.time2 < visibleTimeBars[visibleTimeBars.length - 1].time) {
+        return gapCache
+      } else {
+        return null
+      }
     } else {
+      this._firstBarTime = datasource.first().time
       return null
     }
   }
@@ -97,8 +99,8 @@ export default class GapRenderer {
 
     if (gap) {
       const x2 = axisX.getXByTime(gap.time2)
-      const y1 = axisY.getYByValue(gap.value1)
-      const y2 = axisY.getYByValue(gap.value2)
+      const y1 = axisY.getYByValue(gap.from)
+      const y2 = axisY.getYByValue(gap.to)
 
       ctx.save()
       ctx.fillStyle = '#636363'
@@ -109,13 +111,14 @@ export default class GapRenderer {
         width - x2,
         Math.ceil(y2 - y1 + 0.5))
       ctx.fillStyle = 'black'
-      ctx.fillText(Number(gap.from).toFixed(2) + '-' + Number(gap.to).toFixed(2), x2, y1 - 2)
+      ctx.fillText(Number(gap.from).toFixed(2) + '-' + Number(gap.to).toFixed(2), x2, y1 < y2 ? y1 - 2 : y2 - 2)
       ctx.restore()
     }
 
   }
 
   public clearCache () {
+    this._firstBarTime = 0
     this._gapCache = null
   }
 

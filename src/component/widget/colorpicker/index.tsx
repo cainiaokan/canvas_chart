@@ -6,7 +6,7 @@ import { darkenRGB } from '../../../util'
 
 type Prop = {
   defaultColor: string
-  onChangeComplete?: (color: any) => void
+  onChangeComplete?: (color: string) => void
 }
 
 type State = {
@@ -71,7 +71,7 @@ export default class ColorPicker extends React.Component<Prop, State> {
     this.setState({ showColorPicker: true })
   }
 
-  private colorChangeHandler (colorResult) {
+  private colorChangeHandler (colorResult: ReactColor.ColorResult) {
     const rgb = colorResult.rgb
     const color = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')'
     this.props.onChangeComplete(color)

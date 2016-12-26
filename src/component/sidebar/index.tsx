@@ -159,8 +159,11 @@ export default class Sidebar extends React.Component<Prop, State> {
           { tabPage }
         </div>
       </div>
-      <a href='javascript:;' className={`sidebar-folding-btn ${this.props.folded ? 'folded' : ''}`}
-        onClick={this.foldingBtnClickHandler.bind(this)}></a>
+      <a href='javascript:;'
+         className={`sidebar-folding-btn ${this.props.folded ? 'folded' : ''}`}
+         onClick={this.foldingBtnClickHandler.bind(this)}>
+        <span></span>
+      </a>
     </div>
   }
 

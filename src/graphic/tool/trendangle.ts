@@ -3,11 +3,6 @@ import { HIT_TEST_TOLERANCE } from '../../constant'
 import { pointToSegDist } from '../../util'
 
 export class TrendAngleToolRenderer extends BaseToolRenderer {
-
-  constructor () {
-    super()
-  }
-
   public drawTool (ctx: CanvasRenderingContext2D) {
     const chart = this._chart
     const axisX = chart.axisX

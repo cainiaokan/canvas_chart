@@ -113,7 +113,7 @@ export class StockDatasource extends Datasource {
     return this._plotList.search(time)
   }
 
-  public max (fromIndex: number, toIndex = this.loaded() - 1) {
+  public max (fromIndex: number, toIndex = this.loaded()) {
     const bars = this.slice(fromIndex, toIndex)
 
     let max = -Number.MAX_VALUE
@@ -122,7 +122,7 @@ export class StockDatasource extends Datasource {
     return max
   }
 
-  public min (fromIndex: number, toIndex = this.loaded() - 1) {
+  public min (fromIndex: number, toIndex = this.loaded()) {
     const bars = this.slice(fromIndex, toIndex)
 
     let min = Number.MAX_VALUE

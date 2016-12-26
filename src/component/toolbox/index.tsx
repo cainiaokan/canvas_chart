@@ -6,6 +6,8 @@ import {
   BaseToolRenderer,
   TrendAngleToolRenderer,
   TrendLineToolRenderer,
+  VertLineRenderer,
+  HorzLineRenderer,
 } from '../../graphic/tool'
 
 type Prop = {
@@ -21,7 +23,12 @@ type State = {
 
 const toolsList = [
   [['chart-tools-crosshair', '十字指针'], ['chart-tools-pointer', '箭头']],
-  [['chart-tools-trend-line', '趋势线'], ['chart-tools-trend-angle', '角度趋势线']],
+  [
+    ['chart-tools-trend-line', '趋势线'],
+    ['chart-tools-trend-angle', '角度趋势线'],
+    ['chart-tools-vert-line', '垂直线'],
+    ['chart-tools-horz-line', '水平线'],
+  ],
   [['chart-tools-eraser', '删除画线']],
 ]
 
@@ -196,6 +203,10 @@ export default class ToolBox extends React.Component<Prop, State> {
         return new TrendLineToolRenderer()
       case 'chart-tools-trend-angle':
         return new TrendAngleToolRenderer()
+      case 'chart-tools-vert-line':
+        return new VertLineRenderer()
+      case 'chart-tools-horz-line':
+        return new HorzLineRenderer()
       default:
         throw 'Can\'t find any drawing tool match name ' + toolName
     }
