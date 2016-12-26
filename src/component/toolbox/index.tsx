@@ -76,7 +76,7 @@ export default class ToolBox extends React.Component<Prop, State> {
       <ul className='chart-tools-group'>
         {
           toolsList.map((tools, i) =>
-            <li className={this.state.selectedIndex === i ? 'selected' : ''}>
+            <li key={i} className={this.state.selectedIndex === i ? 'selected' : ''}>
               <span className='chart-tools-btn'>
                 <span className={`chart-tools-btn-main ${tools[this.state.selectedIndex2[i]][0]}`}
                       title={tools[this.state.selectedIndex2[i]][1]}
@@ -98,6 +98,7 @@ export default class ToolBox extends React.Component<Prop, State> {
                   {
                     toolsList[i].map((tool, j) =>
                       <a href='javascript:;'
+                         key={tool[0]}
                          data-index1={i}
                          data-index2={j}
                          onMouseDown={this.selectToolHandler}

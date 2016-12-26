@@ -149,7 +149,7 @@ export default class Sidebar extends React.Component<Prop, State> {
         <ul className='tab-list' onClick={this.switchTabPage.bind(this)}>
           {
             tabsConfig.map((tab, i) =>
-              <li className={!this.props.folded && this.state.tabIndex === i ? `${tab[0]} active` : tab[0]}
+              <li key={i} className={!this.props.folded && this.state.tabIndex === i ? `${tab[0]} active` : tab[0]}
                 title={tab[1]}
                 data-index={i}></li>
             )

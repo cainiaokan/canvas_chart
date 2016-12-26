@@ -61,7 +61,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public static propTypes = {
     axis: React.PropTypes.oneOf(['left', 'right', 'both']),
-    datasources: React.PropTypes.array.isRequired,
     resolution: React.PropTypes.oneOf(['1', '5', '15', '30', '60', 'D', 'W', 'M']),
     scalable: React.PropTypes.bool,
     scrollable: React.PropTypes.bool,
@@ -254,12 +253,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
     for (let i = 0, len = chartLayoutModel.charts.length, chart; i < len; i++) {
       chart = chartLayoutModel.charts[i]
       chartLines.push(
-        <Chart chart={chart} chartLayout={this._chartLayoutModel}
+        <Chart key={chart.id}
+               chart={chart}
+               chartLayout={this._chartLayoutModel}
                height={chart.isMain ? mainChartHeight : addtionalChartHeight}
                width={availWidth} />
       )
       if (i < len - 1) {
-        chartLines.push(<div className='chart-separator'></div>)
+        chartLines.push(<div key={`separator_${i}`} className='chart-separator'></div>)
       }
     }
 

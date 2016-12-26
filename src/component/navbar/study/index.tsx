@@ -51,7 +51,7 @@ export default class StudySelector extends React.Component<Prop, State> {
             onTouchStart={this.indicatorSelectHandler}>
           {
             studyNames.map(studyName =>
-              <li data-value={studyName}>
+              <li key={studyName} data-value={studyName}>
                 {studyName}
               </li>
             )

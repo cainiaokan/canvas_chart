@@ -10,6 +10,8 @@ import { BaseToolRenderer } from '../graphic/tool'
 import GridRenderer from '../graphic/grid'
 import WaterMarkRenerer from '../graphic/watermark'
 
+let sequence = 1
+
 export default class ChartModel extends EventEmitter {
   public hover: boolean
   public width: number
@@ -30,6 +32,7 @@ export default class ChartModel extends EventEmitter {
   private _isMain: boolean
   private _isValid = false
   private _isHit = false
+  private _id = 0
 
   constructor (
     chartLayout: ChartLayout,
@@ -39,6 +42,7 @@ export default class ChartModel extends EventEmitter {
     isPrice: boolean,
     isMain: boolean = false) {
     super()
+    this._id = sequence++
     this._chartLayout = chartLayout
     this._datasource = datasource
     this._axisX = axisX
@@ -52,6 +56,10 @@ export default class ChartModel extends EventEmitter {
     if (isMain) {
       this._watermark = new WaterMarkRenerer(this)
     }
+  }
+
+  get id (): number {
+    return this._id
   }
 
   get chartLayout (): ChartLayout {

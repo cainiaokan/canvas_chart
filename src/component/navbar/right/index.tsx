@@ -29,7 +29,7 @@ export default class RightOption extends React.Component<Prop, any> {
             if (this.props.right === val) {
               className += ' active'
             }
-            return <button className={className} value={val}>{rightLabels[index]}</button>
+            return <button key={val} className={className} value={val}>{rightLabels[index]}</button>
           })
         }
     </div>

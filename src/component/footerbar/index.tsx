@@ -3,8 +3,6 @@ import '../../style/btn.less'
 import * as React from 'react'
 import * as _ from 'underscore'
 import ChartLayoutModel, { preferredTimeRange } from '../../model/chartlayout'
-import { INITIAL_OFFSET } from '../../model/axisx'
-import { OPEN_TIME_RANGE, OPEN_DAYS } from '../../constant'
 import GoToDate from './gotodate'
 
 type Prop = {
@@ -36,7 +34,7 @@ export default class FooterBar extends React.Component<Prop, State> {
         <div className='control-list'>
           {
             preferredTimeRange.map(range =>
-              <a className='mini-btn' href='javascript:;' data-value={range} onClick={this.timeRangeClickHandler}>{range}</a>
+              <a key={range} className='mini-btn' href='javascript:;' data-value={range} onClick={this.timeRangeClickHandler}>{range}</a>
             )
           }
           <GoToDate chartLayout={this.props.chartLayout} />

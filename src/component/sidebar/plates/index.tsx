@@ -75,14 +75,14 @@ export default class Plates extends React.Component<Prop, State> {
               .map(name => ({name, type: 'industry'}))
               .concat(plates.concept.map(name => { return {name, type: 'concept'} }))
               .map((stock, i) =>
-              <li className={this.state.activeIndex === i ? 'active' : ''}>
+              <li key={stock.name} className={this.state.activeIndex === i ? 'active' : ''}>
                 <h4 data-index={i} data-type={stock.type} onClick={this.selectPlate}>{stock.name}</h4>
                 {
                   this.state.activeIndex === i ? <ul className='stocks-in-same-plate'>
                     {
                       this.state.stocks ? this.state.stocks.map(stockInfo => {
                         const clazzName = stockInfo.p_change > 0 ? 'positive' : stockInfo.p_change < 0 ? 'negtive' : ''
-                        return <li>
+                        return <li key={stockInfo.code}>
                           <span className='stock-name'>
                             <b>{stockInfo.name}</b>
                             <i>{stockInfo.code}</i>

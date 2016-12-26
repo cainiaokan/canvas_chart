@@ -165,29 +165,31 @@ export default class Indexes extends React.Component<Prop, State> {
           <div>
             <h3>实用工具</h3>
             <table className='s-table stripe'>
-              <tr>
-                <td width='157'>沪股通资金流入</td>
-                <td width='110' className={classList.hugutong}>
-                  {realtimeTools.hugutong[0]}
-                </td>
-              </tr>
-              <tr>
-                <td>涨跌幅超过5%个股数</td>
-                <td>
-                  <span className='positive'>
-                    {realtimeTools.goUpStaying[0]}
-                  </span>/
-                  <span className='negtive'>
-                    {realtimeTools.fallStaying[0]}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td>急涨急跌股数</td>
-                <td className={classList.shortTermMove}>
-                  {realtimeTools.shortTermMove[0]}
-                </td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td width='157'>沪股通资金流入</td>
+                  <td width='110' className={classList.hugutong}>
+                    {realtimeTools.hugutong[0]}
+                  </td>
+                </tr>
+                <tr>
+                  <td>涨跌幅超过5%个股数</td>
+                  <td>
+                    <span className='positive'>
+                      {realtimeTools.goUpStaying[0]}
+                    </span>/
+                    <span className='negtive'>
+                      {realtimeTools.fallStaying[0]}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>急涨急跌股数</td>
+                  <td className={classList.shortTermMove}>
+                    {realtimeTools.shortTermMove[0]}
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div> : null
         }

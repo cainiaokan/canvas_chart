@@ -59,6 +59,7 @@ export default class Chart extends React.Component<Prop, State> {
     this.hitHandler = this.hitHandler.bind(this)
     this.defaultCursorChangeHandler = this.defaultCursorChangeHandler.bind(this)
   }
+
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
     const curProp = this.props
     const curState = this.state
@@ -103,14 +104,14 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public componentDidUpdate (prevProps: Prop) {
+    // 因为使用了HDPI Canvas，因此当canvas的尺寸发生变化的时候，需要重新调用getContext。目的是
+    // 自动适应高清屏
     const curProps = this.props
     const chart = this.props.chart
     const canvas = this.refs.canvas
     const topCanvas = this.refs.topCanvas
     if (curProps.width !== prevProps.width ||
-        curProps.height !== prevProps.height ||
-        chart.ctx.canvas !== canvas ||
-        chart.topCtx.canvas !== topCanvas) {
+        curProps.height !== prevProps.height) {
       const width = ~~this.props.width - AXIS_Y_WIDTH
       const height = ~~this.props.height
       canvas.width = width
@@ -206,7 +207,10 @@ export default class Chart extends React.Component<Prop, State> {
     const curPoint = isTouchEvent ? {
       x: ev.touches[0].pageX - offset.offsetLeft,
       y: ev.touches[0].pageY - offset.offsetTop,
-    } : chart.crosshair.point
+    } : {
+      x: ev.pageX - offset.offsetLeft,
+      y: ev.pageY - offset.offsetTop,
+    }
 
     if (chartLayout.mainDatasource.loaded() === 0) {
       return
@@ -230,6 +234,11 @@ export default class Chart extends React.Component<Prop, State> {
       // 设置当前chart为hover态
       chart.hover = true
       // 触屏设备需要点击时手动设置指针位置
+      chartLayout.setCursorPoint(curPoint)
+    }
+
+    // 如果还没有设置过鼠标点，则先设置，比如页面刚进入时，鼠标还没有移动，此时point是空
+    if (!chart.crosshair.point) {
       chartLayout.setCursorPoint(curPoint)
     }
 

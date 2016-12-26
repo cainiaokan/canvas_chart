@@ -90,7 +90,7 @@ export default class SearchBox extends React.Component<Prop, State> {
           {
             !state.loading && state.results ?
               state.results.map((symbol, index) =>
-              <li className='symbol-item' onClick={this.selectSymbolHandler.bind(this, index)}>
+              <li key={symbol.symbol} className='symbol-item' onClick={this.selectSymbolHandler.bind(this, index)}>
                 <span className='symbol-code'>{symbol.symbol}</span>
                 <span className='symbol-name'>{symbol.description}</span>
                 <span className='symbol-exchanger'>{symbol.type}-{symbol.exchange}</span>

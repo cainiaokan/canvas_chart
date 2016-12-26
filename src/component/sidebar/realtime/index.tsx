@@ -135,7 +135,7 @@ export default class Realtime extends React.Component<Prop, State> {
               <tbody>
                 {
                   stockInfo && stockInfo.selling && stockInfo.selling.map((item, i) =>
-                    <tr>
+                    <tr key={i}>
                       <td width='33.33%'>{5 - i}</td>
                       <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
                         {item[0]}
@@ -151,7 +151,7 @@ export default class Realtime extends React.Component<Prop, State> {
               <tbody>
                 {
                   stockInfo && stockInfo.buying && stockInfo.buying.map((item, i) =>
-                    <tr>
+                    <tr key={i}>
                       <td width='33.33%'>{i + 1}</td>
                       <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
                         {item[0]}
@@ -240,8 +240,8 @@ export default class Realtime extends React.Component<Prop, State> {
               <table>
                 <tbody>
                   {
-                    stockInfo && stockInfo.ticks && stockInfo.ticks.map(tick =>
-                      <tr>
+                    stockInfo && stockInfo.ticks && stockInfo.ticks.map((tick, i) =>
+                      <tr key={i}>
                         <td width='34%'>
                           {tick.time.substring(0, 2)}:{tick.time.substring(2, 4)}:{tick.time.substring(4, 6)}
                         </td>

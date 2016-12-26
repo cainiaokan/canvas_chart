@@ -59,7 +59,7 @@ export default class Legend extends React.Component<Prop, State> {
     chartLayout.addListener('graph_modify', this.updateView)
   }
 
-  public componentWillUnmound () {
+  public componentWillUnmount () {
     const chartLayout = this.props.chartLayout
     chartLayout.removeListener('cursor_move', this.cursorMoveHandler)
     chartLayout.removeListener('graph_hover', this.updateView)
@@ -208,7 +208,7 @@ export default class Legend extends React.Component<Prop, State> {
             const color = graph.styles[0].color
             const curBar = mainGraph.getCurBar()
             const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
-            return <div className='chart-legend-line'
+            return <div key={graph.id} className='chart-legend-line'
               style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
               <div className='chart-legend-item'>
                 {!datasource.symbolInfo ? '加载中' : datasource.symbolInfo.description}
@@ -235,7 +235,7 @@ export default class Legend extends React.Component<Prop, State> {
                 const bars = ma.getCurBar()
                 const bar = bars ? bars[0] : null
                 const styles = ma.styles
-                return <div className='chart-legend-item'
+                return <div key={ma.id} className='chart-legend-item'
                   style={ {
                     color: styles[0].color,
                     fontWeight: ma.hover || ma.selected ? 600 : 'normal',
@@ -263,7 +263,7 @@ export default class Legend extends React.Component<Prop, State> {
           nonMAStudies.map(study => {
             if (!study.noLegend) {
               const curBar = study.getCurBar()
-              return <div className='chart-legend-line'
+              return <div key={study.id} className='chart-legend-line'
                 style={ {fontWeight: study.hover || study.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item'>
                   {study.studyType}{
@@ -272,7 +272,7 @@ export default class Legend extends React.Component<Prop, State> {
                 </div>
                 {
                   study.plots.map((__, index) => !study.styles[index].noLegend ?
-                    <div className='chart-legend-item'
+                    <div key={index} className='chart-legend-item'
                     style={ {color: study.styles[index].color} }>
                       {curBar ? curBar[index][2].toFixed(4) : 'N/A'}
                     </div> : null
@@ -297,7 +297,7 @@ export default class Legend extends React.Component<Prop, State> {
             {
               input.map((value, i) => {
                 if (typeof value === 'number') {
-                  return <div>
+                  return <div key={i}>
                     <div className='chart-study-setting-field'>
                       <label>{inputLabels[i]}</label>
                       <input type='text' maxLength={3} defaultValue={value + ''} />

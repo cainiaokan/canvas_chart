@@ -86,7 +86,7 @@ export default class ResolutionOption extends React.Component<Prop, State> {
           <ul className='more-resolution'>
             {
               moreResolution.map(resolution =>
-                <li data-value={resolution}
+                <li key={resolution} data-value={resolution}
                     onMouseDown={this.resolutionSelectHandler}
                     onTouchStart={this.resolutionSelectHandler}>
                   {resolutionConfig[resolution]}

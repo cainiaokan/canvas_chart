@@ -69,11 +69,11 @@ export default class Compare extends React.Component<Prop, State> {
                      placeholder='输入检索股票'
                      onSelect={this.selectSymbolHandler} />
           {
-            indexes.map(indexGroup =>
-              <div className='index-shortcut'>
+            indexes.map((indexGroup, i) =>
+              <div key={i} className='index-shortcut'>
                 {
                   indexGroup.map(indexInfo =>
-                    <div>
+                    <div key={indexInfo[0]}>
                       <input id={`index_${indexInfo[0]}`}
                              type='checkbox'
                              value={indexInfo[0]}

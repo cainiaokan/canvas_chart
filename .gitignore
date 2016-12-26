@@ -38,6 +38,7 @@ jspm_packages
 
 # output dir
 dist
+build
 
 # doc
 docs
