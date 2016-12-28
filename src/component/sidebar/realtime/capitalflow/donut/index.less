@@ -1,0 +1,74 @@
+.chart-capital-flow-donut {
+  p {
+    font-size: 12px;
+    line-height: 2;
+
+    margin: 0;
+    padding: 0;
+
+    color: #999;
+  }
+  .legend {
+    > div {
+      display: inline-block;
+
+      width: 56px;
+      margin: 0 1px;
+
+      text-align: center;
+      .color-block {
+        height: 8px;
+      }
+      p {
+        line-height: 1.5;
+      }
+    }
+    .color-desc-1 {
+      float: left;
+      .color-block {
+        background: #ff524f;
+      }
+    }
+    .color-desc-2 {
+      float: left;
+      .color-block {
+        background: #ff7d42;
+      }
+    }
+    .color-desc-3 {
+      float: right;
+      .color-block {
+        background: #68ce3c;
+      }
+    }
+    .color-desc-4 {
+      float: right;
+      .color-block {
+        background: #15af3d;
+      }
+    }
+  }
+  .capital-in {
+    float: left;
+    .capital-in-num {
+      color: #ff524f;
+    }
+  }
+  .capital-out {
+    float: right;
+    .capital-out-num {
+      color: #15af3d;
+    }
+  }
+  .sector {
+    cursor: pointer;
+    -webkit-transition: -webkit-transform .2s;
+            transition:         transform .2s;
+
+    will-change: transform;
+    &:hover {
+      -webkit-transform: scale(1.05);
+              transform: scale(1.05);
+    }
+  }
+}

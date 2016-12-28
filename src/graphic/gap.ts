@@ -98,18 +98,19 @@ export default class GapRenderer {
     const gap = this.findLastGap()
 
     if (gap) {
-      const x2 = axisX.getXByTime(gap.time2)
-      const y1 = axisY.getYByValue(gap.from)
-      const y2 = axisY.getYByValue(gap.to)
+      const x2 = ~~axisX.getXByTime(gap.time2)
+      const y1 = ~~axisY.getYByValue(gap.from)
+      const y2 = ~~axisY.getYByValue(gap.to)
+      const h = ~~(Math.abs(y2 - y1))
 
       ctx.save()
       ctx.fillStyle = '#636363'
       ctx.font = '12 px Verdana, Arial, sans-serif'
       ctx.fillRect(
         x2,
-        y1 - 1,
+        y2 < y1 ? y2 : y1,
         width - x2,
-        Math.ceil(y2 - y1 + 0.5))
+        h > 0 ? h : 1)
       ctx.fillStyle = 'black'
       ctx.fillText(Number(gap.from).toFixed(2) + '-' + Number(gap.to).toFixed(2), x2, y1 < y2 ? y1 - 2 : y2 - 2)
       ctx.restore()

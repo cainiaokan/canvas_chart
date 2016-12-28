@@ -104,6 +104,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       symbolType: '',
     }
     this.updateView = this.updateView.bind(this)
+    this.wheelHandler = this.wheelHandler.bind(this)
     this._chartLayoutModel = new ChartLayoutModel()
   }
 
@@ -260,7 +261,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
                width={availWidth} />
       )
       if (i < len - 1) {
-        chartLines.push(<div key={`separator_${i}`} className='chart-separator'></div>)
+        chartLines.push(<div key={`${chart.id}_separator`} className='chart-separator'></div>)
       }
     }
 
@@ -287,7 +288,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
                   right={this.state.right} /> : null
         }
         <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }
-             onWheel={this.wheelHandler.bind(this)}>
+             onWheel={this.wheelHandler}>
           {chartLines}
           <AxisX axis={this._chartLayoutModel.axisx}
                  height={AXIS_X_HEIGHT}

@@ -46,8 +46,8 @@ export default class Dialog extends React.Component<Prop, any> {
     const height = props.height || container.clientHeight
     style.width = props.width + 'px'
     style.height = props.height + 'px'
-    style.top = pageHeight / 2 - height / 2 + 'px'
-    style.left = pageWidth / 2 - width / 2 + 'px'
+    style.top = pageHeight * (1 - 0.618) - height / 2 + 'px'
+    style.left = pageWidth * 0.5 - width / 2 + 'px'
     document.addEventListener('mousedown', this.clickOutsideHandler)
     document.addEventListener('touchstart', this.clickOutsideHandler)
     document.addEventListener('mousemove', this.dragMoveHandler)

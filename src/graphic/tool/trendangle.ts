@@ -78,7 +78,6 @@ export class TrendAngleToolRenderer extends BaseToolRenderer {
     const chart = this._chart
     const axisX = chart.axisX
     const axisY = chart.axisY
-    const rangeY = chart.axisY.range
 
     const point = chart.crosshair.point
     const vertex1 = this._vertexes[0]
@@ -86,9 +85,9 @@ export class TrendAngleToolRenderer extends BaseToolRenderer {
     const x0 = point.x
     const y0 = point.y
     const x1 = axisX.getXByTime(vertex1.time)
-    const y1 = axisY.getYByValue(vertex1.value, rangeY)
+    const y1 = axisY.getYByValue(vertex1.value)
     const x2 = axisX.getXByTime(vertex2.time)
-    const y2 = axisY.getYByValue(vertex2.value, rangeY)
+    const y2 = axisY.getYByValue(vertex2.value)
 
     let distance = pointToSegDist(x0, y0, x1, y1, x2, y2)
 

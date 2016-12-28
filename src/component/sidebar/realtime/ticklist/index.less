@@ -1,0 +1,32 @@
+.chart-tick-list {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 5px 15px;
+  table {
+    width: 100%;
+  }
+  tr td:last-child {
+    text-align: right;
+    &:after {
+      display: inline-block;
+
+      width: 8px;
+      height: 10px;
+      margin-left: 2px;
+
+      background: url(../../image/new_icon.png) no-repeat;
+    }
+  }
+  .positive:after {
+    content: '\0020';
+
+    background-position: 0 -115px!important;
+  }
+  .negtive:after {
+    content: '\0020';
+
+    background-position: 0 -130px!important;
+  }
+}

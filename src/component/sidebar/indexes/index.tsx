@@ -25,13 +25,11 @@ export default class Indexes extends React.Component<Prop, State> {
   }
 
   private _indexesScroll
-  private _indexesInfo: IndexesInfo
-  private _realtimeTools: RealtimeTools
 
   constructor () {
     super()
     this.state = {
-      highlightFinished: false,
+      highlightFinished: true,
     }
     this.selectIndex = this.selectIndex.bind(this)
   }
@@ -64,10 +62,10 @@ export default class Indexes extends React.Component<Prop, State> {
     const mutations: any = {}
     const classList: any = {}
 
-    if (this._indexesInfo) {
+    if (indexesInfo) {
       Object.keys(indexesInfo)
         .forEach(code =>
-          mutations[code] = indexesInfo[code].changeAmount !== this._indexesInfo[code].changeAmount ? 'mutation' : ''
+          mutations[code] = indexesInfo[code].changeAmount !== indexesInfo[code].changeAmount ? 'mutation' : ''
         )
     }
 
@@ -89,16 +87,13 @@ export default class Indexes extends React.Component<Prop, State> {
         )
     }
 
-    this._indexesInfo = indexesInfo
-    this._realtimeTools = realtimeTools
-
     if (this.state.highlightFinished) {
       this.state.highlightFinished = false
     } else {
       setTimeout(() => this.setState({ highlightFinished: true}), 500)
     }
 
-    return <div className='indexes' style={ {height: this.props.height + 'px'} } ref='indexes'>
+    return <div className='chart-indexes' style={ {height: this.props.height + 'px'} } ref='indexes'>
       <div>
         {
           indexesInfo ?

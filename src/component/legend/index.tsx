@@ -7,7 +7,7 @@ import { StockDatasource } from '../../datasource'
 import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import StudyModel from '../../model/study'
-import Dialog from '../../component/widget/dialog'
+// import Dialog from '../../component/widget/dialog'
 import { formatNumber } from '../../util'
 
 /** 这里有性能问题，鼠标频繁重绘legend，windows Edge浏览器卡顿。想办法解决 */
@@ -83,21 +83,21 @@ export default class Legend extends React.Component<Prop, State> {
     // 过滤出所有非均线指标
     const nonMAStudies = studies.filter(graph => graph.studyType !== 'MA' && graph.isVisible) as Array<StudyModel>
 
-    const studyInSetting = this._studyInSetting
-    const input = this.state.showSettingDialog ? studyInSetting.input : null
-    const inputLabels = this.state.showSettingDialog ? studyInSetting.inputLabels : null
+    // const studyInSetting = this._studyInSetting
+    // const input = this.state.showSettingDialog ? studyInSetting.input : null
+    // const inputLabels = this.state.showSettingDialog ? studyInSetting.inputLabels : null
 
     return (
       <div className='chart-legend'>
         {
-          (() => {
-            if (!mainGraph) {
+          [mainGraph].map(graph => {
+            if (!graph) {
               return null
             }
             // 股票类图形
-            const curBar = mainGraph.getCurBar()
-            const prevBar = mainGraph.getPrevBar()
-            const datasource = mainGraph.datasource as StockDatasource
+            const curBar = graph.getCurBar()
+            const prevBar = graph.getPrevBar()
+            const datasource = graph.datasource as StockDatasource
             const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
             const prev = prevBar ? datasource.barAt(datasource.search(prevBar[0][1])) : null
             const comparable = !!prev && !!cur
@@ -133,8 +133,8 @@ export default class Legend extends React.Component<Prop, State> {
               default:
                 break
             }
-            return <div className='chart-legend-line'
-              style={ {fontWeight: mainGraph.hover || mainGraph.selected ? 600 : 'normal'} }>
+            return <div key={graph.id} className='chart-legend-line'
+              style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
               <div className='chart-legend-item main'>
                 {!datasource.symbolInfo ? '加载中' : `${datasource.symbolInfo.description},${resolutionText}`}
               </div>
@@ -144,34 +144,34 @@ export default class Legend extends React.Component<Prop, State> {
                      color: !!cur ? cur.changerate > 0 ?
                       colorUp : cur.changerate < 0 ?
                         colorDown : 'inherit' : 'inherit'} }>
-                  现价&nbsp;{cur ? cur.close.toFixed(2) : 'N/A'}
+                  现&nbsp;{cur ? cur.close.toFixed(2) : 'N/A'}
                 </div> : [
-                <div className='chart-legend-item' style={ {
+                <div key='open' className='chart-legend-item' style={ {
                      color: comparable ? cur.open > prev.close ?
                       colorUp : cur.open < prev.close ?
                         colorDown : 'inherit' : 'inherit'} }>
-                  开盘&nbsp;{cur ? cur.open.toFixed(2) : 'N/A'}
+                  开&nbsp;{cur ? cur.open.toFixed(2) : 'N/A'}
                 </div>,
-                <div className='chart-legend-item' style={ {
+                <div key='high' className='chart-legend-item' style={ {
                      color: comparable ? cur.high > prev.close ?
                       colorUp : cur.high < prev.close ?
                         colorDown : 'inherit' : 'inherit',
                   display: resolution > '1' ? '' : 'none'} }>
-                  最高&nbsp;{cur ? cur.high.toFixed(2) : 'N/A'}
+                  高&nbsp;{cur ? cur.high.toFixed(2) : 'N/A'}
                 </div>,
-                <div className='chart-legend-item' style={ {
+                <div key='low' className='chart-legend-item' style={ {
                      color: comparable ? cur.low > prev.close ?
                       colorUp : cur.low < prev.close ?
                         colorDown : 'inherit' : 'inherit',
                   display: resolution > '1' ? '' : 'none'} }>
-                  最低&nbsp;{cur ? cur.low.toFixed(2) : 'N/A'}
+                  低&nbsp;{cur ? cur.low.toFixed(2) : 'N/A'}
                 </div>,
-                <div className='chart-legend-item' style={ {
+                <div key='close' className='chart-legend-item' style={ {
                      color: comparable ? cur.close > prev.close ?
                       colorUp : cur.close < prev.close ?
                         colorDown : 'inherit' : 'inherit',
                   display: resolution > '1' ? '' : 'none'} }>
-                  收盘&nbsp;{cur ? cur.close.toFixed(2) : 'N/A'}
+                  收&nbsp;{cur ? cur.close.toFixed(2) : 'N/A'}
                 </div>]
               }
               <div className='chart-legend-item'
@@ -179,7 +179,7 @@ export default class Legend extends React.Component<Prop, State> {
                     color: !!cur ? cur.changerate > 0 ?
                       colorUp : cur.changerate < 0 ?
                         colorDown : 'inherit' : 'inherit'} }>
-                涨跌幅&nbsp;
+                涨跌&nbsp;
                 {
                   !!cur && typeof cur.changerate === 'number' ?
                     (cur.changerate > 0 ? '+' : '') +
@@ -190,17 +190,17 @@ export default class Legend extends React.Component<Prop, State> {
               {
                 !!cur && typeof cur.turnover === 'string' ?
                 <div className='chart-legend-item'>
-                  换手率&nbsp;{ (+cur.turnover * 100).toFixed(2) + '%'}
+                  换手&nbsp;{ (+cur.turnover * 100).toFixed(2) + '%'}
                 </div> : null
               }
               <div className='chart-legend-item'>
-                成交量&nbsp;{!!cur ? formatNumber(cur.volume) + '手' : 'N/A'}
+                量&nbsp;{!!cur ? formatNumber(cur.volume) + '手' : 'N/A'}
               </div>
               <div className='chart-legend-item'>
-                成交额&nbsp;{!!cur ? formatNumber(cur.amount) : 'N/A'}
+                额&nbsp;{!!cur ? formatNumber(cur.amount) : 'N/A'}
               </div>
             </div>
-          })()
+          })
         }
         {
           compares.map(graph => {
@@ -241,19 +241,6 @@ export default class Legend extends React.Component<Prop, State> {
                     fontWeight: ma.hover || ma.selected ? 600 : 'normal',
                   } }>
                   {ma.studyType}{ma.input[0]}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
-                  {/*<a className='chart-legend-btn' href='javascript:;'>
-                    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' width='14' height='14'>
-                      <path d='M0 0v14h14V0zm7 2.69c3.018 0 5.172 3.232 5.172 4.31 0 1.077-2.154 4.31-5.172 4.31S1.828 8.08 1.828 7c0-1.077 2.154-4.31 5.172-4.31zm0 1.508C5.49 4.198 4.198 5.49 4.198 7S5.49 9.802 7 9.802 9.802 8.51 9.802 7 8.51 4.198 7 4.198zm0 1.68c.646 0 1.12.476 1.12 1.122 0 .646-.473 1.12-1.12 1.12-.646 0-1.12-.473-1.12-1.12 0-.646.473-1.12 1.12-1.12z'></path>
-                    </svg>
-                  </a>
-                  <a className='chart-legend-btn'
-                     href='javascript:;'
-                     data-id={ma.id}
-                     onClick={this.studySettingsDialogOpenHandler}>
-                    <svg xmlns='http://www.w3.org/2000/svg' viewBox='-2.4 120.9 14 14' width='14' height='14'>
-                      <path d='M-2.4 120.9v14h14v-14zm6.086 1.803H5.52v1.332c.416.1.805.258 1.166.48l.944-.935 1.297 1.297-.943.943c.215.35.38.748.48 1.164H9.8v1.837H8.463c-.1.417-.257.806-.48 1.167l.935.944-1.296 1.298-.944-.943c-.35.215-.747.38-1.164.48v1.332H3.677v-1.33c-.415-.102-.804-.258-1.165-.482l-.943.936-1.298-1.296.94-.945c-.216-.35-.38-.748-.482-1.165H-.597v-1.835H.737c.1-.416.257-.805.48-1.166l-.935-.944 1.296-1.297.944.943c.35-.215.747-.38 1.164-.48zm.912 3.053c-1.188 0-2.143.963-2.143 2.143 0 1.187.963 2.143 2.143 2.143 1.18 0 2.14-.963 2.145-2.145 0-1.188-.966-2.144-2.145-2.144z'></path>
-                    </svg>
-                  </a>*/}
                 </div>
               })
             }
@@ -290,7 +277,7 @@ export default class Legend extends React.Component<Prop, State> {
             }
           })
         }
-        {
+        {/*
           this.state.showSettingDialog ?
           <Dialog title='设置' className='setting-dialog' onClose={this.studySettingDialogCloseHanlder}>
             <form ref='settingForm' className='chart-study-setting' onSubmit={this.privateSubmitForm}>
@@ -303,8 +290,8 @@ export default class Legend extends React.Component<Prop, State> {
                       <input type='text' maxLength={3} defaultValue={value + ''} />
                     </div>
                     <div className='chart-study-setting-btn-group clearfix'>
-                      <a href='javascript:;' className='btn btn-gray btn-smaller' onClick={this.studySettingDialogCloseHanlder}>取消</a>
-                      <a href='javascript:;' className='btn btn-blue btn-smaller' onClick={this.confirmBtnClickHanler}>确定</a>
+                      <button className='btn btn-gray btn-smaller' onClick={this.studySettingDialogCloseHanlder}>取消</button>
+                      <button className='btn btn-blue btn-smaller' onClick={this.confirmBtnClickHanler}>确定</button>
                     </div>
                   </div>
                 }
@@ -312,7 +299,7 @@ export default class Legend extends React.Component<Prop, State> {
             }
             </form>
           </Dialog> : null
-        }
+        */}
       </div>
     )
   }
@@ -329,7 +316,11 @@ export default class Legend extends React.Component<Prop, State> {
 
   private confirmBtnClickHanler () {
     const settingForm = this.refs.settingForm
-    const input = this._studyInSetting.input.map((value, i) => settingForm[i].tagName.toUpperCase() === 'INPUT' ? +settingForm[i].value : Boolean(settingForm[i].value))
+    const input = this._studyInSetting.input.map(
+      (value, i) =>
+        settingForm[i].tagName.toUpperCase() === 'INPUT' ?
+          +settingForm[i].value : Boolean(settingForm[i].value)
+    )
     this.props.chartLayout.modifyGraph(this._studyInSetting, { input })
     this.studySettingDialogCloseHanlder()
   }

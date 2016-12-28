@@ -17,10 +17,6 @@ module.exports = {
       'moment',
       'eventemitter3',
       'isomorphic-fetch',
-      'd3',
-      'd3-array',
-      'd3-scale',
-      'd3-shape',
       'iscroll',
       'spin',
       './src/vendor/hidpi-canvas-polyfill.js',
@@ -95,7 +91,6 @@ module.exports = {
     alias: {
       'es6-promise': 'es6-promise/dist/es6-promise.js',
       'isomorphic-fetch': 'isomorphic-fetch/fetch-npm-browserify.js',
-      'd3': 'd3/build/d3.js',
       'iscroll': 'iscroll/build/iscroll.js'
     },
     extensions: ['', '.js', '.ts', '.tsx'],

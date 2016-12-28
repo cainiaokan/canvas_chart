@@ -39,7 +39,7 @@ export default class NonRealtime extends React.Component<Prop, any> {
 
   public render () {
     const nonRealtimeTools = this.props.nonRealtimeTools
-    return <div className='non-realtime' ref='nonrealtime'  style={ {height: this.props.height + 'px'} }>
+    return <div className='chart-non-realtime-tool' ref='nonrealtime'  style={ {height: this.props.height + 'px'} }>
       <div>
         <h3>非实时工具</h3>
         {
