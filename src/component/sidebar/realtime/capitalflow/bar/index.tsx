@@ -12,7 +12,7 @@ type Prop = {
 export default class CapitalBarChart extends React.Component<Prop, any> {
 
   public shouldComponentUpdate (nextProps: Prop) {
-    return _.isEqual(this.props, nextProps)
+    return !_.isEqual(this.props, nextProps)
   }
 
   public render () {

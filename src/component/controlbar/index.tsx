@@ -8,13 +8,12 @@ import GoToDate from './gotodate'
 type Prop = {
   chartLayout: ChartLayoutModel
   width: number
-  height: number
 }
 
 type State = {
 }
 
-export default class FooterBar extends React.Component<Prop, State> {
+export default class ControlBar extends React.Component<Prop, State> {
   constructor () {
     super()
     this.state = {}
@@ -24,13 +23,12 @@ export default class FooterBar extends React.Component<Prop, State> {
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
     const curProps = this.props
     return curProps.width !== nextProps.width ||
-           curProps.height !== nextProps.height ||
            !_.isEqual(this.state, nextState)
   }
 
   public render () {
     return (
-      <div className='chart-footerbar' style={ {width: this.props.width + 'px', height: this.props.height + 'px'} }>
+      <div className='chart-footerbar' style={ {width: this.props.width + 'px'} }>
         <div className='control-list'>
           {
             preferredTimeRange.map(range =>

@@ -118,8 +118,8 @@ export default class Chart extends React.Component<Prop, State> {
       canvas.height = height
       topCanvas.width = width
       topCanvas.height = height
-      chart.ctx = canvas.getContext('2d')
-      chart.topCtx = topCanvas.getContext('2d')
+      canvas.getContext('2d')
+      topCanvas.getContext('2d')
       chart.width = width
       chart.height = height
       this.canvasOffset = clientOffset(chart.ctx.canvas)
@@ -143,17 +143,18 @@ export default class Chart extends React.Component<Prop, State> {
         }>
         <Legend chartLayout={chartLayout} chartModel={chart} />
         <canvas ref='canvas' width={width} height={height}></canvas>
-        <canvas ref='topCanvas'
-                width={width}
-                height={height}
-                onMouseDown={this.downHandler}
-                onTouchStart={this.downHandler}
-                onMouseMove={this.moveHandler}
-                onTouchMove={this.moveHandler}
-                onMouseUp={this.upHandler}
-                onTouchEnd={this.upHandler}
-                onMouseOver={this.mouseOver}
-                onMouseOut={this.mouseOut}>
+        <canvas
+          ref='topCanvas'
+          width={width}
+          height={height}
+          onMouseDown={this.downHandler}
+          onTouchStart={this.downHandler}
+          onMouseMove={this.moveHandler}
+          onTouchMove={this.moveHandler}
+          onMouseUp={this.upHandler}
+          onTouchEnd={this.upHandler}
+          onMouseOver={this.mouseOver}
+          onMouseOut={this.mouseOut}>
         </canvas>
         {
           chart.isMain ? <Indicator chart={chart} /> : null

@@ -32,6 +32,8 @@ select {
   font-size: .3125rem;
 
   box-sizing: border-box;
+
+  vertical-align: bottom;
 }
 
 input:disabled,
@@ -44,7 +46,7 @@ input[type='text'] {
   font-size: 13px;
   font-weight: 600;
 
-  height: 32px;
+  height: 30px;
   padding: 0 0 0 7px;
 
   cursor: auto;

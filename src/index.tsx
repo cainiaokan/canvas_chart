@@ -5,6 +5,8 @@ import { render } from 'react-dom'
 
 import ChartLayout from './component/chartlayout'
 
+const container = document.getElementById('chart_container')
+
 function renderChart () {
   render(
     <ChartLayout
@@ -12,8 +14,12 @@ function renderChart () {
       height={document.documentElement.clientHeight}
       width={document.documentElement.clientWidth}
       shape={'candle'}
+      // showsidebar={false}
+      // showtoolbox={false}
+      // shownavbar={false}
+      // showfooterbar={false}
       resolution={'1'} />,
-    document.getElementById('chart_container')
+    container
   )
 }
 

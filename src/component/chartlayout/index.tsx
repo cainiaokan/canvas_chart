@@ -7,7 +7,8 @@ import AxisX from '../axisX'
 import ToolBox from '../toolbox'
 import Navbar from '../navbar'
 import Sidebar from '../sidebar'
-import FooterBar from '../footerbar'
+import ControlBar from '../controlbar'
+import FooterPanel from '../footerpanel'
 import ChartModel from '../../model/chart'
 import CrosshairModel from '../../model/crosshair'
 import { StockDatasource } from '../../datasource'
@@ -18,7 +19,9 @@ import {
   AXIS_Y_WIDTH,
   AXIS_X_HEIGHT,
   NAVBAR_HEIGHT,
-  FOOTERBAR_HEIGHT,
+  CONTROL_BAR_HEIGHT,
+  FOOTER_PANEL_HEIGHT,
+  FOOTER_PANEL_UNFOLD_HEIGHT,
   SIDEBAR_WIDTH,
   SIDEBAR_FOLD_WIDTH,
   TOOLBOX_WIDTH,
@@ -45,13 +48,15 @@ type Prop  = {
   shownavbar?: boolean
   showtoolbox?: boolean
   showsidebar?: boolean
-  showfooterbar?: boolean
+  showcontrolbar?: boolean
+  showfooterpanel?: boolean
   right?: 0 | 1 | 2
 }
 
 type State = {
   loaded?: boolean
   sidebarFolded?: boolean
+  footerPanelFolded?: boolean
   resolution?: ResolutionType
   right?: 0 | 1 | 2
   symbolType?: string
@@ -66,7 +71,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scrollable: React.PropTypes.bool,
     shape: React.PropTypes.oneOf(['mountain', 'line', 'column', 'candle']),
     showtoolbox: React.PropTypes.bool,
-    showfooterbar: React.PropTypes.bool,
+    showcontrolbar: React.PropTypes.bool,
+    showfooterpanel: React.PropTypes.bool,
     showsidebar: React.PropTypes.bool,
     shownavbar: React.PropTypes.bool,
     study: React.PropTypes.oneOf(['MA', 'MACD', 'BOLL', 'KDJ', 'VOLUME']),
@@ -83,9 +89,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
     scrollable: true,
     shape: 'line',
     showtoolbox: true,
-    showfooterbar: true,
+    showcontrolbar: true,
     shownavbar: true,
     showsidebar: true,
+    showfooterpanel: true,
     type: 'realtime',
     right: 1,
   }
@@ -100,6 +107,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     super()
     this.state = {
       sidebarFolded: false,
+      footerPanelFolded: true,
       loaded: false,
       symbolType: '',
     }
@@ -135,18 +143,26 @@ export default class ChartLayout extends React.Component<Prop, State> {
       chartLayout.loadHistory(),
     ])
     .then(() => {
-      this.initEvents()
-      chartLayout.pulseUpdate()
-      spinner.stop()
       this.setState({
         loaded: true,
         symbolType: mainDatasource.symbolInfo.type,
       })
+      this.initEvents()
+      chartLayout.pulseUpdate()
+      spinner.stop()
     })
   }
 
+  public componentWillUnmount () {
+    const chartLayout = this._chartLayoutModel
+    chartLayout.removeAllListeners()
+    chartLayout.axisx.removeAllListeners()
+  }
+
   public componentDidUpdate () {
-    this._chartLayoutModel.fullUpdate()
+    if (this.state.loaded) {
+      this._chartLayoutModel.fullUpdate()
+    }
   }
 
   public prepareMainChart () {
@@ -197,6 +213,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.addListener('symbol_change', symbolInfo => this.setState({ symbolType: symbolInfo.type }))
     chartLayout.addListener('right_change', right => this.setState({ right }))
     chartLayout.addListener('sidebar_toggle', folded => this.setState({ sidebarFolded: folded }))
+    chartLayout.addListener('footer_panel_toggle', folded => this.setState({ footerPanelFolded: folded }))
     chartLayout.addListener('chart_add', this.updateView)
     chartLayout.addListener('chart_remove', this.updateView)
     chartLayout.addListener('graph_add', chartLayout.lightUpdate)
@@ -223,25 +240,39 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
     const chartLayoutModel = this._chartLayoutModel
     // 根据屏幕宽度重置选项
-    const showSideBar = width > 768 ? this.props.showsidebar : false
-    const showToolBox = width > 768 ? this.props.showtoolbox : false
+    const showSideBar = width > 768 || height > 450 ? this.props.showsidebar : false
+    const showToolBox = width > 768 || height > 450 ? this.props.showtoolbox : false
 
     // 12 是chart-body的margin 10 和 border 2
     let availWidth = width - 12
-    let availHeight = height - AXIS_X_HEIGHT - 14
 
     if (showToolBox) {
       availWidth -= TOOLBOX_WIDTH
     }
+
     if (showSideBar) {
       availWidth -= !this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
     }
-    if (this.props.shownavbar) {
+
+    // 根据屏幕宽度重置选项
+    const showNavBar = this.props.shownavbar
+    const showControlBar = this.props.showcontrolbar
+    const showFooterPanel = height > 450 ? this.props.showfooterpanel : false
+
+    let availHeight = height - AXIS_X_HEIGHT - 12
+
+    if (showNavBar) {
       availHeight -= NAVBAR_HEIGHT
     }
-    if (this.props.showfooterbar) {
-      availHeight -= FOOTERBAR_HEIGHT
+
+    if (showControlBar) {
+      availHeight -= CONTROL_BAR_HEIGHT
     }
+
+    if (showFooterPanel) {
+      availHeight -= this.state.footerPanelFolded ? FOOTER_PANEL_HEIGHT : FOOTER_PANEL_UNFOLD_HEIGHT
+    }
+
     if (chartLayoutModel.charts.length > 1) {
       availHeight -= chartLayoutModel.charts.length - 1
     }
@@ -254,11 +285,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
     for (let i = 0, len = chartLayoutModel.charts.length, chart; i < len; i++) {
       chart = chartLayoutModel.charts[i]
       chartLines.push(
-        <Chart key={chart.id}
-               chart={chart}
-               chartLayout={this._chartLayoutModel}
-               height={chart.isMain ? mainChartHeight : addtionalChartHeight}
-               width={availWidth} />
+        <Chart
+          key={chart.id}
+          chart={chart}
+          chartLayout={chartLayoutModel}
+          height={chart.isMain ? mainChartHeight : addtionalChartHeight}
+          width={availWidth} />
       )
       if (i < len - 1) {
         chartLines.push(<div key={`${chart.id}_separator`} className='chart-separator'></div>)
@@ -270,35 +302,45 @@ export default class ChartLayout extends React.Component<Prop, State> {
         style={ {height: height + 'px',width: width + 'px'} }>
         {
           showToolBox ?
-          <ToolBox chartLayout={this._chartLayoutModel} /> : null
+          <ToolBox chartLayout={chartLayoutModel} /> : null
         }
         {
           showSideBar ?
-          <Sidebar chartLayout={this._chartLayoutModel}
-                   folded={this.state.sidebarFolded}
-                   width={!this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
-                   height={this.props.height} /> : null
+          <Sidebar
+            chartLayout={chartLayoutModel}
+            folded={this.state.sidebarFolded}
+            width={!this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
+            height={this.props.height} /> : null
         }
         {
-          this.props.shownavbar ?
-          <Navbar resolution={this.state.resolution}
-                  chartLayout={this._chartLayoutModel}
-                  symbolType={this.state.symbolType}
-                  width={availWidth}
-                  right={this.state.right} /> : null
+          showNavBar ?
+          <Navbar
+            resolution={this.state.resolution}
+            chartLayout={chartLayoutModel}
+            symbolType={this.state.symbolType}
+            width={availWidth}
+            right={this.state.right} /> : null
         }
-        <div className='chart-body' style={ {width: availWidth + 2 + 'px'} }
+        <div className='chart-body'
+             style={ {width: availWidth + 2 + 'px'} }
              onWheel={this.wheelHandler}>
           {chartLines}
-          <AxisX axis={this._chartLayoutModel.axisx}
-                 height={AXIS_X_HEIGHT}
-                 width={availWidth - AXIS_Y_WIDTH} />
+          <AxisX
+            axis={chartLayoutModel.axisx}
+            height={AXIS_X_HEIGHT}
+            width={availWidth - AXIS_Y_WIDTH} />
         </div>
         {
-          this.props.showfooterbar ?
-          <FooterBar chartLayout={this._chartLayoutModel}
-                     width={availWidth + 2}
-                     height={FOOTERBAR_HEIGHT} /> : null
+          showControlBar ?
+          <ControlBar
+            chartLayout={chartLayoutModel}
+            width={availWidth + 2} /> : null
+        }
+        {
+          showFooterPanel ?
+          <FooterPanel
+            chartLayout={chartLayoutModel}
+            width={availWidth + 2} /> : null
         }
       </div>
     )

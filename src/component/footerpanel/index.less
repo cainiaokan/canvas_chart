@@ -1,0 +1,31 @@
+.chart-footer-panel {
+  display: inline-block;
+
+  margin: 5px 5px 0;
+  .btn {
+    min-width: 102px;
+
+    background-color: #eff1f4;
+    &:hover {
+      background-color: #fff;
+    }
+    &.active {
+      border-bottom: none;
+      background-color: #fff;
+    }
+  }
+  .folded .btn {
+    border-bottom: none;
+    &:hover {
+      border-bottom: none;
+    }
+  }
+  .panel-board {
+    height: 320px;
+    margin-top: -1px;
+
+    border: 1px solid #c9cbcd;
+    border-bottom: none;
+    background-color: #fff;
+  }
+}

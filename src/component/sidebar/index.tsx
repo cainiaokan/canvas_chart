@@ -30,6 +30,7 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.state = {
       tabIndex: 0,
     }
+    this.onDataHandler = this.onDataHandler.bind(this)
     this.symbolChangeHandler = this.symbolChangeHandler.bind(this)
   }
 
@@ -46,16 +47,14 @@ export default class Sidebar extends React.Component<Prop, State> {
     const symbolInfo = chartLayout.mainDatasource.symbolInfo
 
     this._pollManager = new PollManager(symbolInfo)
-    this._pollManager.on('data', data => {
-      this._data = data
-      this.forceUpdate()
-    })
-    this._pollManager.start()
+    this._pollManager.addListener('data', this.onDataHandler)
     chartLayout.addListener('symbol_change', this.symbolChangeHandler)
+    this._pollManager.start()
   }
 
   public componentWillUnmount () {
     const chartLayout = this.props.chartLayout
+    this._pollManager.removeListener('data', this.onDataHandler)
     chartLayout.removeListener('symbol_change', this.symbolChangeHandler)
   }
 
@@ -165,6 +164,11 @@ export default class Sidebar extends React.Component<Prop, State> {
         <span></span>
       </a>
     </div>
+  }
+
+  private onDataHandler (data) {
+    this._data = data
+    this.forceUpdate()
   }
 
   private foldingBtnClickHandler () {

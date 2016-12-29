@@ -15,7 +15,7 @@
     "@types/eventemitter3": "^1.1.29",
     "@types/isomorphic-fetch": "0.0.31",
     "@types/randomcolor": "^0.4.3",
-    "@types/react": "^0.14.41",
+    "@types/react": "^0.14.55",
     "@types/react-color": "^2.3.0",
     "@types/react-dom": "^0.14.18",
     "@types/spin": "^2.3.30",

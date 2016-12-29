@@ -726,11 +726,13 @@ export default class ChartLayoutModel extends EventEmitter {
       return
     }
 
-    const index =
-      mainDatasource.hasMoreHistory ?
-        time < mainDatasource.last().time ?
+    let index = time < mainDatasource.last().time ?
           mainDatasource.search(time) : mainDatasource.loaded() - 1
-        : mainDatasource.first().time
+
+    // 如果已经没有更多历史数据了，则将定位至最左端的数据bar
+    if (index === - 1 && mainDatasource.hasMoreHistory) {
+      index = 0
+    }
 
     if (index !== -1) {
       axisX.offset =  (mainDatasource.loaded() - 1.5 - index) * axisX.barWidth - axisX.width / 2

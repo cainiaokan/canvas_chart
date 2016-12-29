@@ -89,6 +89,8 @@ module.exports = {
       // path.resolve('./src/vendor')
     // ],
     alias: {
+      'moment': 'moment/min/moment-with-locales.js',
+      'react-color': 'react-color/lib/components/sketch/Sketch.js',
       'es6-promise': 'es6-promise/dist/es6-promise.js',
       'isomorphic-fetch': 'isomorphic-fetch/fetch-npm-browserify.js',
       'iscroll': 'iscroll/build/iscroll.js'

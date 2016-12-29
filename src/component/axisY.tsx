@@ -51,7 +51,7 @@ export default class AxisY extends React.Component<Prop, any> {
     axisY.height = height
     canvas.width = width
     canvas.height = height
-    axisY.ctx = canvas.getContext('2d')
+    canvas.getContext('2d')
   }
 
   public shouldComponentUpdate (nextProps: Prop) {
@@ -66,11 +66,12 @@ export default class AxisY extends React.Component<Prop, any> {
 
     return (
       <div className='chart-axisy' style={ {height: height + 'px', width: width + 'px'} }>
-        <canvas ref='canvas'
-                width={width}
-                height={height}
-                onMouseDown={this.downHandler}
-                onTouchStart={this.downHandler}></canvas>
+        <canvas
+          ref='canvas'
+          width={width}
+          height={height}
+          onMouseDown={this.downHandler}
+          onTouchStart={this.downHandler}></canvas>
       </div>
     )
   }
