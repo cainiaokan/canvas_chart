@@ -34,6 +34,11 @@ export default class BidList extends React.Component<Prop, any> {
     })
   }
 
+  public componentWillUnmount () {
+    this._bidListScroll.destroy()
+    this._bidListScroll = null
+  }
+
   public render () {
     const stockInfo = this.props.stockInfo
 

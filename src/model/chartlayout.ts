@@ -769,7 +769,7 @@ export default class ChartLayoutModel extends EventEmitter {
     const openMoment = moment({ hour: OPEN_HOUR, minute: OPEN_MINUTE})
     const closeMoment = moment({ hour: CLOSE_HOUR, minute: CLOSE_MINUTE})
 
-    const toTime = ~~(thisMoment.toDate().getTime() / 1000)
+    const toTime = ~~(thisMoment.toDate().getTime() / 1000 + 24 * 3600)
     const fromTime = ~~(function (): number {
       switch (range) {
         case '1天':

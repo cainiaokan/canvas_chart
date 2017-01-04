@@ -12,7 +12,7 @@ type State = {
   showStudySelector?: boolean
 }
 
-const studyNames = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI']
+const studyNames = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI', 'CR']
 
 export default class StudySelector extends React.Component<Prop, State> {
 

@@ -24,6 +24,8 @@ export default class Indexes extends React.Component<Prop, State> {
     indexes: HTMLDivElement
   }
 
+  private _oldIndexesInfo
+
   private _indexesScroll
 
   constructor () {
@@ -42,6 +44,11 @@ export default class Indexes extends React.Component<Prop, State> {
     })
   }
 
+  public componentWillUnmount () {
+    this._indexesScroll.destroy()
+    this._indexesScroll = null
+  }
+
   public componentDidUpdate () {
     this._indexesScroll.refresh()
   }
@@ -58,16 +65,19 @@ export default class Indexes extends React.Component<Prop, State> {
 
   public render () {
     const indexesInfo = this.props.indexesInfo
+    const oldIndexesInfo = this._oldIndexesInfo
     const realtimeTools = this.props.realtimeTools
     const mutations: any = {}
     const classList: any = {}
 
-    if (indexesInfo) {
+    if (oldIndexesInfo) {
       Object.keys(indexesInfo)
         .forEach(code =>
-          mutations[code] = indexesInfo[code].changeAmount !== indexesInfo[code].changeAmount ? 'mutation' : ''
+          mutations[code] = oldIndexesInfo[code].changeAmount !== indexesInfo[code].changeAmount ? 'mutation' : ''
         )
     }
+
+    this._oldIndexesInfo = indexesInfo
 
     if (indexesInfo) {
       Object.keys(indexesInfo)

@@ -59,6 +59,7 @@ export default class ColorPicker extends React.Component<Prop, State> {
                 width={'240px'}
                 disableAlpha={true}
                 color={color}
+                presetColors={[]}
                 onChangeComplete={this.colorChangeHandler} />
             </div>
            : null

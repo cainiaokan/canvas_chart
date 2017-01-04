@@ -47,7 +47,7 @@ export default class Compare extends React.Component<Prop, State> {
     this.props.chartLayout.addListener('graph_remove', this.graphRemoveHandler)
   }
 
-  public componentDidUnMount () {
+  public componentWillUnmount () {
     this.props.chartLayout.removeListener('graph_remove', this.graphRemoveHandler)
   }
 

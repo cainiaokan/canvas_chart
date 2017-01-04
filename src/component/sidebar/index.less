@@ -9,10 +9,10 @@
   border-width: 0 1px;
   background: #fff;
   .positive {
-    color: #ff524f;
+    color: #d32f2f;
   }
   .negtive {
-    color: #2bbe65;
+    color: #00796b;
   }
   .sidebar-folding-btn {
     position: absolute;
@@ -63,6 +63,7 @@
 
     height: 76px;
     .stock-data > span {
+      font-size: 12px;
       line-height: 44px;
 
       display: inline-block;
@@ -73,7 +74,9 @@
       vertical-align: bottom;
     }
     .stock-data > .price {
-      font-size: 22px;
+      font-size: 24px;
+      font-weight: bold;
+      line-height: 44px;
 
       width: 40%;
     }
@@ -158,55 +161,17 @@
       }
       &.active {
         background: #fff;
+        > svg {
+          fill: #d32f2f;
+        }
       }
-      &:before {
-        display: inline-block;
-
+      &:first-child {
+        border-top: solid #c9cbcd 1px;
+      }
+      > svg {
         width: 20px;
         height: 20px;
         margin: 16px 12px;
-
-        content: '\0020';
-
-        background: url('./image/icon.png') no-repeat center 0;
-      }
-    }
-    > li:first-child {
-      border-top: solid #c9cbcd 1px;
-    }
-    .realtime.active:before {
-      background-position: center -102px;
-    }
-    .index {
-      &:before {
-        background-position: center -25px;
-      }
-      &.active:before {
-        background-position: center -127px;
-      }
-    }
-    .financing {
-      &:before {
-        background-position: center -50px;
-      }
-      &.active:before {
-        background-position: center -152px;
-      }
-    }
-    .sector {
-      &:before {
-        background-position: center -202px;
-      }
-      &.active:before {
-        background-position: center -227px;
-      }
-    }
-    .tools {
-      &:before {
-        background-position: center -75px;
-      }
-      &.active:before {
-        background-position: center -177px;
       }
     }
   }

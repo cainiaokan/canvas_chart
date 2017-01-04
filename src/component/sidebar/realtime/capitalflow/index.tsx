@@ -59,6 +59,11 @@ export default class CapitalFlow extends React.Component<Prop, State> {
     })
   }
 
+  public componentWillUnmount () {
+    this._capitalFlowScroll.destroy()
+    this._capitalFlowScroll = null
+  }
+
   public render () {
     const capitalFlowInfo = this.props.capitalFlowInfo
     const donutChartData = capitalFlowInfo ? capitalFlowInfo.donutChartData : null

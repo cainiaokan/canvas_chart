@@ -1,14 +1,14 @@
 import './index.less'
-import '../../style/btn.less'
+import '../../../style/btn.less'
 
 import * as React from 'react'
 import * as _ from 'underscore'
-import { StockDatasource } from '../../datasource'
-import ChartLayout from '../../model/chartlayout'
-import ChartModel from '../../model/chart'
-import StudyModel from '../../model/study'
+import { StockDatasource } from '../../../datasource'
+import ChartLayout from '../../../model/chartlayout'
+import ChartModel from '../../../model/chart'
+import StudyModel from '../../../model/study'
 // import Dialog from '../../component/widget/dialog'
-import { formatNumber } from '../../util'
+import { formatNumber } from '../../../util'
 
 /** 这里有性能问题，鼠标频繁重绘legend，windows Edge浏览器卡顿。想办法解决 */
 
@@ -79,9 +79,17 @@ export default class Legend extends React.Component<Prop, State> {
     // 过滤出所有指标图
     const studies = chart.studies
     // 过滤出所有均线指标图
-    const maStudies = studies.filter(graph => graph.studyType === 'MA' && graph.isVisible) as Array<StudyModel>
+    const maStudies = studies.filter(graph =>
+      (graph.studyType === 'MA' ||
+       graph.studyType === '均价') &&
+      graph.isVisible
+    ) as Array<StudyModel>
     // 过滤出所有非均线指标
-    const nonMAStudies = studies.filter(graph => graph.studyType !== 'MA' && graph.isVisible) as Array<StudyModel>
+    const nonMAStudies = studies.filter(graph =>
+      graph.studyType !== 'MA' &&
+      graph.studyType !== '均价' &&
+      graph.isVisible
+    ) as Array<StudyModel>
 
     // const studyInSetting = this._studyInSetting
     // const input = this.state.showSettingDialog ? studyInSetting.input : null
@@ -240,7 +248,7 @@ export default class Legend extends React.Component<Prop, State> {
                     color: styles[0].color,
                     fontWeight: ma.hover || ma.selected ? 600 : 'normal',
                   } }>
-                  {ma.studyType}{ma.input[0]}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
+                  {ma.studyType}{ma.input ? ma.input[0] : null}:&nbsp;{bar ? bar[2].toFixed(2) : 'N/A'}
                 </div>
               })
             }
@@ -261,7 +269,7 @@ export default class Legend extends React.Component<Prop, State> {
                   study.plots.map((__, index) => !study.styles[index].noLegend ?
                     <div key={index} className='chart-legend-item'
                     style={ {color: study.styles[index].color} }>
-                      {curBar ? curBar[index][2].toFixed(4) : 'N/A'}
+                      {curBar && curBar[index] && curBar[index][2] ? curBar[index][2].toFixed(4) : 'N/A'}
                     </div> : null
                   )
                 }

@@ -34,6 +34,11 @@ export default class StockDetail extends React.Component<Prop, any> {
     })
   }
 
+  public componentWillUnmount () {
+    this._stockInfoScroll.destroy()
+    this._stockInfoScroll = null
+  }
+
   public render () {
     const stockInfo = this.props.stockInfo
     return (

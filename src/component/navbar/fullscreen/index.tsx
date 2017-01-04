@@ -48,15 +48,6 @@ export default class FullScreen extends React.Component<any, any> {
   public refs: {
     btn: HTMLElement
   }
-  constructor () {
-    super()
-  }
-
-  public componentWillMount () {
-    this.state = {
-      selected: this.props.resolution,
-    }
-  }
 
   public shouldComponentUpdate () {
     return false

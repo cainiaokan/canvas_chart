@@ -3,7 +3,7 @@ import * as React from 'react'
 import {
   AXIS_Y_WIDTH,
 } from '../../constant'
-import Legend from './../legend'
+import Legend from './legend'
 import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import Indicator from './indicator'
@@ -94,8 +94,10 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
-    this.props.chartLayout.removeListener('graph_hover', this.hitHandler)
-    this.props.chartLayout.removeListener('cursor_change', this.defaultCursorChangeHandler)
+    const chartLayout = this.props.chartLayout
+
+    chartLayout.removeListener('graph_hover', this.hitHandler)
+    chartLayout.removeListener('cursor_change', this.defaultCursorChangeHandler)
     document.removeEventListener('mousemove', this.dragMoveHandler)
     document.removeEventListener('touchmove', this.dragMoveHandler)
     document.removeEventListener('touchmove', this.gestureMoveHandler)

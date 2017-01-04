@@ -26,6 +26,11 @@ export default class Financing extends React.Component<Prop, any> {
     })
   }
 
+  public componentWillUnmount () {
+    this._financingScroll.destroy()
+    this._financingScroll = null
+  }
+
   public componentDidUpdate () {
     this._financingScroll.refresh()
   }

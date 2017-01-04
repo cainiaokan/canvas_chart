@@ -21,9 +21,6 @@
     }
     &:hover {
       border: 1px solid #b5b7b9;
-      + .btn {
-        border-left: 1px solid #b5b7b9;
-      }
     }
     &.active {
       color: #58c3e5;
@@ -63,8 +60,13 @@
     display: inline-block;
 
     margin-right: 8px;
-  }
-  .chart-btn-group .btn:not(:last-of-type) {
-    border-right: none;
+    > .btn {
+      &:not(:last-of-type) {
+        border-right: none;
+      }
+      &:hover + .btn {
+        border-left: 1px solid #b5b7b9;
+      }
+    }
   }
 }

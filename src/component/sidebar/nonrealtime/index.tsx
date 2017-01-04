@@ -26,6 +26,11 @@ export default class NonRealtime extends React.Component<Prop, any> {
     })
   }
 
+  public componentWillUnmount () {
+    this._nonrealtimeScroll.destroy()
+    this._nonrealtimeScroll = null
+  }
+
   public componentDidUpdate () {
     this._nonrealtimeScroll.refresh()
   }

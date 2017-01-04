@@ -1,4 +1,10 @@
 .chart-ma-settings {
+  .color-picker-wrapper {
+    position: absolute;
+    z-index: 99;
+    top: 25px;
+    left: 0;
+  }
   td:first-child {
     margin-right: 12px;
   }
@@ -7,6 +13,7 @@
   }
   label {
     margin-left: 4px;
+
     vertical-align: middle;
   }
   input {
@@ -20,18 +27,17 @@
   tr {
     line-height: 32px;
   }
-  .color-picker-wrapper {
-    position: absolute;
-    z-index: 99;
-    top: 25px;
-    left: 0;
-  }
   &-btn-group {
     padding-top: 25px;
     .btn {
       float: right;
 
       margin-left: 8px;
+
+      border: none;
+      &:hover {
+        border: none;
+      }
     }
   }
 }

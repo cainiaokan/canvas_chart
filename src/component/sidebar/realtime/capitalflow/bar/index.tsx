@@ -33,11 +33,13 @@ export default class CapitalBarChart extends React.Component<Prop, any> {
       barWidth / 2 * 9,
     ]
 
+    const tranlate = height * max / diff
+
     return (
       <div className='chart-capital-flow-bar-chart'>
         <h3>最近5日主力流入</h3>
         <svg width={width} height={height}>
-          <g transform={`translate(0, ${(height * max / diff).toFixed(2)})`}>
+          <g transform={`translate(0, ${(tranlate > 20 ? tranlate : 20).toFixed(2)})`}>
             <line x1={0} y1={0} x2={width} y2={0} stroke='#999' />
             {
               tickmarks.map((x, i) =>
