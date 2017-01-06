@@ -58,14 +58,14 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this.props.chartLayout.addListener('drawingtool_edit', this.resetTool)
+    this.props.chartLayout.addListener('drawingtool_begin', this.resetTool)
     this.props.chartLayout.addListener('drawingtool_remove', this.resetTool)
     document.addEventListener('mousedown', this.hideMoreTools)
     document.addEventListener('touchstart', this.hideMoreTools)
   }
 
   public componentWillUnmount () {
-    this.props.chartLayout.removeListener('drawingtool_edit',  this.resetTool)
+    this.props.chartLayout.removeListener('drawingtool_begin',  this.resetTool)
     this.props.chartLayout.removeListener('drawingtool_remove', this.resetTool)
     document.removeEventListener('mousedown', this.hideMoreTools)
     document.removeEventListener('touchstart', this.hideMoreTools)
@@ -138,7 +138,7 @@ export default class ToolBox extends React.Component<Prop, State> {
 
     if (!this.state.showMoreTools && !this._clickCanceled) {
       clearInterval(this._longTapDetectTimeout)
-      this.selectTool(selectedIndex, selectedIndex2[selectedIndex])
+      this.selectTool(selectedIndex, selectedIndex2[selectedIndex], !!ev.touches)
     }
   }
 
@@ -146,7 +146,7 @@ export default class ToolBox extends React.Component<Prop, State> {
     if (ev.touches) {
       ev.preventDefault()
     }
-    this.selectTool(+ev.currentTarget.dataset.index1, +ev.currentTarget.dataset.index2)
+    this.selectTool(+ev.currentTarget.dataset.index1, +ev.currentTarget.dataset.index2, !!ev.touches)
   }
 
   private showMoreTools (ev: any) {
@@ -162,7 +162,7 @@ export default class ToolBox extends React.Component<Prop, State> {
     }
   }
 
-  private selectTool (index1, index2) {
+  private selectTool (index1, index2, isTouchEvent) {
     const chartLayout = this.props.chartLayout
     const selectedIndex2 = this.state.selectedIndex2
     selectedIndex2[index1] = index2
@@ -181,6 +181,7 @@ export default class ToolBox extends React.Component<Prop, State> {
           break
       }
       this.resetTool()
+      chartLayout.isEditMode = false
     } else if (index1 === toolsList.length - 1) {
       chartLayout.willEraseDrawingTool = true
       this.setState({
@@ -188,8 +189,12 @@ export default class ToolBox extends React.Component<Prop, State> {
         showMoreTools: false,
       })
       chartLayout.selectedDrawingTool = null
+      chartLayout.isEditMode = false
     } else {
       chartLayout.selectedDrawingTool = this.getDrawingToolByName(toolsList[index1][index2][0])
+      if (isTouchEvent) {
+        chartLayout.isEditMode = true
+      }
       this.setState({
         selectedIndex: index1,
         selectedIndex2,

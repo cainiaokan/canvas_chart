@@ -13,7 +13,6 @@ import { BaseToolRenderer } from '../graphic/tool'
 import {
   Datasource,
   StockDatasource,
-  resolveSymbol,
   studyConfig,
   getServerTime,
 } from '../datasource'
@@ -65,17 +64,16 @@ export const DEFAULT_MA_PROPS: MA_PROP[] = [{
 
 export default class ChartLayoutModel extends EventEmitter {
   public selectedDrawingTool: BaseToolRenderer
-  public creatingDrawingTool: BaseToolRenderer
-  public editingDrawingTool: BaseToolRenderer
   public willEraseDrawingTool: boolean = false
 
-  private _maProps: MA_PROPS = {}
-  private _maStudies: StudyModel[] = []
-  private _defaultCursor: 'crosshair' | 'default'
-  private _charts: ChartModel[] = []
+  private _maProps: MA_PROPS
+  private _maStudies: StudyModel[]
+  private _charts: ChartModel[]
   private _axisx: AxisXModel
   private _mainDatasource: StockDatasource
   private _mainChart: ChartModel
+  private _defaultCursor: 'crosshair' | 'default'
+  private _isEditMode = false
 
   /**
    * 用于标记chart正在加载中，避免重复加载
@@ -95,13 +93,12 @@ export default class ChartLayoutModel extends EventEmitter {
 
   constructor () {
     super()
+    this._maProps = {}
+    this._maStudies = []
+    this._charts = []
     this.pulseUpdate = this.pulseUpdate.bind(this)
     this.fullUpdate = this.fullUpdate.bind(this)
     this.lightUpdate = this.lightUpdate.bind(this)
-  }
-
-  set charts (charts: ChartModel[]) {
-    this._charts = charts
   }
 
   get charts (): ChartModel[] {
@@ -144,6 +141,35 @@ export default class ChartLayoutModel extends EventEmitter {
     return this._maStudies.slice(0)
   }
 
+  get isEditMode () {
+    return this._isEditMode
+  }
+
+  set isEditMode (isEditMode: boolean) {
+    const mainChart = this._mainChart
+    this._isEditMode = isEditMode
+    if (isEditMode) {
+      this.setHoverChart(mainChart)
+      this.setCursorPoint({
+        x: ~~(mainChart.width / 2 + 0.5),
+        y: ~~(mainChart.height / 2 + 0.5),
+      })
+    }
+    this.emit('editmode_change', isEditMode)
+  }
+
+  public setHoverChart (hoverChart: ChartModel) {
+    this.charts.forEach(chart => {
+      // 触屏设备需要手动设置取消chart hover
+      chart.hover = false
+      chart.graphs.forEach(graph => graph.hover = false)
+      // 手动取消画图工具的hover
+      chart.tools.forEach(tool => tool.hover = false)
+    })
+    // 设置当前chart为hover态
+    hoverChart.hover = true
+  }
+
   /**
    * 全量刷新
    */
@@ -167,6 +193,7 @@ export default class ChartLayoutModel extends EventEmitter {
         chart.calcRangeY()
         chart.draw()
         chart.axisY.draw()
+        // 清空上层画布
         chart.clearTopCanvas()
         chart.crosshair.draw()
       })
@@ -190,17 +217,15 @@ export default class ChartLayoutModel extends EventEmitter {
           }
           chart.axisY.draw(chart.axisY.isValid ? true : false)
 
-          // 清空画布
+          // 清空上层画布
           chart.clearTopCanvas()
           // 绘制创建中的工具图形
-          if (this.creatingDrawingTool &&
-              this.creatingDrawingTool.chart === chart) {
-            this.creatingDrawingTool.draw()
+          if (chart.creatingDrawingTool) {
+            chart.creatingDrawingTool.draw()
           }
           // 绘制编辑中的工具图形
-          if (this.editingDrawingTool &&
-              this.editingDrawingTool.chart === chart) {
-            this.editingDrawingTool.draw()
+          if (chart.editingDrawingTool) {
+            chart.editingDrawingTool.draw()
           }
           chart.crosshair.draw()
         })
@@ -379,26 +404,18 @@ export default class ChartLayoutModel extends EventEmitter {
    * @param {string} symbol [description]
    */
   public setSymbol (symbol: string) {
-    resolveSymbol(symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            const mainDatasource = this._mainDatasource
-            const newSymbolInfo = data
-            if (mainDatasource instanceof StockDatasource) {
-              mainDatasource.symbolInfo = newSymbolInfo
-            } else {
-              throw 'mainDatasource required to be an instance of StockDatasource.'
-            }
-
-            this.clearCache()
-            this.switchStudies()
-            this.removeAllTools()
-            this.restartPulseUpdate()
-            this._axisx.resetOffset()
-            this.emit('symbol_change', newSymbolInfo)
-          })
-      )
+    const datasource = this._mainDatasource
+    datasource.symbol = symbol
+    datasource
+      .resolveSymbol()
+      .then(() => {
+        this.clearCache()
+        this.switchStudies()
+        this.removeAllTools()
+        this.restartPulseUpdate()
+        this._axisx.resetOffset()
+        this.emit('symbol_change', datasource.symbolInfo)
+      })
   }
 
   /**
@@ -653,19 +670,17 @@ export default class ChartLayoutModel extends EventEmitter {
         lineWidth: 1,
       }
     )
-    resolveSymbol(symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            datasource.symbolInfo = data
-            datasource
-              .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time + 24 * 3600)
-              .then(() => {
-                mainChart.addGraph(stockModel)
-                this.emit('graph_add', data)
-              })
+    datasource
+      .resolveSymbol()
+      .then(() => {
+        datasource
+          .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time + 24 * 3600)
+          .then(() => {
+            mainChart.addGraph(stockModel)
+            this.emit('graph_add', stockModel)
           })
-      )
+      })
+
     return stockModel.id
   }
 
@@ -679,39 +694,6 @@ export default class ChartLayoutModel extends EventEmitter {
         return false
       }
     })
-  }
-
-  public drawingToolBegin (chart: ChartModel) {
-    this.creatingDrawingTool = this.selectedDrawingTool
-    this.selectedDrawingTool = null
-    this.creatingDrawingTool.chart = chart
-  }
-
-  public drawingToolEnd (chart: ChartModel) {
-    this.creatingDrawingTool = null
-  }
-
-  /**
-   * 画图工具设置端点
-   * @param {{x: number, y: number}} point 点坐标
-   */
-  public drawingToolSetVertex (point: {x: number, y: number}) {
-    const chart = this.creatingDrawingTool.chart
-    const curBar = chart.axisX.findTimeBarByX(point.x)
-    const time = curBar.time
-    const value = chart.axisY.getValueByY(point.y)
-
-    this.creatingDrawingTool.addVertex({ time, value })
-    this.emit('drawingtool_edit')
-  }
-
-  /**
-   * 删除画图工具
-   * @param {BaseToolRenderer} tool 将要删除的画图工具对象
-   */
-  public removeDrawingTools (tool: BaseToolRenderer) {
-    this.hoverChart.removeDrawingTool(tool)
-    this.emit('drawingtool_remove')
   }
 
   /**

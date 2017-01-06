@@ -109,42 +109,15 @@ export default class Legend extends React.Component<Prop, State> {
             const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
             const prev = prevBar ? datasource.barAt(datasource.search(prevBar[0][1])) : null
             const comparable = !!prev && !!cur
-            const colorUp = '#FF0000'
-            const colorDown = '#008000'
+            const colorUp = '#d32f2f'
+            const colorDown = '#00796b'
             const resolution = datasource.resolution
-            let resolutionText = null
-            switch (resolution) {
-              case '1':
-                resolutionText = '分时线'
-                break
-              case '5':
-                resolutionText = '5分钟线'
-                break
-              case '15':
-                resolutionText = '15分钟线'
-                break
-              case '30':
-                resolutionText = '30分钟线'
-                break
-              case '60':
-                resolutionText = '60分钟线'
-                break
-              case 'D':
-                resolutionText = '日K线'
-                break
-              case 'W':
-                resolutionText = '周K线'
-                break
-              case 'M':
-                resolutionText = '月K线'
-                break
-              default:
-                break
-            }
+
             return <div key={graph.id} className='chart-legend-line'
               style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
-              <div className='chart-legend-item main'>
-                {!datasource.symbolInfo ? '加载中' : `${datasource.symbolInfo.description},${resolutionText}`}
+              <div className='chart-legend-item'>
+                <span className='symbol-name'>{!datasource.symbolInfo ? '加载中' : datasource.symbolInfo.description}</span>
+                <span className='symbol-code'>{datasource.symbolInfo.symbol}.{datasource.symbolInfo.exchange}</span>
               </div>
               {
                 resolution === '1' ?
@@ -187,7 +160,7 @@ export default class Legend extends React.Component<Prop, State> {
                     color: !!cur ? cur.changerate > 0 ?
                       colorUp : cur.changerate < 0 ?
                         colorDown : 'inherit' : 'inherit'} }>
-                涨跌&nbsp;
+                幅&nbsp;
                 {
                   !!cur && typeof cur.changerate === 'number' ?
                     (cur.changerate > 0 ? '+' : '') +
@@ -198,7 +171,7 @@ export default class Legend extends React.Component<Prop, State> {
               {
                 !!cur && typeof cur.turnover === 'string' ?
                 <div className='chart-legend-item'>
-                  换手&nbsp;{ (+cur.turnover * 100).toFixed(2) + '%'}
+                  换&nbsp;{ (+cur.turnover * 100).toFixed(2) + '%'}
                 </div> : null
               }
               <div className='chart-legend-item'>

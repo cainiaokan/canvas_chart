@@ -147,9 +147,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
         loaded: true,
         symbolType: mainDatasource.symbolInfo.type,
       })
-      this.initEvents()
-      chartLayout.pulseUpdate()
       spinner.stop()
+      setTimeout(() => {
+        this.initEvents()
+        chartLayout.pulseUpdate()
+      }, 100)
     })
   }
 
@@ -223,8 +225,11 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.addListener('graph_select', chartLayout.lightUpdate)
     chartLayout.addListener('cursor_move', chartLayout.lightUpdate)
     chartLayout.addListener('barmargin_change', chartLayout.lightUpdate)
-    chartLayout.addListener('drawingtool_edit', chartLayout.lightUpdate)
+    chartLayout.addListener('drawingtool_begin', chartLayout.lightUpdate)
+    chartLayout.addListener('drawingtool_end', chartLayout.lightUpdate)
+    chartLayout.addListener('drawingtool_setvertex', chartLayout.lightUpdate)
     chartLayout.addListener('drawingtool_remove', chartLayout.lightUpdate)
+    chartLayout.addListener('editmode_change', chartLayout.lightUpdate)
   }
 
   public render () {

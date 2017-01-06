@@ -52,6 +52,7 @@ export default class Plates extends React.Component<Prop, State> {
   public componentWillUnmount () {
     this._platesScroll.destroy()
     this._platesScroll = null
+    this.cancelStockListTimer()
   }
 
   public componentDidUpdate () {

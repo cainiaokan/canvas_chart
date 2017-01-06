@@ -83,10 +83,11 @@ export abstract class BaseToolRenderer {
     const visibleRange = this._chart.axisX.getVisibleTimeBars()
     const firstBar = visibleRange[0]
     const lastBar = visibleRange[visibleRange.length - 1]
-    return this._vertexes.some(vertex =>
+    const isVisible = this._vertexes.some(vertex =>
       vertex.time >= firstBar.time &&
       vertex.time <= lastBar.time
     )
+    return isVisible
   }
 
   public getContext () {
@@ -160,7 +161,7 @@ export abstract class BaseToolRenderer {
     }
     if (select) {
       if (isHit) {
-        chart.chartLayout.editingDrawingTool = this
+        chart.editingDrawingTool = this
       }
       return this.selected = isHit
     } else {

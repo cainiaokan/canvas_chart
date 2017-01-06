@@ -16,7 +16,7 @@ export default class AxisYRenderer {
     const cursorPoint = axis.crosshair.point
     const hover = axis.crosshair.chart.hover
 
-    ctx.strokeStyle = '#000000'
+    ctx.strokeStyle = '#999999'
     ctx.lineWidth = 1
 
     ctx.translate(0.5, 0.5)
@@ -24,8 +24,8 @@ export default class AxisYRenderer {
     ctx.moveTo(0, 0)
     ctx.lineTo(0, height)
 
-    ctx.font = '12px ans-serif'
-    ctx.fillStyle = 'black'
+    ctx.font = '10px ans-serif'
+    ctx.fillStyle = '#999999'
     ctx.textAlign = 'left'
 
     const tickmarks = axisY.tickmark.getTickMarksByTimeBars()
@@ -34,7 +34,7 @@ export default class AxisYRenderer {
       const tickmark = tickmarks[i]
       ctx.moveTo(0, ~~tickmark.y)
       ctx.lineTo(5, ~~tickmark.y)
-      ctx.fillText(tickmark.value.toFixed(2).toString(), 10, tickmark.y + 5)
+      ctx.fillText(tickmark.value.toFixed(2).toString(), 10, tickmark.y + 4)
     }
 
     ctx.closePath()
@@ -44,9 +44,9 @@ export default class AxisYRenderer {
       const margin = 8
       const y = cursorPoint.y
       ctx.fillStyle = '#333333'
-      ctx.fillRect(0, y - 5 - margin / 2, width + margin, 12 + margin)
-      ctx.fillStyle = '#fff'
-      ctx.fillText(axis.getValueByY(y).toFixed(2).toString(), 10, y + 5)
+      ctx.fillRect(0, y - 6 - margin / 2, width + margin, 12 + margin)
+      ctx.fillStyle = '#999999'
+      ctx.fillText(axis.getValueByY(y).toFixed(2).toString(), 10, ~~(y + 4))
     }
   }
 }

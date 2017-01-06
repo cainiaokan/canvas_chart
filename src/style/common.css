@@ -43,7 +43,7 @@ select:disabled {
 }
 
 input[type='text'] {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 
   height: 30px;
@@ -52,8 +52,8 @@ input[type='text'] {
   cursor: auto;
   vertical-align: bottom;
 
-  color: #524f4f;
-  border: 1px solid #c9cbcd;
+  color: #bdbdbd;
+  border: 1px solid #e0e0e0;
   border-radius: 0;
   background: #fff;
 

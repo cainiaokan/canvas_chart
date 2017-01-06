@@ -5,7 +5,7 @@
 
   vertical-align: top;
 
-  border: solid #c9cbcd;
+  border: solid #e0e0e0;
   border-width: 0 1px;
   background: #fff;
   .positive {
@@ -30,7 +30,7 @@
       height: 25px;
       margin-left: 7px;
 
-      border: solid #c9cbcd;
+      border: solid #e0e0e0;
       border-width: 1px 0;
       background: #fff;
       &:before {
@@ -46,13 +46,13 @@
         content: '';
 
         border: 3px solid transparent;
-        border-left: 3px solid #c9cbcd;
+        border-left: 3px solid #e0e0e0;
       }
       &.folded:before {
         left: -2px;
 
         border: 3px solid transparent;
-        border-right: 3px solid #c9cbcd;
+        border-right: 3px solid #e0e0e0;
       }
     }
   }
@@ -73,33 +73,31 @@
       text-align: center;
       vertical-align: bottom;
     }
-    .stock-data > .price {
+    .stock-data .price {
       font-size: 24px;
       font-weight: bold;
-      line-height: 44px;
+      line-height: 24px;
 
       width: 40%;
+      margin-bottom: 10px;
+      > svg {
+        display: inline-block;
+
+        width: 10px;
+        height: 12px;
+        margin-top: 4px;
+        margin-left: 4px;
+
+        vertical-align: top;
+
+        fill: #b71c1c;
+      }
     }
-    .price:after {
-      display: inline-block;
+    .negtive .price > svg {
+      -webkit-transform: rotate(180deg);
+              transform: rotate(180deg);
 
-      width: 10px;
-      height: 23px;
-      margin-top: -4px;
-
-      vertical-align: middle;
-
-      background: url('./image/icon-updown-arrow.png') no-repeat scroll 0 0 transparent;
-    }
-    .positive .price:after {
-      content: '\0020';
-
-      background-position: 0 0;
-    }
-    .negtive .price:after {
-      content: '\0020';
-
-      background-position: 0 -24px;
+      fill: #00796b;
     }
   }
   .stock-title {
@@ -144,7 +142,7 @@
 
     width: 44px;
 
-    border-left: 1px solid #c9cbcd;
+    border-left: 1px solid #e0e0e0;
     background: #f1f3f6;
     > li {
       position: relative;
@@ -154,7 +152,7 @@
 
       cursor: pointer;
 
-      border-bottom: solid #c9cbcd 1px;
+      border-bottom: 1px solid #e0e0e0;
       background: #f1f3f6;
       &:hover {
         background: #fff;
@@ -166,7 +164,7 @@
         }
       }
       &:first-child {
-        border-top: solid #c9cbcd 1px;
+        border-top: 1px solid #e0e0e0;
       }
       > svg {
         width: 20px;

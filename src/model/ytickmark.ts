@@ -37,12 +37,12 @@ export default class YTickMark {
     let min = axisY.range.min
     let max = axisY.range.max
 
-    if (min === max) {
+    if (!_.isFinite(min) || !_.isFinite(max)) {
       return tickmarks
     }
 
-    if (!_.isFinite(min) || !_.isFinite(max)) {
-      return tickmarks
+    if (min === max) {
+      max += 0.1
     }
 
     const height = axisY.chart.height
@@ -58,7 +58,7 @@ export default class YTickMark {
     while (min <= max) {
       tickmarks.push({
         value: min,
-        y: axisY.getYByValue(min, axisY.range),
+        y: axisY.getYByValue(min),
       })
       min += span
     }

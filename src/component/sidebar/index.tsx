@@ -156,7 +156,17 @@ export default class Sidebar extends React.Component<Prop, State> {
             <div className={
               stockInfo.changePrice > 0 ? 'stock-data positive' :
                 stockInfo.changePrice < 0 ? 'stock-data negtive' : 'stock-data'}>
-              <span className='price'>{stockInfo.price}</span>
+              <span className='price'>
+                {stockInfo.price}
+                {
+                  stockInfo.changePrice !== 0 ?
+                  <svg viewBox='0 0 10 12'>
+                  <g>
+                    <path d='M9.6,4.4c0.3,0.3,0.3,0.8,0,1.1C9.5,5.7,9.3,5.7,9.1,5.7S8.7,5.7,8.5,5.5L5.7,2.7v8.5c0,0.4-0.4,0.8-0.8,0.8c-0.4,0-0.8-0.4-0.8-0.8V2.7L1.4,5.5c-0.3,0.3-0.8,0.3-1.1,0s-0.3-0.8,0-1.1l4.1-4.1C4.5,0.1,4.7,0,4.9,0c0.2,0,0.4,0.1,0.6,0.2L9.6,4.4z'/>
+                  </g>
+                  </svg> : null
+                }
+              </span>
               <span>{stockInfo.changePrice > 0 ? '+' + stockInfo.changePrice : stockInfo.changePrice}</span>
               <span>
                 {stockInfo.changeRate > 0 ?

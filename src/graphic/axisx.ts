@@ -15,15 +15,15 @@ export default class AxisXRenderer {
     const timeBars = axis.getVisibleTimeBars()
     const cursorPoint = axis.crosshair.point
 
-    ctx.strokeStyle = '#000000'
+    ctx.strokeStyle = '#999999'
     ctx.lineWidth = 1
     ctx.translate(0.5, 0.5)
     ctx.beginPath()
     ctx.moveTo(0, 0)
     ctx.lineTo(width, 0)
     ctx.stroke()
-    ctx.font = '12px ans-serif'
-    ctx.fillStyle = '#000000'
+    ctx.font = '10px ans-serif'
+    ctx.fillStyle = '#999999'
     ctx.textAlign = 'center'
 
     const tickmarks = axis.tickmark.getTickMarksByTimeBars(timeBars)
@@ -32,7 +32,7 @@ export default class AxisXRenderer {
       const tickmark = tickmarks[i]
       ctx.moveTo(~~tickmark.x, 0)
       ctx.lineTo(~~tickmark.x, 5)
-      ctx.fillText(tickmark.time, tickmark.x, 20)
+      ctx.fillText(tickmark.time, tickmark.x, 19)
     }
     ctx.stroke()
     ctx.closePath()
@@ -58,8 +58,8 @@ export default class AxisXRenderer {
         textMetrics = ctx.measureText(dateStr)
         ctx.fillStyle = '#333333'
         ctx.fillRect(timeBar.x - textMetrics.width / 2 - margin / 2, 0, textMetrics.width + margin, height)
-        ctx.fillStyle = '#ffffff'
-        ctx.fillText(dateStr, timeBar.x, 20)
+        ctx.fillStyle = '#999999'
+        ctx.fillText(dateStr, timeBar.x, 19)
       }
     }
   }

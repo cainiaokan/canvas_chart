@@ -13,11 +13,13 @@ import WaterMarkRenerer from '../graphic/watermark'
 let sequence = 1
 
 export default class ChartModel extends EventEmitter {
-  public hover: boolean
+  public hover: boolean = false
   public width: number
   public height: number
   public ctx: CanvasRenderingContext2D
   public topCtx: CanvasRenderingContext2D
+  public creatingDrawingTool: BaseToolRenderer
+  public editingDrawingTool: BaseToolRenderer
 
   private _chartLayout: ChartLayout
   private _graphs: GraphModel[]
@@ -148,13 +150,47 @@ export default class ChartModel extends EventEmitter {
     this._isValid = false
   }
 
+  /**
+   * 删除画图工具
+   * @param {BaseToolRenderer} tool 将要删除的画图工具对象
+   */
   public removeDrawingTool (tool: BaseToolRenderer) {
+    this.editingDrawingTool = null
     this._tools.splice(this._tools.indexOf(tool), 1)
     this._isValid = false
+    this._chartLayout.emit('drawingtool_remove')
+  }
+
+  public drawingToolBegin () {
+    const chartLayout = this._chartLayout
+    this.creatingDrawingTool = chartLayout.selectedDrawingTool
+    this.creatingDrawingTool.chart = this
+    chartLayout.selectedDrawingTool = null
+    this._chartLayout.emit('drawingtool_begin')
+  }
+
+  public drawingToolEnd () {
+    this.addDrawingTool(this.creatingDrawingTool)
+    this.creatingDrawingTool = null
+    this._chartLayout.isEditMode = false
+    this._chartLayout.emit('drawingtool_end')
+  }
+
+  /**
+   * 画图工具设置端点
+   * @param {{x: number, y: number}} point 点坐标
+   */
+  public drawingToolSetVertex (point: {x: number, y: number}) {
+    const curBar = this.axisX.findTimeBarByX(point.x)
+    const time = curBar.time
+    const value = this.axisY.getValueByY(point.y)
+
+    this.creatingDrawingTool.addVertex({ time, value })
+    this._chartLayout.emit('drawingtool_setvertex')
   }
 
   public calcRangeY () {
-    this._axisY.range = this._graphs
+    const rangeY = this._graphs
       .reduce((range: YRange, graph: GraphModel) => {
         // 如果chart是价格相关的，但是某个子图是价格无关的，则忽略它
         if (this.isPrice && !graph.isPrice) {
@@ -178,6 +214,14 @@ export default class ChartModel extends EventEmitter {
         }
         return range
       }, null)
+
+    // 修整rangeY，如果max等于min在将rangeY上下各增加0.01个单位
+    if (rangeY && rangeY.max === rangeY.min) {
+      rangeY.max += 0.01
+      rangeY.min -= 0.01
+    }
+
+    this._axisY.range = rangeY
   }
 
   public hitTest (select = false): boolean  {

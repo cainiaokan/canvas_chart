@@ -14,6 +14,7 @@ export default class CrosshairRenderer {
     const point = model.point
     const height = chart.height
     const width = chart.width
+    const isEditMode = chart.chartLayout.isEditMode
 
     if (!point) {
       return
@@ -21,15 +22,15 @@ export default class CrosshairRenderer {
     const bar = chart.axisX.findTimeBarByX(point.x)
 
     ctx.save()
-    ctx.strokeStyle = '#333333'
+    ctx.strokeStyle = isEditMode ? '#a000a0' : '#333333'
     ctx.translate(0.5, 0.5)
 
     if (ctx.setLineDash) {
       ctx.setLineDash([3, 3])
     }
     ctx.lineWidth = 1
-    ctx.beginPath()
 
+    ctx.beginPath()
     if (bar) {
       ctx.moveTo(~~bar.x, 0)
       ctx.lineTo(~~bar.x, ~~height)
@@ -40,7 +41,15 @@ export default class CrosshairRenderer {
       ctx.moveTo(0, ~~point.y)
       ctx.lineTo(~~width, ~~point.y)
       ctx.stroke()
+    }
+    ctx.closePath()
+
+    if (isEditMode && chart.hover) {
+      ctx.fillStyle = '#a000a0'
+      ctx.beginPath()
+      ctx.arc(~~bar.x, ~~point.y, 3, 0, 2 * Math.PI)
       ctx.closePath()
+      ctx.fill()
     }
     ctx.restore()
   }

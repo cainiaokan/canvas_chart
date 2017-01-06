@@ -76,6 +76,10 @@ export class StockDatasource extends Datasource {
     return this._symbol
   }
 
+  set symbol (symbol: string) {
+    this._symbol = symbol
+  }
+
   get symbolInfo (): SymbolInfo {
     return this._symbolInfo
   }
@@ -286,7 +290,12 @@ export class StockDatasource extends Datasource {
         .then(response => response
           .json()
           .then(data => {
-            this._symbolInfo = data
+            this._symbolInfo = {
+              description: data.description,
+              exchange: data['exchange-listed'],
+              symbol: data.symbol,
+              type: data.type,
+            }
             resolve()
           })
           .catch(reject)
@@ -306,7 +315,7 @@ export class StockDatasource extends Datasource {
                 data.map(
                   symbol => ({
                     description: symbol.description,
-                    exchange: symbol.exchange,
+                    exchange: symbol['exchange-listed'],
                     symbol: symbol.symbol,
                     type: symbol.type,
                   })
