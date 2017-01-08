@@ -38,6 +38,7 @@ export abstract class BaseChartRenderer {
   public drawSelection () {
     const plot = this._plotModel
     const graph = plot.graph
+    const datasource = graph.datasource
     const chart = graph.chart
     const ctx = chart.ctx
     const axisX = chart.axisX
@@ -48,7 +49,9 @@ export abstract class BaseChartRenderer {
       return
     }
 
-    for (let i = span, len = bars.length, bar, y; i < len; i += span) {
+    const start = (datasource.loaded() - datasource.search(bars[0][PLOT_DATA.TIME])) % span
+
+    for (let i = start, len = bars.length, bar, y; i < len; i += span) {
       bar = bars[i]
       y = this.getSelectionYByBar(bar)
       if (!y) {

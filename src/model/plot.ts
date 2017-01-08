@@ -1,4 +1,3 @@
-import { IBar } from '../datasource'
 import { ShapeType } from '../constant'
 import {
   BaseChartRenderer,
@@ -93,7 +92,7 @@ export default class PlotModel {
     return this._graphic.hitTest()
   }
 
-  public getVisibleBars (): IBar[] {
+  public getVisibleBars (): any[] {
     const visibleBars = this._graph.getVisibleBars()
     const results = []
     for (let i = 0, len = visibleBars.length, index = this._index, bar; i < len; i++) {

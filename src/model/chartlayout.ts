@@ -170,6 +170,13 @@ export default class ChartLayoutModel extends EventEmitter {
     hoverChart.hover = true
   }
 
+  public cancelSelectedGraph () {
+    this.charts.forEach(ch => {
+      ch.graphs.forEach(graph => graph.selected = false)
+      ch.tools.forEach(tool => tool.selected = false)
+    })
+  }
+
   /**
    * 全量刷新
    */
