@@ -29,7 +29,7 @@ export function searchSymbols (keyword: string): Promise<IResponse> {
 }
 
 export function getServerTime (): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/time/`)
+  return fetch(`${QU_CHAO_GU}/chart/time`)
 }
 
 export function getStockInfo (symbol: string): Promise<IResponse> {

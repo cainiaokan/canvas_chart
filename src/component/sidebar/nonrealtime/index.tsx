@@ -1,7 +1,7 @@
 import './index.less'
 import '../../../style/table.less'
 import * as React from 'react'
-import * as iScroll from 'iscroll'
+import IScroll = require('iscroll')
 import { NonRealtimeTools } from '../pollmanager'
 
 type Prop = {
@@ -19,7 +19,7 @@ export default class NonRealtime extends React.Component<Prop, any> {
   private _nonrealtimeScroll
 
   public componentDidMount () {
-    this._nonrealtimeScroll = new iScroll(this.refs.nonrealtime, {
+    this._nonrealtimeScroll = new IScroll(this.refs.nonrealtime, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,

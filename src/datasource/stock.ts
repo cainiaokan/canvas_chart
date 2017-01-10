@@ -315,7 +315,7 @@ export class StockDatasource extends Datasource {
                 data.map(
                   symbol => ({
                     description: symbol.description,
-                    exchange: symbol['exchange-listed'],
+                    exchange: symbol.exchange,
                     symbol: symbol.symbol,
                     type: symbol.type,
                   })

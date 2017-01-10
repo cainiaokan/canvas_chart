@@ -1,10 +1,10 @@
 import './index.less'
 import * as React from 'react'
-import * as iScroll from 'iscroll'
+import IScroll = require('iscroll')
 import { StockInfo } from '../../pollmanager'
 
 type Prop = {
-  height: number
+  maxHeight: number
   stockInfo: StockInfo
 }
 
@@ -19,19 +19,19 @@ export default class StockDetail extends React.Component<Prop, any> {
   public shouldComponentUpdate (nextProps: Prop) {
     const curProp = this.props
     return curProp.stockInfo !== nextProps.stockInfo ||
-      curProp.height !== nextProps.height
-  }
-
-  public componentDidUpdate () {
-    this._stockInfoScroll.refresh()
+      curProp.maxHeight !== nextProps.maxHeight
   }
 
   public componentDidMount () {
-    this._stockInfoScroll = new iScroll(this.refs.container, {
+    this._stockInfoScroll = new IScroll(this.refs.container, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
     })
+  }
+
+  public componentDidUpdate () {
+    this._stockInfoScroll.refresh()
   }
 
   public componentWillUnmount () {
@@ -42,7 +42,9 @@ export default class StockDetail extends React.Component<Prop, any> {
   public render () {
     const stockInfo = this.props.stockInfo
     return (
-      <div className='chart-stock-detail' ref='container' style={ { height: this.props.height + 'px' } }>
+      <div className='chart-stock-detail'
+           ref='container'
+           style={ { maxHeight: this.props.maxHeight + 'px' } }>
         <table>
           <tbody>
             <tr>

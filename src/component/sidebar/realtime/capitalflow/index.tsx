@@ -1,14 +1,14 @@
 import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import * as iScroll from 'iscroll'
+import IScroll = require('iscroll')
 import CapitalDonutChart from './donut'
 import CapitalBarChart from './bar'
 import { CapitalFlowInfo } from '../../pollmanager'
 import { clientOffset } from '../../../../util'
 
 type Prop = {
-  height: number
+  maxHeight: number
   capitalFlowInfo: CapitalFlowInfo
 }
 
@@ -47,16 +47,16 @@ export default class CapitalFlow extends React.Component<Prop, State> {
            !_.isEqual(this.state, nextState)
   }
 
-  public componentDidUpdate () {
-    this._capitalFlowScroll.refresh()
-  }
-
   public componentDidMount () {
-    this._capitalFlowScroll = new iScroll(this.refs.container, {
+    this._capitalFlowScroll = new IScroll(this.refs.container, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
     })
+  }
+
+  public componentDidUpdate () {
+    this._capitalFlowScroll.refresh()
   }
 
   public componentWillUnmount () {
@@ -72,7 +72,7 @@ export default class CapitalFlow extends React.Component<Prop, State> {
     return (
       <div className='chart-capital-flow'
            ref='container'
-           style={ {height: `${this.props.height}px`} }>
+           style={ {maxHeight: `${this.props.maxHeight}px`} }>
         <div>
           <CapitalDonutChart
             data={donutChartData}

@@ -1,6 +1,6 @@
 import './index.less'
 import * as React from 'react'
-import * as iScroll from 'iscroll'
+import IScroll = require('iscroll')
 import { PlateList } from '../pollmanager'
 import { getStockListByPlate } from '../../../datasource'
 
@@ -42,7 +42,7 @@ export default class Plates extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this._platesScroll = new iScroll(this.refs.plates, {
+    this._platesScroll = new IScroll(this.refs.plates, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,

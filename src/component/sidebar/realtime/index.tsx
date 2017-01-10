@@ -70,10 +70,10 @@ export default class Realtime extends React.Component<Prop, State> {
     return <div className='realtime-info'>
       {
         showBidList ?
-        <BidList stockInfo={stockInfo} height={height * bidListHeightRatio} /> : null
+        <BidList stockInfo={stockInfo} maxHeight={height * bidListHeightRatio} /> : null
       }
 
-      <StockDetail stockInfo={stockInfo} height={height * stockDetailHeightRatio} /> : null
+      <StockDetail stockInfo={stockInfo} maxHeight={height * stockDetailHeightRatio} /> : null
 
       {
         showTab ?
@@ -93,13 +93,13 @@ export default class Realtime extends React.Component<Prop, State> {
             this.state.tabIndex === 0 ?
             <TickList
               stockInfo={stockInfo}
-              height={height * tabHeightRatio - TAB_HEIGHT} /> : null
+              maxHeight={height * tabHeightRatio - TAB_HEIGHT} /> : null
           }
           {
             this.state.tabIndex === 1 ?
             <CapitalFlow
               capitalFlowInfo={capitalFlowInfo}
-              height={height * tabHeightRatio - TAB_HEIGHT} /> : null
+              maxHeight={height * tabHeightRatio - TAB_HEIGHT} /> : null
           }
           </div>
         </div> : null

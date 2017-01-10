@@ -1,10 +1,10 @@
 import './index.less'
 import * as React from 'react'
-import * as iScroll from 'iscroll'
+import IScroll = require('iscroll')
 import { StockInfo } from '../../pollmanager'
 
 type Prop = {
-  height: number
+  maxHeight: number
   stockInfo: StockInfo
 }
 
@@ -19,19 +19,19 @@ export default class BidList extends React.Component<Prop, any> {
   public shouldComponentUpdate (nextProps: Prop) {
     const curProp = this.props
     return curProp.stockInfo !== nextProps.stockInfo ||
-      curProp.height !== nextProps.height
-  }
-
-  public componentDidUpdate () {
-    this._bidListScroll.refresh()
+      curProp.maxHeight !== nextProps.maxHeight
   }
 
   public componentDidMount () {
-    this._bidListScroll = new iScroll(this.refs.container, {
+    this._bidListScroll = new IScroll(this.refs.container, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
     })
+  }
+
+  public componentDidUpdate () {
+    this._bidListScroll.refresh()
   }
 
   public componentWillUnmount () {
@@ -43,7 +43,9 @@ export default class BidList extends React.Component<Prop, any> {
     const stockInfo = this.props.stockInfo
 
     return (
-      <div className='chart-bid-list' ref='container' style={{ height: `${this.props.height}px` } }>
+      <div className='chart-bid-list'
+           ref='container'
+           style={{ maxHeight: `${this.props.maxHeight}px` } }>
         <div>
           <div className='caption'>
             <b className='sold'>卖<br/><br/>盘</b>

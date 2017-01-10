@@ -2,7 +2,7 @@ import './index.less'
 import '../../../style/table.less'
 
 import * as React from 'react'
-import * as iScroll from 'iscroll'
+import IScroll = require('iscroll')
 import ChartLayout from '../../../model/chartlayout'
 import { IndexesInfo, RealtimeTools } from '../pollmanager'
 
@@ -37,7 +37,7 @@ export default class Indexes extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this._indexesScroll = new iScroll(this.refs.indexes, {
+    this._indexesScroll = new IScroll(this.refs.indexes, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,

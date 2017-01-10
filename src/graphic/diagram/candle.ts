@@ -95,7 +95,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
 
     for (let i = 0, bar, len = bars.length, isUp, color; i < len; i++) {
       bar = bars[i]
-      isUp = bar[PLOT_DATA.CLOSE] > bar[PLOT_DATA.OPEN]
+      isUp = bar[PLOT_DATA.CLOSE] >= bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
       ctx.strokeStyle = color
       ctx.fillStyle = color
@@ -108,7 +108,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
     ctx.translate(-0.5, 0)
     for (let i = 0, bar, len = bars.length, x, y, isUp, color; i < len; i++) {
       bar = bars[i]
-      isUp = bar[PLOT_DATA.CLOSE] > bar[PLOT_DATA.OPEN]
+      isUp = bar[PLOT_DATA.CLOSE] >= bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
       ctx.strokeStyle = color
       ctx.fillStyle = color

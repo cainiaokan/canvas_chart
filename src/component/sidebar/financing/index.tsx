@@ -1,7 +1,7 @@
 import './index.less'
 import '../../../style/table.less'
 import * as React from 'react'
-import * as iScroll from 'iscroll'
+import IScroll = require('iscroll')
 import { FinancingInfo } from '../pollmanager'
 
 type Prop = {
@@ -19,7 +19,7 @@ export default class Financing extends React.Component<Prop, any> {
   private _financingScroll
 
   public componentDidMount () {
-    this._financingScroll = new iScroll(this.refs.financing, {
+    this._financingScroll = new IScroll(this.refs.financing, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
@@ -71,7 +71,7 @@ export default class Financing extends React.Component<Prop, any> {
             </tr>
             <tr>
               <td>每股净资产</td>
-              <td>{financingInfo.book_value_per_share}亿元</td>
+              <td>{financingInfo.book_value_per_share}元</td>
             </tr>
             <tr>
               <td>净资产收益率</td>

@@ -244,9 +244,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
 
     const chartLayoutModel = this._chartLayoutModel
-    // 根据屏幕宽度重置选项
-    const showSideBar = width > 768 || height > 450 ? this.props.showsidebar : false
-    const showToolBox = width > 768 || height > 450 ? this.props.showtoolbox : false
+    // 根据屏幕尺寸重置选项
+    const showSideBar = width > 768 && height > 450 ? this.props.showsidebar : false
+    const showToolBox = width > 768 && height > 450 ? this.props.showtoolbox : false
 
     // 12 是chart-body的margin 10 和 border 2
     let availWidth = width - 12
@@ -259,7 +259,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       availWidth -= !this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
     }
 
-    // 根据屏幕宽度重置选项
+    // 根据屏幕尺寸重置选项
     const showNavBar = this.props.shownavbar
     const showControlBar = this.props.showcontrolbar
     const showFooterPanel = height > 450 ? this.props.showfooterpanel : false

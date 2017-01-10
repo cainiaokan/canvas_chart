@@ -13,6 +13,7 @@
   "dependencies": {
     "@types/es6-promise": "0.0.32",
     "@types/eventemitter3": "^1.1.29",
+    "@types/iscroll": "0.0.0",
     "@types/isomorphic-fetch": "0.0.31",
     "@types/randomcolor": "^0.4.3",
     "@types/react": "^0.14.55",

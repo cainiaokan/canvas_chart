@@ -207,7 +207,7 @@ export default class Sidebar extends React.Component<Prop, State> {
           }
         </ul>
         <div className='data-page-list'>
-          { tabPage }
+          { !this.props.folded ? tabPage : null }
         </div>
       </div>
       <a href='javascript:;'
