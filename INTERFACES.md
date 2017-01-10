@@ -47,9 +47,11 @@ _响应例子_
 
 ### /chart/symbol/resolve
 
+根据code获取symbol的详细信息
+
 | name    | type          | optional | desc                                    |
 |:--------|:--------------|:---------|:----------------------------------------|
-| symbol  | string        | no       | stock\index\plate\etc code              |
+| code    | string        | no       | stock\index\plate\etc code              |
 
 **响应**
 
@@ -62,7 +64,7 @@ _type: array_
 | 0         | string                 | symbol code    |
 | 1         | 'stock' &#124; 'index' | type           |
 | 2         | string                 | description    |
-| 3         | 'SH' &#124; 'SZ'       | stock exchange |
+| 3         | 'SH' &#124; 'SZ'       | 交易所          |
 
 _type: json_
 
@@ -84,6 +86,8 @@ _响应例子_
 
 ### /chart/symbol/search
 
+根据关键字检索symbol列表
+
 | name    | type          | optional | desc          |
 |:--------|:--------------|:---------|:--------------|
 | query   | string        | no       | query keyword |
@@ -99,7 +103,7 @@ _type: array_
 | 0         | string                 | symbol code    |
 | 1         | 'stock' &#124; 'index' | type           |
 | 2         | string                 | description    |
-| 3         | 'SH' &#124; 'SZ'       | stock exchange |
+| 3         | 'SH' &#124; 'SZ'       | 交易所          |
 
 _type: json_
 
@@ -125,11 +129,11 @@ _响应例子_
 
 ### /chart/bar/history
 
-There're 2 ways of fetching historical data.
+有两种方式请求数据bar接口。
 
-1. if `from` & `to` are setted, all bars between will be returned.
+1. 如果设置了`from`和`to`，所有在此之间的数据bar都返回。
 
-2. if `from` & `amount` are setted, retrieve `amount` bars before `from` time.
+2. 如果设置了`from`和`amount`，尽可能地获取在`from`时间之前的`amount`个数据bar。
 
 **参数列表**
 
@@ -137,9 +141,9 @@ There're 2 ways of fetching historical data.
 |:--------|:--------------|:---------|:----------------------------------------|
 | symbol  | string        | no       | stock\index\plate\etc code              |
 | from    | timestamp     | no       | from time                               |
-| to      | timestamp     | yes      | to time.`to` must be greater than `from`|
-| amount  | int           | yes      | total amount                            |
-| adjust  | 0 &#124; 1    | no       | 0: not adjusted, 1: forward adjusted    |
+| to      | timestamp     | yes      | to time.`to` 必须大于 `from`             |
+| amount  | int           | yes      | 请求数量                                 |
+| adjust  | 0 &#124; 1    | no       | 0: 不复权, 1: 前复权                      |
 
 
 **响应**
@@ -148,15 +152,15 @@ _type: json_
 
 | name | type                | desc                 |
 |:-----|:--------------------|:---------------------|
-| a    | float[]             | trading amount       |
-| v    | int[]               | trading volume       |
-| h    | float[]             | hightest price       |
-| o    | float[]             | open price           |
-| l    | float[]             | lowest price         |
-| c    | float[]             | close price          |
-| t    | timestamp[]         | timestamp            |
-| tr   | float[]             | turnover ratio       |
-| ch   | float[]             | price change ratio   |
+| a    | float[]             | 成交额                |
+| v    | int[]               | 成交量                |
+| h    | float[]             | 最高价                |
+| o    | float[]             | 开盘价                |
+| l    | float[]             | 最低价                |
+| c    | float[]             | 收盘价                |
+| t    | timestamp[]         | 时间戳                |
+| tr   | float[]             | 换手率                |
+| ch   | float[]             | 涨跌幅                |
 
 _响应例子_
 
@@ -173,15 +177,17 @@ _响应例子_
       "ch": [...]
     }
 
-## 复合接口
+## 复合数据接口
 
 ### /chart/composite/handicap
+
+盘口数据：五档盘口，实时股票信息，逐笔交易
 
 **参数列表**
 
 | name    | type          | optional | desc       |
 |:--------|:--------------|:---------|:-----------|
-| code    | string        | no       | stock code |
+| code    | string        | no       | 股票代码    |
 
 **响应**
 
@@ -191,8 +197,8 @@ _type: array_
 
 | index | type   | desc   |
 |:------|:-------|:-------|
-| 0     | float  | price  |
-| 1     | int    | volume |
+| 0     | float  | 价格    |
+| 1     | int    | 成交量  |
 
 _StockInfo_
 
@@ -200,19 +206,19 @@ _type: array_
 
 | index | type   | desc                         |
 |:------|:-------|:-----------------------------|
-| 0     | float  | previous close price         |
-| 1     | float  | open price                   |
-| 2     | float  | highest price                |
-| 3     | float  | lowest price                 |
-| 4     | float  | current price                |
-| 5     | float  | limit up price               |
-| 6     | float  | limit down price             |
-| 7     | float  | trading volume               |
-| 8     | int    | trading amount (unit = yuan) |
-| 9     | float  | price change rate            |
-| 10    | float  | share turnover ratio         |
-| 11    | int    | buy in volume                |
-| 12    | int    | sell out volume              |
+| 0     | float  | 前日收盘价                    |
+| 1     | float  | 开盘价                        |
+| 2     | float  | 最高价                        |
+| 3     | float  | 最低价                        |
+| 4     | float  | 当前价                        |
+| 5     | float  | 涨停价                        |
+| 6     | float  | 跌停价                        |
+| 7     | float  | 成交量                        |
+| 8     | int    | 成交额 (单位 = 元)             |
+| 9     | float  | 涨跌幅                        |
+| 10    | float  | 换手率                        |
+| 11    | int    | 内盘                         |
+| 12    | int    | 外盘                         |
 
 _TickInfo_
 
@@ -220,19 +226,19 @@ _type: array_
 
 | index | type                | desc                         |
 |:------|:--------------------|:-----------------------------|
-| 0     | string              | time string (format: HHMMSS) |
-| 1     | float               | price                        |
-| 2     | int                 | volume                       |
-| 3     | 1 &#124; 2 &#124; 3 | 1 stands for buying in order; 2 stands for selling out order; 3 stands for matching order |
+| 0     | string              | 时间串 (format: HHMMSS)       |
+| 1     | float               | 价格                          |
+| 2     | int                 | 成交量                        |
+| 3     | 1 &#124; 2 &#124; 3 | 1 主买; 2 主卖; 3 撮合         |
 
 _type: json_
 
 | name        | type        | desc                                 |
 |:------------|:------------|:-------------------------------------|
-| order       | Order[10]   | 5 buy in orders &  5 sell out orders |
+| order       | Order[10]   | 5档买单和5档卖单                       |
 | stock_info  | StockInfo   | stock info                           |
-| tick_list   | TickInfo[]  | tick list                            |
-| i           | int         | request interval (seconds)           |
+| tick_list   | TickInfo[]  | 逐笔列表                              |
+| i           | int         | 请求间隔 (秒)                          |
 
 _响应例子_
 
@@ -277,11 +283,13 @@ _响应例子_
 
 ### /chart/composite/capitalflow
 
+资金流向
+
 **参数列表**
 
 | name    | type          | optional | desc       |
 |:--------|:--------------|:---------|:-----------|
-| code    | string        | no       | stock code |
+| code    | string        | no       | 股票代码    |
 
 **响应**
 
@@ -289,19 +297,19 @@ _CapitalFlowInfo_
 
 _type: array_
 
-| index     | type    | desc                          |
-|:----------|:--------|:------------------------------|
-| 0         | int     | retail investor  funds in     |
-| 1         | int     | retail investor  funds out    |
-| 2         | int     | leading investor funds in     |
-| 3         | int     | leading investor funds out    |
+| index     | type    | desc   |
+|:----------|:--------|:-------|
+| 0         | int     | 散户流入 |
+| 1         | int     | 散户流出 |
+| 2         | int     | 主力流入 |
+| 3         | int     | 主力流出 |
 
 _type: json_
 
-| name      | type               | desc                       |
-|:----------|:-------------------|:---------------------------|
-| d         | CapitalFlowInfo[5] | capital flow info          |
-| i         | int                | request interval (seconds) |
+| name      | type               | desc       |
+|:----------|:-------------------|:-----------|
+| d         | CapitalFlowInfo[5] | 资金流向     |
+| i         | int                | 请求间隔 (秒)|
 
 _响应例子_
 
@@ -319,6 +327,8 @@ _响应例子_
 
 ### /chart/composite/indexes
 
+股指信息
+
 **参数列表**
 
 无参数
@@ -329,20 +339,20 @@ _IndexInfo_
 
 _type: array_
 
-| index | type   | desc               |
-|:------|:-------|:-------------------|
-| 0     | string | stock index code   |
-| 1     | string | stock index name   |
-| 1     | float  | price change ratio |
-| 2     | float  | price              |
-| 3     | float  | price change       |
+| index | type   | desc    |
+|:------|:-------|:--------|
+| 0     | string | 股指代码 |
+| 1     | string | 股指名称 |
+| 1     | float  | 涨跌幅   |
+| 2     | float  | 当前价   |
+| 3     | float  | 涨跌     |
 
 _type: json_
 
-| name      | type       | desc                       |
-|:----------|:-----------|:---------------------------|
-| d         | IndexInfo[]| indexes info               |
-| i         | int        | request interval (seconds) |
+| name      | type       | desc        |
+|:----------|:-----------|:------------|
+| d         | IndexInfo[]| 股指信息     |
+| i         | int        | 请求间隔 (秒) |
 
 _响应例子_
 
@@ -360,6 +370,8 @@ _响应例子_
 
 ### /chart/composite/realtimetool
 
+实时工具
+
 **参数列表**
 
 无参数
@@ -370,19 +382,19 @@ _RealtimeTool_
 
 _type: array_
 
-| name | type   | desc                                                   |
-|:-----|:-------|:-------------------------------------------------------|
-| 0    | int    | Capital flow of Shanghai-HongKong Stock Connect Program. Negtive number means flowing out |
-| 1    | int    | Amount of stocks whose value fluctuate fiercely. Negtive number means sharp moveing down  |
-| 2    | int    | Amount of stocks whose value goes up by 5%             |
-| 3    | int    | Amount of stocks whose value goes down by 5%           |
+| name | type   | desc                         |
+|:-----|:-------|:-----------------------------|
+| 0    | int    | 沪股通资金流向。 负数表示流出    |
+| 1    | int    | 急涨急跌股票数量。 负数表示净急跌 |
+| 2    | int    | 涨幅5%以上的股票数量            |
+| 3    | int    | 跌幅5%以上的股票数量            |
 
 _type: json_
 
-| name      | type          | desc                       |
-|:----------|:--------------|:---------------------------|
-| d         | RealtimeTool[]| indexes info               |
-| i         | int           | request interval (seconds) |
+| name      | type          | desc        |
+|:----------|:--------------|:------------|
+| d         | RealtimeTool[]| 实时工具信息  |
+| i         | int           | 请求间隔 (秒) |
 
 _响应例子_
 
@@ -394,6 +406,8 @@ _响应例子_
 
 ### /chart/composite/nonrealtimetool
 
+非实时工具
+
 **参数列表**
 
 无参数
@@ -404,26 +418,26 @@ _ToolData_
 
 _type: array_
 
-| index | type   | desc                                  |
-|:------|:-------|:--------------------------------------|
-| 0     | float  | pressure of SCI                       |
-| 1     | float  | support of SCI                        |
-| 2     | int    | central bank funds (unit = yuan)      |
-| 3     | int    | unlocked market value (unit = yuan)   |
-| 4     | int    | financing funds (unit = yuan)         |
-| 5     | int    | financing funds change (unit = yuan)  |
-| 6     | int    | institutional funds (unit = yuan)     |
-| 7     | int    | investors funds (unit = yuan)         |
-| 8     | int    | amount of new investors               |
-| 9     | int    | amount of trading investors           |
-| 10    | int    | search popularity                     |
-| 11    | int    | forum popularity                      |
+| index | type   | desc                  |
+|:------|:-------|:----------------------|
+| 0     | float  | 沪指压力               |
+| 1     | float  | 沪指支撑               |
+| 2     | int    | 央行资金 (单位 = 元)    |
+| 3     | int    | 解禁市值 (单位 = 元)    |
+| 4     | int    | 融资余额 (单位 = 元)    |
+| 5     | int    | 融资余额涨跌 (单位 = 元)|
+| 6     | int    | 机构资金 (单位 = 元)    |
+| 7     | int    | 投资者资金 (单位 = 元)  |
+| 8     | int    | 新增投资者             |
+| 9     | int    | 交易投资者             |
+| 10    | int    | 搜索人气               |
+| 11    | int    | 股吧人气               |
 
 _type: json_
 
-| name      | type         | desc                       |
-|:----------|:-------------|:---------------------------|
-| d         | ToolData     | non realtime tools         |
+| name      | type         | desc     |
+|:----------|:-------------|:---------|
+| d         | ToolData     | 非实时工具 |
 
 _响应例子_
 
@@ -447,11 +461,13 @@ _响应例子_
 
 ### /chart/composite/financing
 
+财务数据
+
 **参数列表**
 
 | name    | type          | optional | desc       |
 |:--------|:--------------|:---------|:-----------|
-| code    | string        | no       | stock code |
+| code    | string        | no       | 股票代码    |
 
 **响应**
 
@@ -459,31 +475,31 @@ _FinancialData_
 
 _type: array_
 
-| index | type   | desc                                 |
-|:------|:-------|:-------------------------------------|
-| 0     | float  | earnings per share (unit = yuan)     |
-| 1     | int    | net income (unit = yuan)             |
-| 2     | float  | net income growth rate               |
-| 3     | int    | revenue (unit = yuan)                |
-| 4     | float  | revenue growth rate                  |
-| 5     | float  | net value per share (unit = yuan)    |
-| 6     | float  | return on equity                     |
-| 7     | float  | return on equity dilution            |
-| 8     | float  | asset/liability ratio                |
-| 9     | float  | capital reserve per share            |
-| 10    | float  | undistributed profit per share       |
-| 11    | float  | operating cash flow per share        |
-| 12    | int    | operating cashflow in (unit = yuan)  |
-| 13    | int    | operating cashflow out (unit = yuan) |
-| 14    | int    | net operating cashflow (unit = yuan) |
-| 15    | float  | current ratio                        |
-| 16    | float  | quick ratio                          |
+| index | type   | desc                   |
+|:------|:-------|:-----------------------|
+| 0     | float  | 每股收益 (单位 = 元)     |
+| 1     | int    | 净利润 (单位 = 元)       |
+| 2     | float  | 近利润增长率             |
+| 3     | int    | 营业总收入 (单位 = 元)    |
+| 4     | float  | 总收入增长率             |
+| 5     | float  | 每股净资产 (单位 = 元)    |
+| 6     | float  | 净资产收益率             |
+| 7     | float  | 净资产收益率摊薄          |
+| 8     | float  | 资产负债比               |
+| 9     | float  | 每股资本公积金           |
+| 10    | float  | 每股未分配利润           |
+| 11    | float  | 每股经营现金流           |
+| 12    | int    | 经营现金流入 (单位 = 元)  |
+| 13    | int    | 经营现金流出 (单位 = 元)  |
+| 14    | int    | 经营现金流净额 (单位 = 元)|
+| 15    | float  | 流动比率                |
+| 16    | float  | 速动比率                |
 
 _type: json_
 
-| name      | type         | desc                       |
-|:----------|:-------------|:---------------------------|
-| d         | FinancialData| indexes info               |
+| name      | type         | desc    |
+|:----------|:-------------|:--------|
+| d         | FinancialData| 财务数据 |
 
 _响应例子_
 
@@ -514,13 +530,15 @@ _响应例子_
 
 ### /chart/plate/list
 
+板块列表
+
 if code is omited, return all plates
 
 **参数列表**
 
 | name    | type          | optional  | desc        |
 |:--------|:--------------|:----------|:------------|
-| code    | string        | yes       | stock code  |
+| code    | string        | yes       | 股票代码     |
 
 **响应**
 
@@ -528,40 +546,47 @@ Plate
 
 _type: array_
 
-| name | type         | desc                                   |
-|:-----|:-------------|:---------------------------------------|
-| 0    | string       | plate name                             |
-| 1    | float        | plate index change rate                |
-| 2    | int          | main funds (unit = yuan)               |
-| 3    | float        | proportion of big order                |
-| 4    | int          | amount of stocks whose value goes up   |
-| 5    | int          | amount of stocks whose value goes down |
+| name | type         | desc              |
+|:-----|:-------------|:------------------|
+| 0    | string       | 板块名称           |
+| 1    | float        | 扳指涨跌幅          |
+| 2    | int          | 主力资金 (单位 = 元)|
+| 3    | float        | 大单净比           |
+| 4    | int          | 上涨数             |
+| 5    | int          | 下跌书             |
 
 _type: json_
 
-| name       | type         | desc            |
-|:-----------|:-------------|:----------------|
-| concept    | Plate[]      | concept plates  |
-| industry   | Plate[]      | industry blocks |
-
+| name       | type         | desc        |
+|:-----------|:-------------|:------------|
+| concept    | Plate[]      | 概念板块     |
+| industry   | Plate[]      | 行业板块     |
+| i          | int          | 请求间隔 (秒) |
 
 _sample resposne_
 
     {
       s: "ok",
-      d: [
-        ["次新股"],
-        ["软件开发"]
-      ]
+      concept: [
+        ["次新股", 2.31, 85900000, 17.33, 4, 1],
+        ["次新股", 2.31, 85900000, 17.33, 4, 1]
+      ],
+      industry: [
+        ["软件开发", 2.31, 85900000, 17.33, 4, 1],
+        ["软件开发", 2.31, 85900000, 17.33, 4, 1]
+      ],
+      i: 3600
     }
 
 ### /chart/plate/stocks
+
+板块下的股票
 
 **参数列表**
 
 | name    | type          | optional | desc       |
 |:--------|:--------------|:---------|:-----------|
-| plate   | string        | no       | plate name |
+| plate   | string        | no       | 版块名称    |
 
 **响应**
 
@@ -569,19 +594,20 @@ _StockInfo_
 
 _type: array_
 
-| index | type   | desc           |
-|:------|:-------|:---------------|
-| 0     | string | stock code     |
-| 1     | string | stock name     |
-| 2     | float  | price change   |
-| 3     | float  | previous close |
-| 4     | float  | price          |
+| index | type   | desc     |
+|:------|:-------|:---------|
+| 0     | string | 股票代码  |
+| 1     | string | 股票名称  |
+| 2     | float  | 涨跌      |
+| 3     | float  | 前日收盘价 |
+| 4     | float  | 最新价    |
 
 _type: json_
 
 | name      | type         | desc        |
 |:----------|:-------------|:------------|
-| d         | StockInfo[]  | stocks info |
+| d         | StockInfo[]  | 股票列表     |
+| i         | int          | 请求间隔 (秒) |
 
 _响应例子_
 
@@ -592,14 +618,17 @@ _响应例子_
         ["002405", "四维图新", 3.11, 19.63, 20.24],
         ["300465", "高伟达", 1.97, 18.24, 18.6],
         ...
-      ]
+      ],
+      i: 3600
     }
 
 ## 用户接口
 
 ## 二维码登录接口
 
-### qrcodelogin/getqrcode
+### /qrcodelogin/getqrcode
+
+获取二维码
 
 **参数列表**
 
@@ -607,11 +636,11 @@ _响应例子_
 
 **响应**
 
-| name      | type                | desc                           |
-|:----------|:--------------------|:-------------------------------|
-| state     | 'ok' &#124;' error' | response state                 |
-| url       | string              | QR code image url              |
-| token     | string              | token for checking login state |
+| name      | type                | desc           |
+|:----------|:--------------------|:---------------|
+| state     | 'ok' &#124;' error' | response state |
+| url       | string              | 二维码图片地址   |
+| token     | string              | token          |
 
 _响应例子_
 
@@ -621,7 +650,9 @@ _响应例子_
       token: "b6ca73b01823381746cb02c14b052030"
     }
 
-### qrcodelogin/checklogin
+### /qrcodelogin/checklogin
+
+询问二维码登录是否通过
 
 **参数列表**
 
@@ -631,10 +662,10 @@ _响应例子_
 
 **响应**
 
-| name      | type                 | desc                                 |
-|:----------|:---------------------|:-------------------------------------|
-| state     | 'ok' &#124; ' error' | response state                       |
-| code      | 1 &#124; 2 &#124; 3  | 1 stands for waiting for login; 2 stands for login passed; 3 stands for timeout |
+| name      | type                 | desc                         |
+|:----------|:---------------------|:-----------------------------|
+| state     | 'ok' &#124; ' error' | response state               |
+| code      | 1 &#124; 2 &#124; 3  | 1: 未登录; 2: 登录成功; 3: 超时 |
 
 _响应例子_
 
