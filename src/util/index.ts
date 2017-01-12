@@ -23,21 +23,21 @@ export function padRight (n = '', width, z = '0') {
   return n.length >= width ? n : n + new Array(width - n.length + 1).join(z)
 }
 
-export function clientOffset (dom: HTMLElement): { offsetTop: number, offsetLeft: number } {
-  let offsetTop = 0
-  let offsetLeft = 0
+export function clientOffset (dom: HTMLElement): { top: number, left: number } {
+  let top = 0
+  let left = 0
   while (dom !== document.body) {
-    offsetTop += dom.offsetTop
-    offsetLeft += dom.offsetLeft
+    top += dom.offsetTop
+    left += dom.offsetLeft
     dom = dom.offsetParent as HTMLElement
   }
   return {
-    offsetTop,
-    offsetLeft,
+    top,
+    left,
   }
 }
 
-export function formatNumber (num: number, precision = 2): string {
+export function formatNumber (num: number, precision = 0): string {
   if (num / 1e8 >= 1) {
     return (num / 1e8).toFixed(precision) + '亿'
   } else if (num / 1e4 >= 1) {

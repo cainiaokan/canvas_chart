@@ -6,7 +6,6 @@ import { NonRealtimeTools } from '../pollmanager'
 
 type Prop = {
   nonRealtimeTools: NonRealtimeTools
-  width: number
   height: number
 }
 
@@ -38,7 +37,6 @@ export default class NonRealtime extends React.Component<Prop, any> {
   public shouldComponentUpdate (nextProps: Prop, nextState: any) {
     const curProp = this.props
     return curProp.nonRealtimeTools !== nextProps.nonRealtimeTools ||
-      curProp.width !== nextProps.width ||
       curProp.height !== nextProps.height
   }
 
@@ -48,7 +46,6 @@ export default class NonRealtime extends React.Component<Prop, any> {
       <div>
         <h3>非实时工具</h3>
         {
-          nonRealtimeTools ?
           <table className='s-table stripe'>
             <tbody>
               <tr>
@@ -105,7 +102,7 @@ export default class NonRealtime extends React.Component<Prop, any> {
                 <td className='positive'>{nonRealtimeTools.stockForumSentiment}</td>
               </tr>
             </tbody>
-          </table> : null
+          </table>
       }
       </div>
     </div>

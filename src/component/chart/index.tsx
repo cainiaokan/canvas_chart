@@ -10,7 +10,6 @@ import ChartLayout from '../../model/chartlayout'
 import ChartModel from '../../model/chart'
 import Indicator from './indicator'
 import AxisY from './../axisY'
-import { clientOffset } from '../../util'
 
 type Prop = {
   chart: ChartModel
@@ -48,8 +47,6 @@ export default class Chart extends React.Component<Prop, State> {
   private _v: number = 0
   private _momentumTimer: number
 
-  private canvasOffset = null
-
   constructor () {
     super()
     this.state = {
@@ -71,6 +68,7 @@ export default class Chart extends React.Component<Prop, State> {
 
     this.mouseOver = this.mouseOver.bind(this)
     this.mouseOut = this.mouseOut.bind(this)
+
     this.toolTipHandler = this.toolTipHandler.bind(this)
     this.hitHandler = this.hitHandler.bind(this)
     this.defaultCursorChangeHandler = this.defaultCursorChangeHandler.bind(this)
@@ -89,19 +87,21 @@ export default class Chart extends React.Component<Prop, State> {
     const chart = this.props.chart
     const width = ~~this.props.width - AXIS_Y_WIDTH
     const height = ~~this.props.height
+    const canvas = this.refs.canvas
+    const topCanvas = this.refs.topCanvas
 
     chart.width = width
     chart.height = height
 
-    chart.ctx = this.refs.canvas.getContext('2d')
-    chart.topCtx = this.refs.topCanvas.getContext('2d')
-
-    this.canvasOffset = clientOffset(chart.ctx.canvas)
+    chart.ctx = canvas.getContext('2d')
+    chart.topCtx = topCanvas.getContext('2d')
 
     chartLayout.addListener('graph_hover', this.hitHandler)
     chartLayout.addListener('cursor_change', this.defaultCursorChangeHandler)
     chartLayout.addListener('cursor_move', this.toolTipHandler)
     chartLayout.addListener('drawingtool_end', this.toolTipHandler)
+    chartLayout.addListener('editmode_change', this.toolTipHandler)
+
     document.addEventListener('mousemove', this.dragMoveHandler)
     document.addEventListener('touchmove', this.dragMoveHandler)
     document.addEventListener('touchmove', this.gestureMoveHandler)
@@ -115,6 +115,9 @@ export default class Chart extends React.Component<Prop, State> {
     chartLayout.removeListener('graph_hover', this.hitHandler)
     chartLayout.removeListener('cursor_change', this.defaultCursorChangeHandler)
     chartLayout.removeListener('cursor_move', this.toolTipHandler)
+    chartLayout.removeListener('drawingtool_end', this.toolTipHandler)
+    chartLayout.removeListener('editmode_change', this.toolTipHandler)
+
     document.removeEventListener('mousemove', this.dragMoveHandler)
     document.removeEventListener('touchmove', this.dragMoveHandler)
     document.removeEventListener('touchmove', this.gestureMoveHandler)
@@ -141,7 +144,6 @@ export default class Chart extends React.Component<Prop, State> {
       topCanvas.getContext('2d')
       chart.width = width
       chart.height = height
-      this.canvasOffset = clientOffset(chart.ctx.canvas)
     }
   }
 
@@ -179,12 +181,11 @@ export default class Chart extends React.Component<Prop, State> {
         </canvas>
         {
           this.state.showEditModeToolTip ?
-          <div
-            className='edit-mode-tooltip'
-            style={ {
-              right: this.state.toolTipX + 'px',
-              bottom: this.state.toolTipY + 'px',
-            } }>
+          <div className='edit-mode-tooltip'
+               style={ {
+                 right: this.state.toolTipX + 'px',
+                 bottom: this.state.toolTipY + 'px',
+               } }>
             1.拖动十字线定义第一点.<br/>
             2.点击任意位置确定第一个停止位置
           </div> : null
@@ -212,9 +213,11 @@ export default class Chart extends React.Component<Prop, State> {
     clearTimeout(this._momentumTimer)
   }
 
-  private toolTipHandler (point?: {x: number, y: number}) {
-    const chart = this.props.chartLayout
-    if (chart.isEditMode) {
+  private toolTipHandler () {
+    const chartLayout = this.props.chartLayout
+    const chart = this.props.chart
+    const point = chart.crosshair.point
+    if (chart.hover && chartLayout.isEditMode) {
       const width = ~~this.props.width - AXIS_Y_WIDTH
       const height = ~~this.props.height
       this.setState({
@@ -249,10 +252,10 @@ export default class Chart extends React.Component<Prop, State> {
   private mouseDownHandler (ev: any) {
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
-    const offset = this.canvasOffset
+    const offset = chart.offset
     const curPoint = {
-      x: ev.pageX - offset.offsetLeft,
-      y: ev.pageY - offset.offsetTop,
+      x: ev.pageX - offset.left,
+      y: ev.pageY - offset.top,
     }
 
     if (chartLayout.mainDatasource.loaded() === 0) {
@@ -310,10 +313,10 @@ export default class Chart extends React.Component<Prop, State> {
     const isDoubleTouch = ev.touches.length === 2
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
-    const offset = this.canvasOffset
+    const offset = chart.offset
     const curPoint = {
-      x: ev.touches[0].pageX - offset.offsetLeft,
-      y: ev.touches[0].pageY - offset.offsetTop,
+      x: ev.touches[0].pageX - offset.left,
+      y: ev.touches[0].pageY - offset.top,
     }
 
     // 触摸事件时阻止鼠标事件
@@ -329,7 +332,9 @@ export default class Chart extends React.Component<Prop, State> {
     chartLayout.cancelSelectedGraph()
 
     // 设置hover chart
-    chartLayout.setHoverChart(chart)
+    if (!chart.hover) {
+      chartLayout.setHoverChart(chart)
+    }
 
     // 停止动量滚动
     this.stopMomentum()
@@ -462,10 +467,10 @@ export default class Chart extends React.Component<Prop, State> {
   private mouseMoveHandler (ev: any) {
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
-    const offset = this.canvasOffset
+    const offset = chart.offset
     const point = {
-      x: ev.pageX - offset.offsetLeft,
-      y: ev.pageY - offset.offsetTop,
+      x: ev.pageX - offset.left,
+      y: ev.pageY - offset.top,
     }
 
     chartLayout.setCursorPoint(point)
@@ -481,10 +486,10 @@ export default class Chart extends React.Component<Prop, State> {
   private touchMoveHandler (ev: any) {
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
-    const offset = this.canvasOffset
+    const offset = chart.offset
     const point = {
-      x: ev.touches[0].pageX - offset.offsetLeft,
-      y: ev.touches[0].pageY - offset.offsetTop,
+      x: ev.touches[0].pageX - offset.left,
+      y: ev.touches[0].pageY - offset.top,
     }
 
     if (this._pinchHorzStart || this._pinchVertStart) {
@@ -514,14 +519,14 @@ export default class Chart extends React.Component<Prop, State> {
       const chartLayout = this.props.chartLayout
       const axisX = chart.axisX
       const axisY = chart.axisY
-      const offset = this.canvasOffset
+      const offset = chart.offset
       const point = isTouchEvent ? {
-          x: ev.touches[0].pageX - offset.offsetLeft,
-          y: ev.touches[0].pageY - offset.offsetTop,
+          x: ev.touches[0].pageX - offset.left,
+          y: ev.touches[0].pageY - offset.top,
         } :
         {
-          x: ev.pageX - offset.offsetLeft,
-          y: ev.pageY - offset.offsetTop,
+          x: ev.pageX - offset.left,
+          y: ev.pageY - offset.top,
         }
 
       // 编辑画图工具
@@ -531,8 +536,8 @@ export default class Chart extends React.Component<Prop, State> {
         const offsetIndex = curBarX >= oldBarX ?
                             ~~((curBarX - oldBarX) / axisX.barWidth + 0.5) :
                             ~~((curBarX - oldBarX) / axisX.barWidth - 0.5)
-        const offsetValue = axisY.getValueByY(point.y - offset.offsetTop) -
-                            axisY.getValueByY(this._dragPosY - offset.offsetTop)
+        const offsetValue = axisY.getValueByY(point.y - offset.top) -
+                            axisY.getValueByY(this._dragPosY - offset.top)
 
         chart.editingDrawingTool.moveBy(offsetIndex, offsetValue)
 

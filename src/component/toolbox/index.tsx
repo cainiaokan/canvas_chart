@@ -58,15 +58,17 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this.props.chartLayout.addListener('drawingtool_begin', this.resetTool)
-    this.props.chartLayout.addListener('drawingtool_remove', this.resetTool)
+    const chartLayout = this.props.chartLayout
+    chartLayout.addListener('drawingtool_begin', this.resetTool)
+    chartLayout.addListener('drawingtool_remove', this.resetTool)
     document.addEventListener('mousedown', this.hideMoreTools)
     document.addEventListener('touchstart', this.hideMoreTools)
   }
 
   public componentWillUnmount () {
-    this.props.chartLayout.removeListener('drawingtool_begin',  this.resetTool)
-    this.props.chartLayout.removeListener('drawingtool_remove', this.resetTool)
+    const chartLayout = this.props.chartLayout
+    chartLayout.removeListener('drawingtool_begin',  this.resetTool)
+    chartLayout.removeListener('drawingtool_remove', this.resetTool)
     document.removeEventListener('mousedown', this.hideMoreTools)
     document.removeEventListener('touchstart', this.hideMoreTools)
   }
@@ -180,8 +182,8 @@ export default class ToolBox extends React.Component<Prop, State> {
         default:
           break
       }
-      this.resetTool()
       chartLayout.isEditMode = false
+      this.resetTool()
     } else if (index1 === toolsList.length - 1) {
       chartLayout.willEraseDrawingTool = true
       this.setState({

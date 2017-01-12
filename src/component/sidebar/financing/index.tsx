@@ -6,7 +6,6 @@ import { FinancingInfo } from '../pollmanager'
 
 type Prop = {
   financingInfo: FinancingInfo
-  width: number
   height: number
 }
 
@@ -37,8 +36,7 @@ export default class Financing extends React.Component<Prop, any> {
 
   public shouldComponentUpdate (nextProps: Prop, nextState: any) {
     const curProp = this.props
-    return curProp.financingInfo !== nextProps.financingInfo ||
-           curProp.width !== nextProps.width
+    return curProp.financingInfo !== nextProps.financingInfo
   }
 
   public render () {
@@ -121,7 +119,7 @@ export default class Financing extends React.Component<Prop, any> {
         </table>
       </div>
     </div> :
-    <div className='financing' ref='financing'  style={ {height: this.props.height + 'px'} }>
+    <div className='financing' ref='financing' style={ {height: this.props.height + 'px'} }>
       <div className='no-financing-info'>无财务信息</div>
     </div>
   }

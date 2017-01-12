@@ -73,6 +73,7 @@ export default class ChartLayoutModel extends EventEmitter {
   private _mainDatasource: StockDatasource
   private _mainChart: ChartModel
   private _defaultCursor: 'crosshair' | 'default'
+  // 是否处于画图编辑模式（只有触屏下才会触发，因为触屏下画图编辑方式跟PC有区别）
   private _isEditMode = false
 
   /**
@@ -468,12 +469,17 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   public addChart (chart: ChartModel) {
+    const point = this._mainChart ? this._mainChart.crosshair.point : {x: 0, y: 0}
     if (chart.isMain) {
       if (this._mainChart) {
         throw new Error('can only has one main chart')
       }
       this._mainChart = chart
     }
+    chart.crosshair.point = point ? {
+      x: point.x,
+      y: point.y,
+    } : null
     this._charts.push(chart)
     this.emit('chart_add', chart)
   }

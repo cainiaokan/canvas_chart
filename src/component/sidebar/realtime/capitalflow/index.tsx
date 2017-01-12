@@ -66,8 +66,8 @@ export default class CapitalFlow extends React.Component<Prop, State> {
 
   public render () {
     const capitalFlowInfo = this.props.capitalFlowInfo
-    const donutChartData = capitalFlowInfo ? capitalFlowInfo.donutChartData : null
-    const barChartData = capitalFlowInfo ? capitalFlowInfo.barChartData : null
+    const donutChartData = capitalFlowInfo.donutChartData
+    const barChartData = capitalFlowInfo.barChartData
 
     return (
       <div className='chart-capital-flow'
@@ -101,8 +101,8 @@ export default class CapitalFlow extends React.Component<Prop, State> {
       label: data.label,
       value: data.value,
       color: data.color,
-      left: data.pageX - offset.offsetLeft,
-      top: data.pageY - offset.offsetTop,
+      left: data.pageX - offset.left,
+      top: data.pageY - offset.top,
     })
   }
 

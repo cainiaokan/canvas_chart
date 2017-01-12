@@ -9,16 +9,18 @@ import GraphModel from './graph'
 import { BaseToolRenderer } from '../graphic/tool'
 import GridRenderer from '../graphic/grid'
 import WaterMarkRenerer from '../graphic/watermark'
+import { clientOffset } from '../util'
 
 let sequence = 1
 
 export default class ChartModel extends EventEmitter {
-  public hover: boolean = false
   public width: number
   public height: number
   public ctx: CanvasRenderingContext2D
   public topCtx: CanvasRenderingContext2D
+  // 创建中的画图工具
   public creatingDrawingTool: BaseToolRenderer
+  // 编辑中的画图工具
   public editingDrawingTool: BaseToolRenderer
 
   private _chartLayout: ChartLayout
@@ -33,8 +35,11 @@ export default class ChartModel extends EventEmitter {
   private _isPrice: boolean
   private _isMain: boolean
   private _isValid = false
+  private _hover: boolean = false
   private _isHit = false
   private _id = 0
+  // chart canvas 距离页面左上角的偏移量（方便计算curosr位置使用）
+  private _offset: {top: number, left: number}
 
   constructor (
     chartLayout: ChartLayout,
@@ -126,6 +131,21 @@ export default class ChartModel extends EventEmitter {
 
   get isHit (): boolean {
     return this._isHit
+  }
+
+  get hover (): boolean {
+    return this._hover
+  }
+
+  set hover (hover: boolean) {
+    this._hover = hover
+    if (this.ctx) {
+      this._offset = clientOffset(this.ctx.canvas)
+    }
+  }
+
+  get offset (): {left: number, top: number} {
+    return this._offset
   }
 
   get isValid (): boolean {

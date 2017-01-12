@@ -6,7 +6,6 @@ import { getStockListByPlate } from '../../../datasource'
 
 type Prop = {
   plates: PlateList
-  width: number
   height: number
 }
 
@@ -63,7 +62,6 @@ export default class Plates extends React.Component<Prop, State> {
     const curProp = this.props
     const curState = this.state
     return curProp.plates !== nextProps.plates ||
-      curProp.width !== nextProps.width ||
       curProp.height !== nextProps.height ||
       curState.stocks !== nextState.stocks ||
       curState.activeIndex !== nextState.activeIndex

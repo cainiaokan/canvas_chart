@@ -293,9 +293,6 @@ export default class PollManager extends EventEmitter {
   }
 
   private pollStockInfo () {
-    // if (this._tabIndex !== 0) {
-    //   return this._timers.stockInfo = setTimeout(this.pollStockInfo, this._refreshDelay.stockInfo)
-    // }
     getStockInfo(this._symbolInfo.symbol)
       .then(response =>
         response.json()

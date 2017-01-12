@@ -7,7 +7,6 @@ import CapitalFlow from './capitalflow'
 import { StockInfo, CapitalFlowInfo } from '../pollmanager'
 
 type Prop = {
-  width: number
   height: number
   stockInfo: StockInfo
   capitalFlowInfo: CapitalFlowInfo
@@ -33,7 +32,6 @@ export default class Realtime extends React.Component<Prop, State> {
     const curState = this.state
     return curProp.stockInfo !== nextProps.stockInfo ||
       curProp.capitalFlowInfo !== nextProps.capitalFlowInfo ||
-      curProp.width !== nextProps.width ||
       curProp.height !== nextProps.height ||
       curState.tabIndex !== nextState.tabIndex
   }
@@ -42,8 +40,8 @@ export default class Realtime extends React.Component<Prop, State> {
     const height = this.props.height
     const stockInfo = this.props.stockInfo
     const capitalFlowInfo = this.props.capitalFlowInfo
-    const showBidList = stockInfo && stockInfo.selling && stockInfo.buying
-    const showTab =  stockInfo && stockInfo.ticks.length
+    const showBidList = stockInfo.selling && stockInfo.buying
+    const showTab =  stockInfo.ticks.length
 
     let bidListHeightRatio = 0
     let stockDetailHeightRatio = 0
@@ -70,10 +68,14 @@ export default class Realtime extends React.Component<Prop, State> {
     return <div className='realtime-info'>
       {
         showBidList ?
-        <BidList stockInfo={stockInfo} maxHeight={height * bidListHeightRatio} /> : null
+        <BidList
+          stockInfo={stockInfo}
+          maxHeight={height * bidListHeightRatio} /> : null
       }
 
-      <StockDetail stockInfo={stockInfo} maxHeight={height * stockDetailHeightRatio} /> : null
+      <StockDetail
+        stockInfo={stockInfo}
+        maxHeight={height * stockDetailHeightRatio} /> : null
 
       {
         showTab ?

@@ -1,0 +1,55 @@
+.chart-sidebar-briefing {
+  font-size: 16px;
+
+  overflow: hidden;
+
+  width: 268px;
+  height: 76px;
+  .stock-data {
+    font-size: 12px;
+    line-height: 44px;
+    .price {
+      font-size: 24px;
+      font-weight: bold;
+
+      margin-left: 16px;
+
+      vertical-align: bottom;
+
+      border-bottom: 1px dotted currentColor;
+      > svg {
+        width: 10px;
+        height: 12px;
+        margin-left: 4px;
+
+        fill: #b71c1c;
+      }
+    }
+  }
+  .negtive .price > svg {
+    -webkit-transform: rotate(180deg);
+            transform: rotate(180deg);
+
+    fill: #00796b;
+  }
+  .pressure-support {
+    font-size: 13px;
+
+    background: #f4f5f8;
+    > span {
+      line-height: 32px;
+
+      display: inline-block;
+
+      width: 50%;
+
+      text-align: center;
+    }
+    .pressure b {
+      color: #ff9c00;
+    }
+    .support b {
+      color: #2b89cc;
+    }
+  }
+}
