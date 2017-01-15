@@ -1,25 +1,27 @@
-.s-table {
-  line-height: 30px;
+.chart-layout {
+  .s-table {
+    line-height: 30px;
 
-  display: block;
+    width: 100%;
 
-  width: 100%;
+    text-align: right;
+    tr td:first-child,
+    tr th:first-child {
+      padding-left: 10px;
 
-  text-align: right;
-  tr td:first-child {
-    padding-left: 10px;
-
-    text-align: left;
+      text-align: left;
+    }
+    tr td:last-child,
+    tr th:last-child, {
+      padding-right: 10px;
+    }
   }
-  tr td:last-child {
-    padding-right: 10px;
-  }
-}
-.stripe {
-  tr:nth-child(even) {
-    background: #f8fafb;
-  }
-  tr:hover {
-    background: #edf1f2!important;
+  .stripe {
+    tr:nth-child(even) {
+      background: #f8fafb;
+    }
+    tr:hover {
+      background: #edf1f2!important;
+    }
   }
 }

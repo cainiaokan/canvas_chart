@@ -2,30 +2,25 @@
   display: inline-block;
 
   margin: 5px 5px 0;
-  .btn {
-    min-width: 102px;
 
+  border: 1px solid #e0e0e0;
+  border-bottom: none;
+  button {
+    min-width: 102px;
+    height: 30px;
+
+    border: none;
     background-color: #eff1f4;
     &:hover {
       background-color: #fff;
     }
     &.active {
-      border-bottom: none;
       background-color: #fff;
     }
   }
-  .folded .btn {
-    border-bottom: none;
-    &:hover {
-      border-bottom: none;
-    }
-  }
   .panel-board {
-    height: 320px;
-    margin-top: -1px;
+    height: 290px;
 
-    border: 1px solid #e0e0e0;
-    border-bottom: none;
     background-color: #fff;
   }
 }

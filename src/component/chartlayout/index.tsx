@@ -105,15 +105,16 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   constructor () {
     super()
+    const chartLayout = new ChartLayoutModel()
     this.state = {
-      sidebarFolded: false,
+      sidebarFolded: chartLayout.readFromLS('qchart.sidebar.folded'),
       footerPanelFolded: true,
       loaded: false,
       symbolType: '',
     }
     this.updateView = this.updateView.bind(this)
     this.wheelHandler = this.wheelHandler.bind(this)
-    this._chartLayoutModel = new ChartLayoutModel()
+    this._chartLayoutModel = chartLayout
   }
 
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
@@ -125,7 +126,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
       this.props.scrollable = false
       this.props.scalable = false
     }
-    this.state.resolution = this.props.resolution
+    this.state.resolution =
+      this._chartLayoutModel.readFromLS('qchart.resolution') ||
+      this.props.resolution
     this.state.right = this.props.right
   }
 
@@ -135,17 +138,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
     this.prepareMainChart()
 
-    const mainDatasource = chartLayout.mainDatasource
-
     Promise.all([
       chartLayout.getServerTime(),
-      mainDatasource.resolveSymbol(),
+      chartLayout.mainDatasource.resolveSymbol(),
       chartLayout.loadHistory(),
     ])
     .then(() => {
       this.setState({
         loaded: true,
-        symbolType: mainDatasource.symbolInfo.type,
       })
       spinner.stop()
       setTimeout(() => {
@@ -322,7 +322,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <Navbar
             resolution={this.state.resolution}
             chartLayout={chartLayoutModel}
-            symbolType={this.state.symbolType}
             width={availWidth}
             right={this.state.right} /> : null
         }

@@ -1,7 +1,9 @@
 import './index.less'
 import '../../style/btn.less'
+import '../../style/popup_menu.less'
 
 import * as React from 'react'
+import * as _ from 'underscore'
 import ChartLayoutModel from '../../model/chartlayout'
 import PollManager, { PollData } from './pollmanager'
 import Realtime from './realtime'
@@ -21,6 +23,7 @@ type Prop = {
 }
 
 type State = {
+  popUpOprList?: boolean
   tabIndex?: number
 }
 
@@ -74,10 +77,14 @@ export default class Sidebar extends React.Component<Prop, State> {
     super()
     this.state = {
       tabIndex: 0,
+      popUpOprList: false,
     }
     this.onDataHandler = this.onDataHandler.bind(this)
     this.switchTabPage = this.switchTabPage.bind(this)
     this.symbolChangeHandler = this.symbolChangeHandler.bind(this)
+    this.foldingBtnClickHandler = this.foldingBtnClickHandler.bind(this)
+    this.showMoreOprHandler = this.showMoreOprHandler.bind(this)
+    this.hideMoreResolutionHandler = this.hideMoreResolutionHandler.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
@@ -85,7 +92,7 @@ export default class Sidebar extends React.Component<Prop, State> {
     return curProps.folded !== nextProps.folded ||
            curProps.height !== nextProps.height ||
            curProps.width !== nextProps.width ||
-           this.state.tabIndex !== nextState.tabIndex
+           !_.isEqual(this.state, nextState)
   }
 
   public componentDidMount () {
@@ -95,6 +102,8 @@ export default class Sidebar extends React.Component<Prop, State> {
     this._pollManager = new PollManager(symbolInfo)
     this._pollManager.addListener('data', this.onDataHandler)
     chartLayout.addListener('symbol_change', this.symbolChangeHandler)
+    document.addEventListener('mousedown', this.hideMoreResolutionHandler)
+    document.addEventListener('touchstart', this.hideMoreResolutionHandler)
     this._pollManager.start()
   }
 
@@ -102,6 +111,8 @@ export default class Sidebar extends React.Component<Prop, State> {
     const chartLayout = this.props.chartLayout
     this._pollManager.removeListener('data', this.onDataHandler)
     chartLayout.removeListener('symbol_change', this.symbolChangeHandler)
+    document.removeEventListener('mousedown', this.hideMoreResolutionHandler)
+    document.removeEventListener('touchstart', this.hideMoreResolutionHandler)
     this._pollManager.stop()
     this._pollManager = null
   }
@@ -161,13 +172,24 @@ export default class Sidebar extends React.Component<Prop, State> {
       width: this.props.width,
     } }>
       {
-        !this.props.folded && stockInfo ? <Briefing
-        symbolInfo={chartLayout.mainDatasource.symbolInfo}
-        stockInfo={stockInfo} /> : null
+        !this.props.folded && stockInfo ?
+        <Briefing
+          symbolInfo={chartLayout.mainDatasource.symbolInfo}
+          stockInfo={stockInfo} /> : null
       }
       <div className='data-window-tabs'>
         <ul className='tab-list'>
-          <div className='btn btn-more'><i></i></div>
+          <a href='javascript:;'
+             className='btn btn-more'
+             onClick={this.showMoreOprHandler}>
+            <i></i>
+          </a>
+          {
+            this.state.popUpOprList ?
+            <ul className='popup-menu'>
+              <li>加入自选股</li>
+            </ul> : null
+          }
           {
             tabsConfig.map((tab, i) =>
               <li key={i}
@@ -186,7 +208,7 @@ export default class Sidebar extends React.Component<Prop, State> {
       </div>
       <a href='javascript:;'
          className={`sidebar-folding-btn ${this.props.folded ? 'folded' : ''}`}
-         onClick={this.foldingBtnClickHandler.bind(this)}>
+         onClick={this.foldingBtnClickHandler}>
         <span></span>
       </a>
     </div>
@@ -198,7 +220,23 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   private foldingBtnClickHandler () {
-    this.props.chartLayout.emit('sidebar_toggle', !this.props.folded)
+    const chartLayout = this.props.chartLayout
+    const folded = !this.props.folded
+    chartLayout.saveToLS('qchart.sidebar.folded', folded)
+    chartLayout.emit('sidebar_toggle', folded)
+  }
+
+  private showMoreOprHandler () {
+    this.setState({ popUpOprList: true })
+  }
+
+  private hideMoreResolutionHandler (ev) {
+    if (this.state.popUpOprList) {
+      if (!!ev.touches) {
+        ev.preventDefault()
+      }
+      this.setState({ popUpOprList: false })
+    }
   }
 
   private switchTabPage (ev) {

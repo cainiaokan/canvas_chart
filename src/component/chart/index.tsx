@@ -313,11 +313,6 @@ export default class Chart extends React.Component<Prop, State> {
     const isDoubleTouch = ev.touches.length === 2
     const chartLayout = this.props.chartLayout
     const chart = this.props.chart
-    const offset = chart.offset
-    const curPoint = {
-      x: ev.touches[0].pageX - offset.left,
-      y: ev.touches[0].pageY - offset.top,
-    }
 
     // 触摸事件时阻止鼠标事件
     ev.preventDefault()
@@ -338,6 +333,12 @@ export default class Chart extends React.Component<Prop, State> {
 
     // 停止动量滚动
     this.stopMomentum()
+
+    const offset = chart.offset
+    const curPoint = {
+      x: ev.touches[0].pageX - offset.left,
+      y: ev.touches[0].pageY - offset.top,
+    }
 
     // 单指非编辑模式下
     if (isSingleTouch) {

@@ -36,10 +36,6 @@ export type MA_PROP = {
   isVisible: boolean
 }
 
-export type MA_PROPS = {
-  [propName: string]: MA_PROP[]
-}
-
 export const DEFAULT_MA_PROPS: MA_PROP[] = [{
   length: 5,
   color: 'rgb(255,0,0)',
@@ -66,7 +62,6 @@ export default class ChartLayoutModel extends EventEmitter {
   public selectedDrawingTool: BaseToolRenderer
   public willEraseDrawingTool: boolean = false
 
-  private _maProps: MA_PROPS
   private _maStudies: StudyModel[]
   private _charts: ChartModel[]
   private _axisx: AxisXModel
@@ -94,7 +89,7 @@ export default class ChartLayoutModel extends EventEmitter {
 
   constructor () {
     super()
-    this._maProps = {}
+    // this._maProps = {}
     this._maStudies = []
     this._charts = []
     this.pulseUpdate = this.pulseUpdate.bind(this)
@@ -134,12 +129,16 @@ export default class ChartLayoutModel extends EventEmitter {
     return this._defaultCursor
   }
 
-  get maProps (): MA_PROPS {
-    return this._maProps
+  get maProps (): MA_PROP[] {
+    return this.readFromLS(`qchart.studies.props.ma[${this.mainDatasource.resolution}]`)
+  }
+
+  set maProps (prop: MA_PROP[]) {
+    this.saveToLS(`qchart.studies.props.ma[${this.mainDatasource.resolution}]`, prop)
   }
 
   get maStudies (): StudyModel[] {
-    return this._maStudies.slice(0)
+    return this._maStudies
   }
 
   get isEditMode () {
@@ -157,6 +156,21 @@ export default class ChartLayoutModel extends EventEmitter {
       })
     }
     this.emit('editmode_change', isEditMode)
+  }
+
+  public saveToLS (key: string, value: any) {
+    if (value !== void 0) {
+      localStorage[key] = JSON.stringify(value)
+    }
+  }
+
+  public readFromLS (key: string): any {
+    return localStorage.hasOwnProperty(key) ?
+      JSON.parse(localStorage[key]) : null
+  }
+
+  public deleteFromLS (key: string) {
+    delete localStorage[key]
   }
 
   public setHoverChart (hoverChart: ChartModel) {
@@ -492,6 +506,7 @@ export default class ChartLayoutModel extends EventEmitter {
   public resetStudies () {
     const mainChart = this._mainChart
     const datasource = mainChart.datasource
+    const maProps = this.maProps || DEFAULT_MA_PROPS
 
     if (datasource.resolution === '1') {
       if (datasource instanceof StockDatasource &&
@@ -507,8 +522,8 @@ export default class ChartLayoutModel extends EventEmitter {
         mainChart.addGraph(this._maStudies[0])
       }
     } else {
-      DEFAULT_MA_PROPS.forEach((defaultMAProps, i) => {
-        this._maStudies.length = 0
+      this._maStudies.length = 0
+      maProps.forEach((defaultMAProps, i) => {
         const ma = new StudyModel(
           mainChart,
           'MA',
@@ -536,9 +551,8 @@ export default class ChartLayoutModel extends EventEmitter {
     const resolution = datasource.resolution
     const symbolInfo = datasource.symbolInfo
     const maStudies = this._maStudies
-    const maProps = this._maProps[resolution] || DEFAULT_MA_PROPS
-    const reset = (fromResolution > '1' && resolution === '1') ||
-                  (fromResolution === '1' && resolution > '1')
+    const maProps = this.maProps || DEFAULT_MA_PROPS
+    const reset = +(fromResolution === '1') ^ +(resolution === '1')
 
     // 分时和K线之间切换时，清空所有指标
     if (reset) {
@@ -646,12 +660,12 @@ export default class ChartLayoutModel extends EventEmitter {
 
   /**
    * 修改图形参数
-   * @param {StudyModel}                              study           指标对象
-   * @param {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}      config   参数
+   * @param {StudyModel} graph
+   * @param {input?: any[], isVisible?: boolean, styles?: ChartStyle[]} config 参数
    */
-  public modifyGraph (study: StudyModel, config: {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}) {
-    study.clearCache()
-    Object.keys(config).forEach(key => study[key] = config[key])
+  public modifyGraph (graph: StudyModel, config: {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}) {
+    graph.clearCache()
+    Object.keys(config).forEach(key => graph[key] = config[key])
     this.emit('graph_modify')
   }
 

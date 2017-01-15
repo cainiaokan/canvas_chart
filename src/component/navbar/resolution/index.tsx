@@ -1,5 +1,7 @@
 import './index.less'
 import '../../../style/btn.less'
+import '../../../style/popup_menu.less'
+
 import * as React from 'react'
 import * as _ from 'underscore'
 import { ResolutionType } from '../../../constant'
@@ -83,7 +85,7 @@ export default class ResolutionOption extends React.Component<Prop, State> {
         </a>
         {
           this.state.showMoreResolution ?
-          <ul className='more-resolution'>
+          <ul className='popup-menu'>
             {
               moreResolution.map(resolution =>
                 <li key={resolution} data-value={resolution}
@@ -102,9 +104,12 @@ export default class ResolutionOption extends React.Component<Prop, State> {
     if (!!ev.touches) {
       ev.preventDefault()
     }
+
+    const chartLayout = this.props.chartLayout
     const resolution = ev.target.dataset.value
     if (this.props.resolution !== resolution) {
-      this.props.chartLayout.setResolution(resolution)
+      chartLayout.saveToLS('qchart.resolution', resolution)
+      chartLayout.setResolution(resolution)
     }
   }
 

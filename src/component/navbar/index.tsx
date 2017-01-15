@@ -13,7 +13,6 @@ import ChartLayoutModel from '../../model/chartlayout'
 type Prop = {
   chartLayout: ChartLayoutModel
   resolution: ResolutionType
-  symbolType: string
   width: number
   right?: 0 | 1 | 2
 }
@@ -21,7 +20,6 @@ type Prop = {
 export default class Navbar extends React.Component<Prop, any> {
   public static defaultProps = {
     right: 1,
-    symbolType: '',
   }
 
   constructor () {
@@ -32,7 +30,6 @@ export default class Navbar extends React.Component<Prop, any> {
   public shouldComponentUpdate (nextProps: Prop) {
     const curProp = this.props
     return curProp.resolution !== nextProps.resolution ||
-           curProp.symbolType !== nextProps.symbolType ||
            curProp.width !== nextProps.width ||
            curProp.right !== nextProps.right
   }
@@ -52,7 +49,7 @@ export default class Navbar extends React.Component<Prop, any> {
           this.props.resolution > '1' ? <MASetting chartLayout={chartLayout} /> : null
         }
         {
-          this.props.symbolType === 'stock' ?
+          chartLayout.mainDatasource.symbolInfo.type === 'stock' ?
           <RightOption chartLayout={chartLayout} right={this.props.right} /> : null
         }
       </div>

@@ -178,7 +178,7 @@ export default class Legend extends React.Component<Prop, State> {
                 量&nbsp;{!!cur ? formatNumber(cur.volume) + '手' : 'N/A'}
               </div>
               <div className='chart-legend-item'>
-                额&nbsp;{!!cur ? formatNumber(cur.amount) : 'N/A'}
+                额&nbsp;{!!cur ? formatNumber(cur.amount, 2) : 'N/A'}
               </div>
             </div>
           })

@@ -40,7 +40,7 @@ export default class MASettings extends React.Component<Prop, State> {
 
   public render () {
     const chartLayout = this.props.chartLayout
-    const maProps = chartLayout.maProps[chartLayout.mainDatasource.resolution] || DEFAULT_MA_PROPS
+    const maProps = chartLayout.maProps || DEFAULT_MA_PROPS
     return <div className='chart-btn-group'>
       <button className='btn' onClick={this.showDialogHandler}>均线</button>
       {
@@ -87,8 +87,7 @@ export default class MASettings extends React.Component<Prop, State> {
 
   private showDialogHandler () {
     const chartLayout = this.props.chartLayout
-    const resolution = chartLayout.mainDatasource.resolution
-    this._maProps = chartLayout.maProps[resolution] || cloneObj(DEFAULT_MA_PROPS)
+    this._maProps = chartLayout.maProps || cloneObj(DEFAULT_MA_PROPS)
     this._originMAProps = cloneObj(this._maProps)
     this.setState({ showDialog: true })
   }
@@ -101,34 +100,31 @@ export default class MASettings extends React.Component<Prop, State> {
 
   private checkStateChangeHandler (ev) {
     const chartLayout = this.props.chartLayout
-    const resolution = chartLayout.mainDatasource.resolution
     const isVisible = ev.target.checked
     const index = +ev.target.value
     const study = chartLayout.maStudies[index]
     const maProps = this._maProps
 
     maProps[index].isVisible = isVisible
-    chartLayout.maProps[resolution] = maProps
+    chartLayout.maProps = maProps
     chartLayout.modifyGraph(study, { isVisible })
   }
 
   private inputChangeHandler (ev) {
     const chartLayout = this.props.chartLayout
-    const resolution = chartLayout.mainDatasource.resolution
     const index = ev.target.dataset.index
     const value = +ev.target.value
     const study = chartLayout.maStudies[index]
     const maProps = this._maProps
 
     maProps[index].length = value
-    chartLayout.maProps[resolution] = maProps
+    chartLayout.maProps = maProps
     chartLayout.modifyGraph(study, { input: [value] })
   }
 
   private colorChangeHandler (index) {
     return (color => {
       const chartLayout = this.props.chartLayout
-      const resolution = chartLayout.mainDatasource.resolution
       const maProps = this._maProps
       const study = chartLayout.maStudies[index]
       const styles = study.styles
@@ -136,14 +132,13 @@ export default class MASettings extends React.Component<Prop, State> {
       maProps[index].color = color
       styles[0].color = color
 
-      chartLayout.maProps[resolution] = maProps
+      chartLayout.maProps = maProps
       chartLayout.modifyGraph(study, { styles })
     }).bind(this)
   }
 
   private cancelHandler () {
     const chartLayout = this.props.chartLayout
-    const resolution = chartLayout.mainDatasource.resolution
     const maStudies = chartLayout.maStudies
     const maProps = this._maProps
     const originMAProps = this._originMAProps
@@ -159,7 +154,7 @@ export default class MASettings extends React.Component<Prop, State> {
         })
       }
     })
-    chartLayout.maProps[resolution] = originMAProps
+    chartLayout.maProps = originMAProps
     this.closeDialogHandler()
   }
 }

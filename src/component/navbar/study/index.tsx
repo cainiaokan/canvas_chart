@@ -1,5 +1,7 @@
 import './index.less'
 import '../../../style/btn.less'
+import '../../../style/popup_menu.less'
+
 import * as React from 'react'
 import * as _ from 'underscore'
 import ChartLayoutModel from '../../../model/chartlayout'
@@ -46,7 +48,7 @@ export default class StudySelector extends React.Component<Prop, State> {
       <button className='btn' onClick={this.showMoreIndicatorHandler}>指标</button>
       {
         this.state.showStudySelector ?
-        <ul className='more-indicator'
+        <ul className='popup-menu'
             onMouseDown={this.indicatorSelectHandler}
             onTouchStart={this.indicatorSelectHandler}>
           {

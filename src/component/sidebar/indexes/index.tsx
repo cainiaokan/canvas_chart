@@ -27,6 +27,8 @@ export default class Indexes extends React.Component<Prop, State> {
 
   private _indexesScroll
 
+  private _highLightTimeout
+
   constructor () {
     super()
     this.state = {
@@ -44,6 +46,7 @@ export default class Indexes extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
+    clearTimeout(this._highLightTimeout)
     this._indexesScroll.destroy()
     this._indexesScroll = null
   }
@@ -98,7 +101,7 @@ export default class Indexes extends React.Component<Prop, State> {
     if (this.state.highlightFinished) {
       this.state.highlightFinished = false
     } else {
-      setTimeout(() => this.setState({ highlightFinished: true}), 500)
+      this._highLightTimeout = setTimeout(() => this.setState({ highlightFinished: true}), 500)
     }
 
     return <div className='chart-indexes' style={ {height: this.props.height + 'px'} } ref='indexes'>
@@ -109,7 +112,9 @@ export default class Indexes extends React.Component<Prop, State> {
             <h3>股指</h3>
             <table className='index-table s-table stripe'>
               <tbody>
-                <tr data-symbol={'sh000001'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
+                <tr data-symbol={'sh000001'}
+                    onClick={this.selectIndex}
+                    onTouchStart={this.selectIndex}>
                   <td width='70'>上证指数</td>
                   <td width='70' className={`${classList.sh000001} ${mutations.sh000001}`}>
                     <span>{indexesInfo.sh000001.price}</span>

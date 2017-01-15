@@ -115,6 +115,9 @@ export default class Plates extends React.Component<Prop, State> {
   }
 
   private selectPlate (ev) {
+    if (ev.touches) {
+      ev.preventDefault()
+    }
     const index = +ev.target.dataset.index
     if (index === this.state.activeIndex) {
       this.cancelStockListTimer()
