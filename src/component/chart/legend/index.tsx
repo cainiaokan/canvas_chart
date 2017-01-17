@@ -4,7 +4,7 @@ import '../../../style/btn.less'
 import * as React from 'react'
 import * as _ from 'underscore'
 import { StockDatasource } from '../../../datasource'
-import ChartLayout from '../../../model/chartlayout'
+import ChartLayoutModel from '../../../model/chartlayout'
 import ChartModel from '../../../model/chart'
 import StudyModel from '../../../model/study'
 // import Dialog from '../../component/widget/dialog'
@@ -13,8 +13,7 @@ import { formatNumber } from '../../../util'
 /** 这里有性能问题，鼠标频繁重绘legend，windows Edge浏览器卡顿。想办法解决 */
 
 type Prop = {
-  chartLayout: ChartLayout
-  chartModel: ChartModel
+  chart: ChartModel
 }
 
 type State = {
@@ -22,6 +21,12 @@ type State = {
 }
 
 export default class Legend extends React.Component<Prop, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
+
+  public context: { chartLayout: ChartLayoutModel }
+
   public refs: {
     settingForm: HTMLFormElement
   }
@@ -48,7 +53,7 @@ export default class Legend extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this.context.chartLayout
     chartLayout.addListener('cursor_move', this.cursorMoveHandler)
     chartLayout.addListener('graph_hover', this.updateView)
     chartLayout.addListener('graph_select', this.updateView)
@@ -60,7 +65,7 @@ export default class Legend extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this.context.chartLayout
     chartLayout.removeListener('cursor_move', this.cursorMoveHandler)
     chartLayout.removeListener('graph_hover', this.updateView)
     chartLayout.removeListener('graph_select', this.updateView)
@@ -72,7 +77,7 @@ export default class Legend extends React.Component<Prop, State> {
   }
 
   public render () {
-    const chart = this.props.chartModel
+    const chart = this.props.chart
     // 过滤出所有非指标图
     const mainGraph = chart.mainGraph
     const compares = chart.compares
@@ -286,7 +291,7 @@ export default class Legend extends React.Component<Prop, State> {
   }
 
   private studySettingsDialogOpenHandler (ev) {
-    this._studyInSetting = _.findWhere(this.props.chartModel.studies, { id: +ev.currentTarget.dataset.id })
+    this._studyInSetting = _.findWhere(this.props.chart.studies, { id: +ev.currentTarget.dataset.id })
     this.setState({ showSettingDialog: true })
   }
 
@@ -302,18 +307,18 @@ export default class Legend extends React.Component<Prop, State> {
         settingForm[i].tagName.toUpperCase() === 'INPUT' ?
           +settingForm[i].value : Boolean(settingForm[i].value)
     )
-    this.props.chartLayout.modifyGraph(this._studyInSetting, { input })
+    this.context.chartLayout.modifyGraph(this._studyInSetting, { input })
     this.studySettingDialogCloseHanlder()
   }
 
   private removeStudyHandler (ev) {
     const studyId = +ev.currentTarget.dataset.id
-    this.props.chartLayout.removeStudy(this.props.chartModel, studyId)
+    this.context.chartLayout.removeStudy(this.props.chart, studyId)
   }
 
   private removeCompareHandler (ev) {
     const graphId = +ev.currentTarget.dataset.id
-    this.props.chartLayout.removeComparison(graphId)
+    this.context.chartLayout.removeComparison(graphId)
   }
 
   /**

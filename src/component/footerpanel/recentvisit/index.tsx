@@ -3,13 +3,22 @@ import './index.less'
 import * as React from 'react'
 import ChartLayoutModel from '../../../model/chartlayout'
 
-type Prop = {
-  chartLayout: ChartLayoutModel
-}
+export default class RecentVisit extends React.Component<any, any> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
 
-export default class RecentVisit extends React.Component<Prop, any> {
-  constructor () {
-    super()
+  public context: { chartLayout: ChartLayoutModel }
+
+  public refs: {
+    body: HTMLDivElement
+  }
+
+  private _chartLayout: ChartLayoutModel
+
+  constructor (props: any, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.clickHandler = this.clickHandler.bind(this)
   }
 

@@ -7,22 +7,25 @@ import Dialog from '../../widget/dialog'
 import ColorPicker from '../../widget/colorpicker'
 import { cloneObj } from '../../../util'
 
-type Prop = {
-  chartLayout: ChartLayoutModel
-}
-
 type State = {
   showDialog?: boolean
   colorPickerIndex?: number
 }
 
-export default class MASettings extends React.Component<Prop, State> {
+export default class MASettings extends React.Component<any, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
 
+  public context: { chartLayout: ChartLayoutModel }
+
+  private _chartLayout: ChartLayoutModel
   private _originMAProps: MA_PROP[] = null
   private _maProps: MA_PROP[] = null
 
-  constructor () {
-    super()
+  constructor (props: any, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {
       showDialog: false,
       colorPickerIndex: -1,
@@ -34,12 +37,12 @@ export default class MASettings extends React.Component<Prop, State> {
     this.cancelHandler = this.cancelHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+  public shouldComponentUpdate (nextProps: any, nextState: State) {
     return !_.isEqual(this.state, nextState)
   }
 
   public render () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const maProps = chartLayout.maProps || DEFAULT_MA_PROPS
     return <div className='chart-btn-group'>
       <button className='btn' onClick={this.showDialogHandler}>均线</button>
@@ -86,7 +89,7 @@ export default class MASettings extends React.Component<Prop, State> {
   }
 
   private showDialogHandler () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     this._maProps = chartLayout.maProps || cloneObj(DEFAULT_MA_PROPS)
     this._originMAProps = cloneObj(this._maProps)
     this.setState({ showDialog: true })
@@ -99,7 +102,7 @@ export default class MASettings extends React.Component<Prop, State> {
   }
 
   private checkStateChangeHandler (ev) {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const isVisible = ev.target.checked
     const index = +ev.target.value
     const study = chartLayout.maStudies[index]
@@ -111,7 +114,7 @@ export default class MASettings extends React.Component<Prop, State> {
   }
 
   private inputChangeHandler (ev) {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const index = ev.target.dataset.index
     const value = +ev.target.value
     const study = chartLayout.maStudies[index]
@@ -124,7 +127,7 @@ export default class MASettings extends React.Component<Prop, State> {
 
   private colorChangeHandler (index) {
     return (color => {
-      const chartLayout = this.props.chartLayout
+      const chartLayout = this._chartLayout
       const maProps = this._maProps
       const study = chartLayout.maStudies[index]
       const styles = study.styles
@@ -138,7 +141,7 @@ export default class MASettings extends React.Component<Prop, State> {
   }
 
   private cancelHandler () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const maStudies = chartLayout.maStudies
     const maProps = this._maProps
     const originMAProps = this._originMAProps

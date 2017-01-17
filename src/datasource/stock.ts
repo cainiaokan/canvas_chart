@@ -5,6 +5,8 @@ import PlotList  from './plotlist'
 import { ResolutionType, OPEN_DAYS, OPEN_MINITES_COUNT } from '../constant'
 import { IBar, Datasource } from './base'
 
+export type Right = 0 | 1 | 2
+
 /**
  * 股票信息的数据规格
  */
@@ -49,14 +51,14 @@ export class StockDatasource extends Datasource {
    */
   private _symbolInfo: SymbolInfo
 
-  private _right: number
+  private _right: Right
 
   /**
    * @constructor
    * @param {string} symbol     股票代码
    * @param {string} resolution 解析度
    */
-  constructor (symbol: string, resolution: ResolutionType, right: number, timeDiff: number = 0) {
+  constructor (symbol: string, resolution: ResolutionType, right: Right, timeDiff: number = 0) {
     super(resolution, timeDiff)
     this._symbol = symbol
     this._right = right
@@ -64,11 +66,11 @@ export class StockDatasource extends Datasource {
     this._plotList = new PlotList<IStockBar>()
   }
 
-  get right (): number {
+  get right (): Right {
     return this._right
   }
 
-  set right (right: number) {
+  set right (right: Right) {
     this._right = right
   }
 

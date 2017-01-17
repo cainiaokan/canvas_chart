@@ -9,10 +9,6 @@ import Dialog from '../../../component/widget/dialog'
 import ChartLayoutModel from '../../../model/chartlayout'
 import { OPEN_HOUR, OPEN_MINUTE, CLOSE_HOUR, CLOSE_MINUTE } from '../../../constant'
 
-type Prop = {
-  chartLayout: ChartLayoutModel
-}
-
 const dateTimeFormat = 'YYYY-MM-DD HH:mm'
 const dateFormat = 'YYYY-MM-DD'
 
@@ -21,15 +17,24 @@ type State = {
   showDatetimePicker?: boolean
 }
 
-export default class GoToDate extends React.Component<Prop, State> {
+export default class GoToDate extends React.Component<any, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
+
+  public context: { chartLayout: ChartLayoutModel }
+
   public refs: {
     dateInput: HTMLInputElement
   }
 
+  private _chartLayout: ChartLayoutModel
+
   private _inputDateValue: moment.Moment = null
 
-  constructor () {
-    super()
+  constructor (props: any, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {
       showDialog: false,
       showDatetimePicker: false,
@@ -43,12 +48,12 @@ export default class GoToDate extends React.Component<Prop, State> {
     this.checkDateHandler = this.checkDateHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+  public shouldComponentUpdate (nextProps: any, nextState: State) {
     return !_.isEqual(this.state, nextState)
   }
 
   public render () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const dontShowTime = chartLayout.mainDatasource.resolution > '60'
     const mainDatasource = chartLayout.mainDatasource
     const now = new Date(mainDatasource.now() * 1000)
@@ -112,7 +117,7 @@ export default class GoToDate extends React.Component<Prop, State> {
   }
 
   private goToDateHandler () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const resolution = chartLayout.mainDatasource.resolution
     const toDate = this._inputDateValue.toDate()
 
@@ -129,7 +134,7 @@ export default class GoToDate extends React.Component<Prop, State> {
 
   // 日期选择器值发生变化时
   private dateChangeHandler (moment: moment.Moment) {
-    const resolution = this.props.chartLayout.mainDatasource.resolution
+    const resolution = this._chartLayout.mainDatasource.resolution
     this._inputDateValue = moment
     this.refs.dateInput.value =
       moment.format(resolution > '60' ? moment.format(dateFormat) : moment.format(dateTimeFormat))
@@ -144,7 +149,7 @@ export default class GoToDate extends React.Component<Prop, State> {
 
   // 校验日期是否可选。晚于当前日期都不可选。太早的日期也不可选。
   private checkDateHandler (currentDate: moment.Moment, selectedDate: moment.Moment) {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const resolution = chartLayout.mainDatasource.resolution
     const now = chartLayout.mainDatasource.now()
     const thisMoment = moment(now * 1000)

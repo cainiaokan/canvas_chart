@@ -6,10 +6,6 @@ import ChartLayoutModel from '../../../model/chartlayout'
 import SearchBox from '../searchbox'
 import Dialog from '../../widget/dialog'
 
-type Prop = {
-  chartLayout: ChartLayoutModel
-}
-
 type State = {
   showCompareDialog?: boolean,
 }
@@ -28,11 +24,19 @@ const indexes = [
   ],
 ]
 
-export default class Compare extends React.Component<Prop, State> {
+export default class Compare extends React.Component<any, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
+
+  public context: { chartLayout: ChartLayoutModel }
+
+  private _chartLayout: ChartLayoutModel
   private _indexesCheckState: { [propName: string]: number } = {}
 
-  constructor () {
-    super()
+  constructor (props: any, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {
       showCompareDialog: false,
     }
@@ -44,14 +48,14 @@ export default class Compare extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    this.props.chartLayout.addListener('graph_remove', this.graphRemoveHandler)
+    this._chartLayout.addListener('graph_remove', this.graphRemoveHandler)
   }
 
   public componentWillUnmount () {
-    this.props.chartLayout.removeListener('graph_remove', this.graphRemoveHandler)
+    this._chartLayout.removeListener('graph_remove', this.graphRemoveHandler)
   }
 
-  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+  public shouldComponentUpdate (nextProps: any, nextState: State) {
     return !_.isEqual(this.state, nextState)
   }
 
@@ -64,8 +68,7 @@ export default class Compare extends React.Component<Prop, State> {
                 width={320}
                 className='chart-compare-dialog'
                 onClose={this.dialogCloseHandler}>
-          <SearchBox chartLayout={this.props.chartLayout}
-                     className='chart-compare-search'
+          <SearchBox className='chart-compare-search'
                      placeholder='输入检索股票'
                      onSelect={this.selectSymbolHandler} />
           {
@@ -100,13 +103,13 @@ export default class Compare extends React.Component<Prop, State> {
   }
 
   private selectSymbolHandler (symbol) {
-    this.props.chartLayout.addComparison(symbol)
+    this._chartLayout.addComparison(symbol)
   }
 
   private checkChangeHandler (ev) {
     const checked = ev.target.checked
     const symbol = ev.target.value
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
 
     if (checked) {
       this._indexesCheckState[symbol] = chartLayout.addComparison(symbol)

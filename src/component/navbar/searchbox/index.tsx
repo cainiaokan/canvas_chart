@@ -1,11 +1,10 @@
 import './index.less'
 import * as React from 'react'
 import * as _ from 'underscore'
-import { StockDatasource, SymbolInfo } from '../../../datasource'
 import ChartLayoutModel from '../../../model/chartlayout'
+import { StockDatasource, SymbolInfo } from '../../../datasource'
 
 type Prop = {
-  chartLayout: ChartLayoutModel
   className?: string
   placeholder?: string
   autofill?: boolean
@@ -25,17 +24,25 @@ export default class SearchBox extends React.Component<Prop, State> {
     autofill: false,
   }
 
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
+
+  public context: { chartLayout: ChartLayoutModel }
+
   public refs: {
       [key: string]: (Element)
       input: HTMLInputElement
   }
+
+  private _chartLayout: ChartLayoutModel
 
   private searchSymbols = _.debounce(
     keyword => {
       this.setState({
         loading: true,
       })
-      return (this.props.chartLayout.mainDatasource as StockDatasource)
+      return (this.context.chartLayout.mainDatasource as StockDatasource)
         .searchSymbols(keyword)
         .then(symbols => {
           this.setState({
@@ -45,8 +52,9 @@ export default class SearchBox extends React.Component<Prop, State> {
         })
     }, 300)
 
-  constructor (proportion: number) {
-    super()
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {
       focus: false,
       loading: false,
@@ -55,11 +63,7 @@ export default class SearchBox extends React.Component<Prop, State> {
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    const props = this.props
-    return props.autofill !== nextProps.autofill ||
-           props.className !== nextProps.className ||
-           props.placeholder !== nextProps.placeholder ||
-           props.onSelect !== nextProps.onSelect ||
+    return !_.isEqual(this.props, nextProps) ||
            !_.isEqual(this.state, nextState)
   }
 

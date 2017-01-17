@@ -6,23 +6,27 @@ import ChartLayoutModel, { preferredTimeRange } from '../../model/chartlayout'
 import GoToDate from './gotodate'
 
 type Prop = {
-  chartLayout: ChartLayoutModel
   width: number
 }
 
-type State = {
-}
+export default class ControlBar extends React.Component<Prop, any> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
 
-export default class ControlBar extends React.Component<Prop, State> {
-  constructor () {
-    super()
+  public context: { chartLayout: ChartLayoutModel }
+
+  private _chartLayout: ChartLayoutModel
+
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {}
     this.timeRangeClickHandler = this.timeRangeClickHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    const curProps = this.props
-    return curProps.width !== nextProps.width ||
+  public shouldComponentUpdate (nextProps: Prop, nextState: any) {
+    return !_.isEqual(this.props, nextProps) ||
            !_.isEqual(this.state, nextState)
   }
 
@@ -35,7 +39,7 @@ export default class ControlBar extends React.Component<Prop, State> {
               <a key={range} className='mini-btn' href='javascript:;' data-value={range} onClick={this.timeRangeClickHandler}>{range}</a>
             )
           }
-          <GoToDate chartLayout={this.props.chartLayout} />
+          <GoToDate />
         </div>
       </div>
     )
@@ -43,6 +47,6 @@ export default class ControlBar extends React.Component<Prop, State> {
 
   private timeRangeClickHandler (ev) {
     const range = ev.target.dataset.value
-    this.props.chartLayout.setTimeRange(range)
+    this._chartLayout.setTimeRange(range)
   }
 }

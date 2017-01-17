@@ -45,74 +45,74 @@ export default class Financing extends React.Component<Prop, any> {
     <div className='financing' ref='financing' style={ {height: this.props.height + 'px'} }>
       <div>
         <h3>财务信息</h3>
-        <table className='indexes-display s-table stripe'>
+        <table className='indexes-display s-table stripe left-header'>
           <tbody>
             <tr>
-              <td width='133'>每股收益</td>
+              <th width='133'>每股收益</th>
               <td width='134'>{financingInfo.earning_per_Share}元</td>
             </tr>
             <tr>
-              <td>净利润</td>
+              <th>净利润</th>
               <td>{financingInfo.net_income}亿元</td>
             </tr>
             <tr>
-              <td>净利润增长率</td>
+              <th>净利润增长率</th>
               <td>{financingInfo.net_income_growth_rate}%</td>
             </tr>
             <tr>
-              <td>营业总收入</td>
+              <th>营业总收入</th>
               <td>{financingInfo.revenue}亿元</td>
             </tr>
             <tr>
-              <td>总收入增长率</td>
+              <th>总收入增长率</th>
               <td>{financingInfo.revenue_growth_rate}%</td>
             </tr>
             <tr>
-              <td>每股净资产</td>
+              <th>每股净资产</th>
               <td>{financingInfo.book_value_per_share}元</td>
             </tr>
             <tr>
-              <td>净资产收益率</td>
+              <th>净资产收益率</th>
               <td>{financingInfo.return_on_Equity}%</td>
             </tr>
             <tr>
-              <td>净资产收益率摊薄</td>
+              <th>净资产收益率摊薄</th>
               <td>{financingInfo.return_on_equity_diluted}%</td>
             </tr>
             <tr>
-              <td>资产负债比率</td>
+              <th>资产负债比率</th>
               <td>{financingInfo.asset_liability_ratio}%</td>
             </tr>
             <tr>
-              <td>每股资本公积金</td>
+              <th>每股资本公积金</th>
               <td>{financingInfo.capital_surplus_per_share}元</td>
             </tr>
             <tr>
-              <td>每股未分配利润</td>
+              <th>每股未分配利润</th>
               <td>{financingInfo.retained_earning_per_share}元</td>
             </tr>
             <tr>
-              <td>每股经营现金流</td>
+              <th>每股经营现金流</th>
               <td>{financingInfo.operating_cash_flow_per_share}元</td>
             </tr>
             <tr>
-              <td>经营现金流入</td>
+              <th>经营现金流入</th>
               <td>{financingInfo.operating_cashflow_in}亿元</td>
             </tr>
             <tr>
-              <td>经营现金流出</td>
+              <th>经营现金流出</th>
               <td>{financingInfo.operating_cashflow_out}亿元</td>
             </tr>
             <tr>
-              <td>经营现金流量净额</td>
+              <th>经营现金流量净额</th>
               <td>{financingInfo.net_operating_cashflow}亿元</td>
             </tr>
             <tr>
-              <td>流动比率</td>
+              <th>流动比率</th>
               <td>{financingInfo.currentRatio}</td>
             </tr>
             <tr>
-              <td>速动比率</td>
+              <th>速动比率</th>
               <td>{financingInfo.quickRatio}</td>
             </tr>
           </tbody>

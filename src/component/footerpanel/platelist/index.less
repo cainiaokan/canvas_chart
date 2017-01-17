@@ -1,0 +1,63 @@
+.chart-plate {
+  font-size: 10px;
+  font-weight: bold;
+
+  position: relative;
+
+  overflow: hidden;
+  .wrapper {
+    width: 914px;
+  }
+  .header {
+    width: 100%;
+
+    color: #424242;
+    th {
+      line-height: 42px;
+    }
+  }
+  .body {
+    position: relative;
+
+    overflow: hidden;
+
+    height: 248px;
+
+    color: #616161;
+  }
+  .plate-list {
+    display: inline-block;
+
+    width: 68%;
+
+    vertical-align: top;
+  }
+  .separator {
+    display: inline-block;
+
+    width: 2%;
+    height: 248px;
+
+    text-align: center;
+    vertical-align: top;
+    &:before {
+      display: inline-block;
+
+      width: 2px;
+      height: 248px;
+      margin: 42px auto auto;
+
+      content: ' ';
+
+      opacity: .05;
+      background: #303f97;
+    }
+  }
+  .stock-list {
+    display: inline-block;
+
+    width: 30%;
+
+    vertical-align: top;
+  }
+}

@@ -15,18 +15,6 @@ import Briefing from './briefing'
 
 const STOCK_PANEL_HEIGHT = 76
 
-type Prop = {
-  chartLayout: ChartLayoutModel
-  folded: boolean
-  height: number
-  width: number
-}
-
-type State = {
-  popUpOprList?: boolean
-  tabIndex?: number
-}
-
 const tabsConfig = [
   '实时看盘',
   '指数概况',
@@ -69,14 +57,33 @@ const tabsIcon = [
   </svg>,
 ]
 
+type Prop = {
+  folded: boolean
+  activeIndex: number
+  onChange: (folded: boolean, index: number) => void
+  height: number
+  width: number
+}
+
+type State = {
+  popUpOprList?: boolean
+}
+
 export default class Sidebar extends React.Component<Prop, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
+
+  public context: { chartLayout: ChartLayoutModel }
+
+  private _chartLayout: ChartLayoutModel
   private _pollManager: PollManager
   private _data: PollData = {}
 
-  constructor () {
-    super()
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {
-      tabIndex: 0,
       popUpOprList: false,
     }
     this.onDataHandler = this.onDataHandler.bind(this)
@@ -88,18 +95,15 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    const curProps = this.props
-    return curProps.folded !== nextProps.folded ||
-           curProps.height !== nextProps.height ||
-           curProps.width !== nextProps.width ||
+    return !_.isEqual(this.props, nextProps) ||
            !_.isEqual(this.state, nextState)
   }
 
   public componentDidMount () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const symbolInfo = chartLayout.mainDatasource.symbolInfo
 
-    this._pollManager = new PollManager(symbolInfo)
+    this._pollManager = new PollManager(symbolInfo, this.props.activeIndex)
     this._pollManager.addListener('data', this.onDataHandler)
     chartLayout.addListener('symbol_change', this.symbolChangeHandler)
     document.addEventListener('mousedown', this.hideMoreResolutionHandler)
@@ -108,7 +112,7 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     this._pollManager.removeListener('data', this.onDataHandler)
     chartLayout.removeListener('symbol_change', this.symbolChangeHandler)
     document.removeEventListener('mousedown', this.hideMoreResolutionHandler)
@@ -118,7 +122,7 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   public render () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const height = this.props.height - STOCK_PANEL_HEIGHT
     const {
       stockInfo,
@@ -132,7 +136,7 @@ export default class Sidebar extends React.Component<Prop, State> {
 
     let tabPage = null
 
-    switch (this.state.tabIndex) {
+    switch (this.props.activeIndex) {
       case 0:
         tabPage = stockInfo ?
                   <Realtime
@@ -143,7 +147,6 @@ export default class Sidebar extends React.Component<Prop, State> {
       case 1:
         tabPage = realtimeTools && indexesInfo ?
                   <Indexes
-                    chartLayout={chartLayout}
                     height={height}
                     realtimeTools={realtimeTools}
                     indexesInfo={indexesInfo} /> : null
@@ -193,7 +196,7 @@ export default class Sidebar extends React.Component<Prop, State> {
           {
             tabsConfig.map((tab, i) =>
               <li key={i}
-                  className={!this.props.folded && this.state.tabIndex === i ? `active` : ''}
+                  className={!this.props.folded && this.props.activeIndex === i ? `active` : ''}
                   title={tab}
                   data-index={i}
                   onClick={this.switchTabPage}>
@@ -220,10 +223,12 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   private foldingBtnClickHandler () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const folded = !this.props.folded
     chartLayout.saveToLS('qchart.sidebar.folded', folded)
-    chartLayout.emit('sidebar_toggle', folded)
+    if (this.props.onChange) {
+      this.props.onChange(folded, this.props.activeIndex)
+    }
   }
 
   private showMoreOprHandler () {
@@ -240,23 +245,28 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   private switchTabPage (ev) {
-    // 如果侧边栏已经收起状态，则先展开侧边栏
-    if (this.props.folded) {
-      this.foldingBtnClickHandler()
-    }
+    const chartLayout = this._chartLayout
+    const newIndex = +ev.currentTarget.dataset.index
+    const folded = this.props.folded
 
     // 如果已经激活的tab再次点击，则收起侧边栏
-    if (ev.currentTarget.classList.contains('active')) {
+    if (!folded && this.props.activeIndex === newIndex) {
       this.foldingBtnClickHandler()
       return
     }
 
-    const index = +ev.currentTarget.dataset.index
+    // 如果侧边栏已经收起状态，则先展开侧边栏
+    if (folded) {
+      chartLayout.saveToLS('qchart.sidebar.folded', false)
+    }
 
-    this._pollManager.tabIndex = index
-    this.setState({
-      tabIndex: index,
-    })
+    chartLayout.saveToLS('qchart.sidebar.activeIndex', newIndex)
+
+    this._pollManager.tabIndex = newIndex
+
+    if (this.props.onChange) {
+      this.props.onChange(false, newIndex)
+    }
   }
 
   private symbolChangeHandler (symbolInfo) {

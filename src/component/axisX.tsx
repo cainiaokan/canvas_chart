@@ -1,30 +1,37 @@
 import * as React from 'react'
+import ChartLayoutModel from '../model/chartlayout'
 import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../model/axisx'
 
 type Prop = {
-  axis: AxisXModel
   height: number
   width: number
 }
 
 export default class AxisX extends React.Component<Prop, any> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
+
+  public context: { chartLayout: ChartLayoutModel }
 
   public refs: {
     canvas: HTMLCanvasElement
   }
 
+  private _axisX: AxisXModel
   private _dragBarWidthStart: boolean
   private _dragPosX: number
 
-  constructor () {
-    super()
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._axisX = context.chartLayout.axisx
     this.moveHandler = this.moveHandler.bind(this)
     this.startHandler = this.startHandler.bind(this)
     this.endHandler = this.endHandler.bind(this)
   }
 
   public componentDidMount () {
-    const axisX = this.props.axis
+    const axisX = this._axisX
     axisX.ctx = this.refs.canvas.getContext('2d')
     axisX.width = this.props.width
     axisX.height = this.props.height
@@ -42,7 +49,7 @@ export default class AxisX extends React.Component<Prop, any> {
   }
 
   public componentDidUpdate () {
-    const axisX = this.props.axis
+    const axisX = this._axisX
     const canvas = this.refs.canvas
     const width = this.props.width
     const height = this.props.height
@@ -81,7 +88,7 @@ export default class AxisX extends React.Component<Prop, any> {
 
   private moveHandler (ev) {
     if (this._dragBarWidthStart) {
-      const axisX = this.props.axis
+      const axisX = this._axisX
       const pageX = ev.touches ? ev.touches[0].pageX : ev.pageX
       const curBarWidth = axisX.barWidth
       const newBarWidth = curBarWidth - (pageX - this._dragPosX) / 100

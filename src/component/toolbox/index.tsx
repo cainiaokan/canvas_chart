@@ -10,10 +10,6 @@ import {
   HorzLineRenderer,
 } from '../../graphic/tool'
 
-type Prop = {
-  chartLayout: ChartLayoutModel
-}
-
 type State = {
   selectedIndex?: number
   selectedIndex2?: number[]
@@ -32,13 +28,20 @@ const toolsList = [
   [['chart-tools-eraser', '删除画线']],
 ]
 
-export default class ToolBox extends React.Component<Prop, State> {
+export default class ToolBox extends React.Component<any, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
 
+  public context: { chartLayout: ChartLayoutModel }
+
+  private _chartLayout: ChartLayoutModel
   private _longTapDetectTimeout: number
   private _clickCanceled: boolean = false
 
-  constructor () {
-    super()
+  constructor (props: any, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.resetTool = this.resetTool.bind(this)
     this.downHandler = this.downHandler.bind(this)
     this.upHandler = this.upHandler.bind(this)
@@ -53,12 +56,12 @@ export default class ToolBox extends React.Component<Prop, State> {
     }
   }
 
-  public shouldComponentUpdate (nextProp: Prop, nextState: State) {
+  public shouldComponentUpdate (nextProp: any, nextState: State) {
     return !_.isEqual(this.state, nextState)
   }
 
   public componentDidMount () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     chartLayout.addListener('drawingtool_begin', this.resetTool)
     chartLayout.addListener('drawingtool_remove', this.resetTool)
     document.addEventListener('mousedown', this.hideMoreTools)
@@ -66,7 +69,7 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     chartLayout.removeListener('drawingtool_begin',  this.resetTool)
     chartLayout.removeListener('drawingtool_remove', this.resetTool)
     document.removeEventListener('mousedown', this.hideMoreTools)
@@ -165,7 +168,7 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   private selectTool (index1, index2, isTouchEvent) {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const selectedIndex2 = this.state.selectedIndex2
     selectedIndex2[index1] = index2
 
@@ -221,7 +224,7 @@ export default class ToolBox extends React.Component<Prop, State> {
   }
 
   private resetTool () {
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     this.setState({
       selectedIndex: 0,
     })

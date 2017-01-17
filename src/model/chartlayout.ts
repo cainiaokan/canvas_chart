@@ -11,10 +11,10 @@ import AxisYModel from './axisy'
 import { ChartStyle } from '../graphic/diagram'
 import { BaseToolRenderer } from '../graphic/tool'
 import {
-  Datasource,
   StockDatasource,
   studyConfig,
   getServerTime,
+  Right,
 } from '../datasource'
 import { Point } from '../model/crosshair'
 import {
@@ -444,10 +444,12 @@ export default class ChartLayoutModel extends EventEmitter {
    * 设置除权、复权
    * @param {number} right 0: 除权 1: 前复权
    */
-  public setRight (right: number) {
-    const datasources: Datasource[] = []
+  public setRight (right: Right) {
     // 批量设置数据源的解析度
-    _.unique(datasources).forEach(datasource => {
+    _.unique(this._charts.reduce((datasources, chart) =>
+      datasources.concat(chart.graphs.map(graph => graph.datasource)
+    ), []))
+    .forEach(datasource => {
       if (datasource instanceof StockDatasource) {
         datasource.right = right
       }

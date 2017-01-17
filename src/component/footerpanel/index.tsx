@@ -2,73 +2,64 @@ import './index.less'
 
 import * as React from 'react'
 import * as _ from 'underscore'
-import ChartLayoutModel from '../../model/chartlayout'
 import SelfSelectStock from './selfselect'
 import RecentVisit from './recentvisit'
 import PlateList from './platelist'
 import MainBoard from './mainboard'
 
 type Prop = {
-  chartLayout: ChartLayoutModel
   width: number
-}
-
-type State = {
-  folded?: boolean
-  activeIndex?: number
+  folded: boolean
+  activeIndex: number
+  onChange: (folded: boolean, index: number) => void
 }
 
 const TAB_CONFIG = ['自选股', '最近访问', '板块列表', '大盘综合']
 
-export default class ControlBar extends React.Component<Prop, State> {
-  constructor () {
-    super()
-    this.state = {
-      folded: true,
-      activeIndex: -1,
-    }
+export default class FooterPanel extends React.Component<Prop, any> {
+  constructor (props: Prop, context: any) {
+    super(props, context)
     this.clickHandler = this.clickHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    const curProps = this.props
-    return curProps.width !== nextProps.width ||
-           !_.isEqual(this.state, nextState)
+  public shouldComponentUpdate (nextProps: Prop) {
+    return !_.isEqual(this.props, nextProps)
   }
 
   public render () {
-    const activeIndex = this.state.activeIndex
+    const activeIndex = this.props.activeIndex
+    const width = this.props.width
     return (
-      <div className='chart-footer-panel' style={ {width: this.props.width + 'px' } }>
-        <div className={`btn-group ${this.state.folded ? 'folded' : ''}`}>
+      <div className='chart-footer-panel' style={ {width: width + 'px' } }>
+        <div className={`btn-group ${this.props.folded ? 'folded' : ''}`}>
           {
             TAB_CONFIG.map((label, i) =>
               <button
                 key={i}
-                className={`${activeIndex === i ? 'active' : ''}`}
+                className={`${!this.props.folded && activeIndex === i ? 'active' : ''}`}
                 data-index={i}
                 onClick={this.clickHandler}>{label}</button>
             )
           }
         </div>
         {
-          !this.state.folded ?
+          !this.props.folded ?
           <div className='panel-board'>
             {
               activeIndex === 0 ?
-              <SelfSelectStock chartLayout={this.props.chartLayout} /> : null
+              <SelfSelectStock /> : null
             }
             {
               activeIndex === 1 ?
-              <RecentVisit chartLayout={this.props.chartLayout} /> : null
+              <RecentVisit /> : null
             }
             {
               activeIndex === 2 ?
-              <PlateList chartLayout={this.props.chartLayout} /> : null
+              <PlateList width={width} /> : null
             }
             {
               activeIndex === 3 ?
-              <MainBoard chartLayout={this.props.chartLayout} /> : null
+              <MainBoard width={width} /> : null
             }
           </div> : null
         }
@@ -77,13 +68,18 @@ export default class ControlBar extends React.Component<Prop, State> {
   }
 
   private clickHandler (ev) {
-    const index = +ev.target.dataset.index
-    const newFoleded = this.state.activeIndex === index ? true : false
-    const newActiveIndex = newFoleded ? -1 : index
-    this.props.chartLayout.emit('footer_panel_toggle', newFoleded)
-    this.setState({
-      folded: newFoleded,
-      activeIndex: newActiveIndex,
-    })
+    const newIndex = +ev.target.dataset.index
+    const folded = this.props.folded
+
+    if (!folded && this.props.activeIndex === newIndex) {
+      if (this.props.onChange) {
+        this.props.onChange(true, newIndex)
+      }
+      return
+    }
+
+    if (this.props.onChange) {
+      this.props.onChange(false, newIndex)
+    }
   }
 }

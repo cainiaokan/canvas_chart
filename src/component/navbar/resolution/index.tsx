@@ -4,13 +4,7 @@ import '../../../style/popup_menu.less'
 
 import * as React from 'react'
 import * as _ from 'underscore'
-import { ResolutionType } from '../../../constant'
 import ChartLayoutModel from '../../../model/chartlayout'
-
-type Prop = {
-  chartLayout: ChartLayoutModel
-  resolution: ResolutionType
-}
 
 type State = {
   showMoreResolution?: boolean
@@ -29,40 +23,49 @@ const resolutionConfig = {
   'M': '月K',
 }
 
-export default class ResolutionOption extends React.Component<Prop, State> {
-  private resolution = 'D'
+export default class ResolutionOption extends React.Component<any, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
 
-  constructor () {
-    super()
+  public context: { chartLayout: ChartLayoutModel }
+
+  private _resolution = 'D'
+  private _chartLayout: ChartLayoutModel
+
+  constructor (props: any, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {
       showMoreResolution: false,
     }
+    this.updateView = this.updateView.bind(this)
     this.resolutionSelectHandler = this.resolutionSelectHandler.bind(this)
     this.showMoreResolutionHandler = this.showMoreResolutionHandler.bind(this)
     this.hideMoreResolutionHandler = this.hideMoreResolutionHandler.bind(this)
   }
 
   public componentDidMount () {
+    this._chartLayout.addListener('resolution_change', this.updateView)
     document.addEventListener('mousedown', this.hideMoreResolutionHandler)
     document.addEventListener('touchstart', this.hideMoreResolutionHandler)
   }
 
   public componentWillUnmount () {
+    this._chartLayout.removeListener('resolution_change', this.updateView)
     document.removeEventListener('mousedown', this.hideMoreResolutionHandler)
     document.removeEventListener('touchstart', this.hideMoreResolutionHandler)
   }
 
-  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    const curProp = this.props
-    return curProp.resolution !== nextProps.resolution ||
-           !_.isEqual(this.state, nextState)
+  public shouldComponentUpdate (nextProps: any, nextState: State) {
+    return !_.isEqual(this.state, nextState)
   }
 
   public render () {
-    const selectedResolution = this.props.resolution
+    const selectedResolution = this._chartLayout.mainDatasource.resolution
 
     if (selectedResolution !== '1') {
-      this.resolution = selectedResolution
+      this._resolution = selectedResolution
     }
 
     return <div className='chart-resolution chart-btn-group'>
@@ -73,10 +76,10 @@ export default class ResolutionOption extends React.Component<Prop, State> {
           {resolutionConfig['1']}
         </a>
         <a href='javascript:;'
-           className={`btn ${this.resolution === selectedResolution ? 'active' : ''}`}
-           data-value={this.resolution}
+           className={`btn ${this._resolution === selectedResolution ? 'active' : ''}`}
+           data-value={this._resolution}
            onClick={this.resolutionSelectHandler}>
-          {resolutionConfig[this.resolution]}
+          {resolutionConfig[this._resolution]}
         </a>
         <a href='javascript:;'
            className='btn btn-more'
@@ -100,16 +103,21 @@ export default class ResolutionOption extends React.Component<Prop, State> {
       </div>
   }
 
+  private updateView () {
+    this.forceUpdate()
+  }
+
   private resolutionSelectHandler (ev) {
     if (!!ev.touches) {
       ev.preventDefault()
     }
 
-    const chartLayout = this.props.chartLayout
+    const chartLayout = this._chartLayout
     const resolution = ev.target.dataset.value
-    if (this.props.resolution !== resolution) {
+    if (chartLayout.mainDatasource.resolution !== resolution) {
       chartLayout.saveToLS('qchart.resolution', resolution)
       chartLayout.setResolution(resolution)
+      this.forceUpdate()
     }
   }
 

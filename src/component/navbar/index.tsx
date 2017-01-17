@@ -1,6 +1,6 @@
 import './index.less'
 import * as React from 'react'
-import { ResolutionType } from '../../constant'
+import * as _ from 'underscore'
 import ResolutionOption from './resolution'
 import SearchBox from './searchbox'
 import Compare from './compare'
@@ -11,51 +11,71 @@ import MASetting from './ma'
 import ChartLayoutModel from '../../model/chartlayout'
 
 type Prop = {
-  chartLayout: ChartLayoutModel
-  resolution: ResolutionType
   width: number
-  right?: 0 | 1 | 2
 }
 
 export default class Navbar extends React.Component<Prop, any> {
-  public static defaultProps = {
-    right: 1,
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
 
-  constructor () {
-    super()
+  public context: { chartLayout: ChartLayoutModel }
+
+  private _chartLayout: ChartLayoutModel
+
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
+    this.updateView = this.updateView.bind(this)
     this.selectSymbolHandler = this.selectSymbolHandler.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop) {
-    const curProp = this.props
-    return curProp.resolution !== nextProps.resolution ||
-           curProp.width !== nextProps.width ||
-           curProp.right !== nextProps.right
+    return !_.isEqual(this.props, nextProps)
+  }
+
+  public componentDidMount () {
+    const chartLayout = this._chartLayout
+    chartLayout.addListener('resolution_change', this.updateView)
+    chartLayout.addListener('symbol_change', this.updateView)
+  }
+
+  public componentWillUnmount () {
+    const chartLayout = this._chartLayout
+    chartLayout.removeListener('resolution_change', this.updateView)
+    chartLayout.removeListener('symbol_change', this.updateView)
   }
 
   public render () {
-    const chartLayout = this.props.chartLayout
-    return <div className='chart-navbar' style={ {width: this.props.width + 'px'} }>
-        <SearchBox chartLayout={chartLayout}
-                   className='chart-navbar-search'
-                   autofill={true}
-                   onSelect={this.selectSymbolHandler} />
-        <ResolutionOption chartLayout={chartLayout} resolution={this.props.resolution} />
+    const chartLayout = this._chartLayout
+    const resolution = chartLayout.mainDatasource.resolution
+
+    return (
+      <div className='chart-navbar' style={ {width: this.props.width + 'px'} }>
+        <SearchBox
+          className='chart-navbar-search'
+          autofill={true}
+          onSelect={this.selectSymbolHandler} />
+        <ResolutionOption />
         <FullScreen />
-        <Compare chartLayout={chartLayout} />
-        <StudySelector chartLayout={chartLayout} />
+        <Compare />
+        <StudySelector />
         {
-          this.props.resolution > '1' ? <MASetting chartLayout={chartLayout} /> : null
+          resolution > '1' ? <MASetting /> : null
         }
         {
           chartLayout.mainDatasource.symbolInfo.type === 'stock' ?
-          <RightOption chartLayout={chartLayout} right={this.props.right} /> : null
+          <RightOption /> : null
         }
       </div>
+    )
+  }
+
+  private updateView () {
+    this.forceUpdate()
   }
 
   private selectSymbolHandler (symbol) {
-    this.props.chartLayout.setSymbol(symbol)
+    this._chartLayout.setSymbol(symbol)
   }
 }

@@ -45,6 +45,7 @@ export default class Plates extends React.Component<Prop, State> {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
+      click: true,
     })
   }
 
@@ -82,8 +83,7 @@ export default class Plates extends React.Component<Prop, State> {
               <li key={stock.name} className={this.state.activeIndex === i ? 'active' : ''}>
                 <h4 data-index={i}
                     data-type={stock.type}
-                    onClick={this.selectPlate}
-                    onTouchEnd={this.selectPlate}>{stock.name}</h4>
+                    onClick={this.selectPlate}>{stock.name}</h4>
                 {
                   this.state.activeIndex === i ? <ul className='stocks-in-same-plate'>
                     {

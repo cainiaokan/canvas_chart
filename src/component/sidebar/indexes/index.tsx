@@ -2,8 +2,8 @@ import './index.less'
 import '../../../style/table.less'
 
 import * as React from 'react'
-import IScroll = require('iscroll')
-import ChartLayout from '../../../model/chartlayout'
+import * as _ from 'underscore'
+import ChartLayoutModel from '../../../model/chartlayout'
 import { IndexesInfo, RealtimeTools } from '../pollmanager'
 
 type State = {
@@ -13,55 +13,40 @@ type State = {
 type Prop = {
   indexesInfo: IndexesInfo
   realtimeTools: RealtimeTools
-  chartLayout: ChartLayout
   height: number
 }
 
 export default class Indexes extends React.Component<Prop, State> {
+  public static contextTypes = {
+    chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
+  }
+
+  public context: { chartLayout: ChartLayoutModel }
 
   public refs: {
     indexes: HTMLDivElement
   }
 
+  private _chartLayout: ChartLayoutModel
   private _oldIndexesInfo
-
-  private _indexesScroll
-
   private _highLightTimeout
 
-  constructor () {
-    super()
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
+    super(props, context)
+    this._chartLayout = context.chartLayout
     this.state = {
       highlightFinished: true,
     }
     this.selectIndex = this.selectIndex.bind(this)
   }
 
-  public componentDidMount () {
-    this._indexesScroll = new IScroll(this.refs.indexes, {
-      mouseWheel: true,
-      scrollbars: true,
-      fadeScrollbars: true,
-    })
-  }
-
   public componentWillUnmount () {
     clearTimeout(this._highLightTimeout)
-    this._indexesScroll.destroy()
-    this._indexesScroll = null
-  }
-
-  public componentDidUpdate () {
-    this._indexesScroll.refresh()
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    const curProp = this.props
-    const curState = this.state
-    return curProp.indexesInfo !== nextProps.indexesInfo ||
-      curProp.realtimeTools !== nextProps.realtimeTools ||
-      curProp.height !== nextProps.height ||
-      curState.highlightFinished !== nextState.highlightFinished
+    return !_.isEqual(this.props, nextProps) ||
+           !_.isEqual(this.state, nextState)
   }
 
   public render () {
@@ -110,12 +95,11 @@ export default class Indexes extends React.Component<Prop, State> {
           indexesInfo ?
           <div>
             <h3>股指</h3>
-            <table className='index-table s-table stripe'>
+            <table className='index-table s-table stripe left-header'>
               <tbody>
                 <tr data-symbol={'sh000001'}
-                    onClick={this.selectIndex}
-                    onTouchStart={this.selectIndex}>
-                  <td width='70'>上证指数</td>
+                    onClick={this.selectIndex}>
+                  <th width='70'>上证指数</th>
                   <td width='70' className={`${classList.sh000001} ${mutations.sh000001}`}>
                     <span>{indexesInfo.sh000001.price}</span>
                   </td>
@@ -124,8 +108,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399001'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
-                  <td>深证成指</td>
+                <tr data-symbol={'sz399001'} onClick={this.selectIndex}>
+                  <th>深证成指</th>
                   <td className={`${classList.sz399001} ${mutations.sz399001}`}>
                     <span>{indexesInfo.sz399001.price}</span>
                   </td>
@@ -134,8 +118,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sz399001.changeRate > 0 ? '+' : '') + indexesInfo.sz399001.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399300'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
-                  <td>沪深300</td>
+                <tr data-symbol={'sz399300'} onClick={this.selectIndex}>
+                  <th>沪深300</th>
                   <td className={`${classList.sz399300} ${mutations.sz399300}`}>
                     <span>{indexesInfo.sz399300.price}</span>
                   </td>
@@ -144,8 +128,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sz399300.changeRate > 0 ? '+' : '') + indexesInfo.sz399300.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399005'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
-                  <td>中小板指</td>
+                <tr data-symbol={'sz399005'} onClick={this.selectIndex}>
+                  <th>中小板指</th>
                   <td className={`${classList.sz399005} ${mutations.sz399005}`}>
                     <span>{indexesInfo.sz399005.price}</span>
                   </td>
@@ -154,8 +138,8 @@ export default class Indexes extends React.Component<Prop, State> {
                     ({(indexesInfo.sz399005.changeRate > 0 ? '+' : '') + indexesInfo.sz399005.changeRate.toFixed(2)}%)
                   </td>
                 </tr>
-                <tr data-symbol={'sz399006'} onClick={this.selectIndex} onTouchStart={this.selectIndex}>
-                  <td>创业板指</td>
+                <tr data-symbol={'sz399006'} onClick={this.selectIndex}>
+                  <th>创业板指</th>
                   <td className={`${classList.sz399006} ${mutations.sz399006}`}>
                     <span>{indexesInfo.sz399006.price}</span>
                   </td>
@@ -172,16 +156,16 @@ export default class Indexes extends React.Component<Prop, State> {
           realtimeTools ?
           <div>
             <h3>实用工具</h3>
-            <table className='s-table stripe'>
+            <table className='s-table stripe left-header'>
               <tbody>
                 <tr>
-                  <td width='157'>沪股通资金流入</td>
+                  <th width='157'>沪股通资金流入</th>
                   <td width='110' className={classList.hugutong}>
                     {realtimeTools.hugutong[0]}
                   </td>
                 </tr>
                 <tr>
-                  <td>涨跌幅超过5%个股数</td>
+                  <th>涨跌幅超过5%个股数</th>
                   <td>
                     <span className='positive'>
                       {realtimeTools.goUpStaying[0]}
@@ -192,7 +176,7 @@ export default class Indexes extends React.Component<Prop, State> {
                   </td>
                 </tr>
                 <tr>
-                  <td>急涨急跌股数</td>
+                  <th>急涨急跌股数</th>
                   <td className={classList.shortTermMove}>
                     {realtimeTools.shortTermMove[0]}
                   </td>
@@ -206,6 +190,6 @@ export default class Indexes extends React.Component<Prop, State> {
   }
 
   private selectIndex (ev) {
-    this.props.chartLayout.setSymbol(ev.currentTarget.dataset.symbol)
+    this._chartLayout.setSymbol(ev.currentTarget.dataset.symbol)
   }
 }
