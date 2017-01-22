@@ -36,7 +36,7 @@ document.ontouchmove = ev => ev.preventDefault()
 
 let lastDownTime = null
 
-// touchend时组织默认事件，避免触屏设备中双击放大页面
+// touchend时阻止默认事件，避免触屏设备中双击放大页面
 document.ontouchend = ev => {
   if (lastDownTime && ev.timeStamp - lastDownTime < 300) {
     ev.preventDefault()

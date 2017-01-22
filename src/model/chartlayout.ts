@@ -89,7 +89,6 @@ export default class ChartLayoutModel extends EventEmitter {
 
   constructor () {
     super()
-    // this._maProps = {}
     this._maStudies = []
     this._charts = []
     this.pulseUpdate = this.pulseUpdate.bind(this)
