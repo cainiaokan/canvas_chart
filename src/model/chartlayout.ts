@@ -740,7 +740,7 @@ export default class ChartLayoutModel extends EventEmitter {
           mainDatasource.search(time) : mainDatasource.loaded() - 1
 
     // 如果已经没有更多历史数据了，则将定位至最左端的数据bar
-    if (index === - 1 && mainDatasource.hasMoreHistory) {
+    if (index === - 1 && !mainDatasource.hasMoreHistory) {
       index = 0
     }
 

@@ -25,9 +25,8 @@ export default class ControlBar extends React.Component<Prop, any> {
     this.timeRangeClickHandler = this.timeRangeClickHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: Prop, nextState: any) {
-    return !_.isEqual(this.props, nextProps) ||
-           !_.isEqual(this.state, nextState)
+  public shouldComponentUpdate (nextProps: Prop) {
+    return !_.isEqual(this.props, nextProps)
   }
 
   public render () {

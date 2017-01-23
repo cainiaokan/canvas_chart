@@ -31,24 +31,44 @@ module.exports = {
     publicPath: 'http://chart.quchaogu.com'
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.tsx?$/,
-        loader: 'ts',
+        loader: 'ts-loader',
       },
       {
         test: /\.css$/,
-        loader: cssExtractor.extract(['css', 'csso?-comments', 'postcss'])
+        loader: cssExtractor.extract({
+          loader: ['css-loader', 'csso-loader?-comments', 'postcss-loader']
+        })
       },
       {
         test: /\.less$/,
-        loader: cssExtractor.extract(['css', 'csso?-comments', 'postcss', 'less'])
+        loader: cssExtractor.extract({
+          loader: ['css-loader', 'csso-loader?-comments', 'postcss-loader', 'less-loader']
+        })
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
-        loaders: [
-          'image?{bypassOnDebug: true, progressive:true, optimizationLevel: 3, pngquant:{quality: "65-80"}}',
-          'url?limit=10000&name=img/[hash:8].[name].[ext]',
+        use: [
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              bypassOnDebug: true,
+              progressive: true,
+              optimizationLevel: 3,
+              pngquant: {
+                quality: '65-80'
+              }
+            }
+          },
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 10000,
+              name: 'img/[hash:8].[name].[ext]'
+            }
+          }
         ]
       }
     ]
@@ -85,14 +105,11 @@ module.exports = {
     }),
   ],
   resolve: {
-    // root: [
-      // path.resolve('./src/vendor')
-    // ],
     alias: {
       'es6-promise': 'es6-promise/dist/es6-promise.js',
       'isomorphic-fetch': 'isomorphic-fetch/fetch-npm-browserify.js',
       'iscroll': 'iscroll/build/iscroll.js'
     },
-    extensions: ['', '.js', '.ts', '.tsx'],
+    extensions: ['.js', '.ts', '.tsx'],
   }
 }
