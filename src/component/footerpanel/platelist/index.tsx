@@ -5,24 +5,7 @@ import * as React from 'react'
 import IScroll = require('iscroll')
 import ChartLayoutModel from '../../../model/chartlayout'
 import { formatNumber } from '../../../util'
-
-const PLATES = [
-  ['核电核能', 5.43, 17.33, 76720000, 34, 56],
-  ['军工', 5.78, 15.43, 74390000, 54, 81],
-  ['地产', 4.21, 12.98, 52980000, 12, 23],
-  ['电商股', 3.21, 9.36, 9760000, 8, 77],
-  ['煤炭', 3.05, 9.92, 248000000, 43, 72],
-  ['核电核能', 5.43, 17.33, 76720000, 34, 56],
-  ['军工', 5.78, 15.43, 74390000, 54, 81],
-  ['地产', 4.21, 12.98, 52980000, 12, 23],
-  ['电商股', 3.21, 9.36, 9760000, 8, 77],
-  ['煤炭', 3.05, 9.92, 248000000, 43, 72],
-  ['核电核能', 5.43, 17.33, 76720000, 34, 56],
-  ['军工', 5.78, 15.43, 74390000, 54, 81],
-  ['地产', 4.21, 12.98, 52980000, 12, 23],
-  ['电商股', 3.21, 9.36, 9760000, 8, 77],
-  ['煤炭', 3.05, 9.92, 248000000, 43, 72],
-]
+import { getAllPlates } from '../../../datasource'
 
 const STOCKS = [
   ['中国银行', 33.27, 2.43],
@@ -48,11 +31,33 @@ const STOCKS = [
 
 ]
 
+type SortKey = 'zdf' | 'big_amount' | 'big_rate'
+
+type Order = 'desc' | 'asc'
+
 type Prop = {
   width: number
 }
 
-export default class MainBoard extends React.Component<Prop, any> {
+type State = {
+  plates?: {
+    bk_id: string
+    name: string
+    zdf: number
+    big_rate: number
+    big_amount: number
+    z_num: number
+    d_num: number
+  }[]
+  total?: number
+  sortKey?: SortKey
+  order?: Order
+  startIndex?: number
+}
+
+const LOAD_SIZE = 9
+
+export default class MainBoard extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -73,12 +78,19 @@ export default class MainBoard extends React.Component<Prop, any> {
 
   constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
     super(props, context)
+    this.state = {
+      sortKey: 'zdf',
+      order: 'desc',
+      startIndex: 0,
+    }
     this._chartLayout = context.chartLayout
     this.clickHandler = this.clickHandler.bind(this)
+    this.onScrollEnd = this.onScrollEnd.bind(this)
+    this.sortHandler = this.sortHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: Prop) {
-    return false
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+    return this.state.plates !== nextState.plates
   }
 
   public componentWillReceiveProps (nextProps: Prop) {
@@ -108,6 +120,8 @@ export default class MainBoard extends React.Component<Prop, any> {
       scrollbars: true,
       fadeScrollbars: true,
     })
+    this._platelistScroller.on('scrollEnd', this.onScrollEnd)
+    this.loadPlates(this.state.sortKey, this.state.order, this.state.startIndex)
   }
 
   public componentDidUpdate () {
@@ -123,6 +137,33 @@ export default class MainBoard extends React.Component<Prop, any> {
   }
 
   public render () {
+    const topPaddingRows = []
+    const bottomPaddingRows = []
+
+    for (let i = 0, len = this.state.startIndex; i < len; i++) {
+      topPaddingRows.push(<tr key={i}>
+        <td width='18%'>--</td>
+        <td width='16%'>--</td>
+        <td width='18%'>--</td>
+        <td width='18%'>--</td>
+        <td width='14%'>--</td>
+        <td width='14%'>--</td>
+        <td width='2%'></td>
+      </tr>)
+    }
+
+    for (let i = this.state.startIndex + LOAD_SIZE, len = this.state.total; i < len; i++) {
+      bottomPaddingRows.push(<tr key={i}>
+        <td width='18%'>--</td>
+        <td width='16%'>--</td>
+        <td width='18%'>--</td>
+        <td width='18%'>--</td>
+        <td width='14%'>--</td>
+        <td width='14%'>--</td>
+        <td width='2%'></td>
+      </tr>)
+    }
+
     return (
       <div className='chart-plate' ref='wrapper'>
         <div className='wrapper'>
@@ -131,9 +172,30 @@ export default class MainBoard extends React.Component<Prop, any> {
               <thead>
                 <tr>
                   <th width='18%'>板块名称</th>
-                  <th width='16%'>涨跌幅</th>
-                  <th width='18%'>大单净比</th>
-                  <th width='18%'>主力资金</th>
+                  <th width='16%' data-key='zdf' onClick={this.sortHandler}>
+                    涨跌幅
+                    {
+                      this.state.sortKey === 'zdf' ?
+                        this.state.order === 'desc' ? '↑' : '↓'
+                        : ''
+                    }
+                  </th>
+                  <th width='18%' data-key='big_rate' onClick={this.sortHandler}>
+                    大单净比
+                    {
+                      this.state.sortKey === 'big_rate' ?
+                        this.state.order === 'desc' ? '↑' : '↓'
+                        : ''
+                    }
+                  </th>
+                  <th width='18%' data-key='big_amount' onClick={this.sortHandler}>
+                    主力资金
+                    {
+                      this.state.sortKey === 'big_amount' ?
+                        this.state.order === 'desc' ? '↑' : '↓'
+                        : ''
+                    }
+                  </th>
                   <th width='14%'>上涨数</th>
                   <th width='14%'>下跌数</th>
                   <th width='2%'></th>
@@ -143,19 +205,21 @@ export default class MainBoard extends React.Component<Prop, any> {
             <div className='body' ref='plateListBody'>
               <table className='s-table stripe top-header'>
                 <tbody>
+                  { topPaddingRows }
                   {
-                    PLATES.map((plate, i) =>
+                    this.state.plates && this.state.plates.map((plate, i) =>
                       <tr key={i}>
-                        <td width='18%'>{plate[0]}</td>
-                        <td width='16%'>{plate[1]}%</td>
-                        <td width='18%'>{plate[2]}%</td>
-                        <td width='18%'>{formatNumber(+plate[3])}</td>
-                        <td width='14%'>{plate[4]}</td>
-                        <td width='14%'>{plate[5]}</td>
+                        <td width='18%'>{plate.name}</td>
+                        <td width='16%'>{(plate.zdf * 100).toFixed(2)}%</td>
+                        <td width='18%'>{(plate.big_rate * 100).toFixed(2)}%</td>
+                        <td width='18%'>{formatNumber(+plate.big_amount, 2)}</td>
+                        <td width='14%'>{plate.z_num}</td>
+                        <td width='14%'>{plate.d_num}</td>
                         <td width='2%'></td>
                       </tr>
                     )
                   }
+                  { bottomPaddingRows }
                 </tbody>
               </table>
             </div>
@@ -190,6 +254,38 @@ export default class MainBoard extends React.Component<Prop, any> {
         </div>
       </div>
     )
+  }
+
+  private onScrollEnd () {
+    const startIndex = ~~(-this._platelistScroller.y / 30)
+    this.loadPlates(this.state.sortKey, this.state.order, startIndex)
+  }
+
+  private sortHandler (ev) {
+    const sortKey: SortKey = ev.target.dataset.key
+    let order: Order = 'desc'
+
+    if (sortKey === this.state.sortKey) {
+      order = this.state.order === 'desc' ? 'asc' : 'desc'
+    }
+
+    this.loadPlates(sortKey, order, this.state.startIndex)
+  }
+
+  private loadPlates (sortKey: SortKey, order: Order, startIndex: number) {
+    getAllPlates(sortKey, order, startIndex, LOAD_SIZE)
+      .then(response =>
+        response.json()
+          .then(data => {
+            this.setState({
+              sortKey,
+              order,
+              startIndex,
+              plates: data.data.list,
+              total: data.data.total_count,
+            })
+          })
+      )
   }
 
   private clickHandler (ev) {

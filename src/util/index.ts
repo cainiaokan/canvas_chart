@@ -38,9 +38,9 @@ export function clientOffset (dom: HTMLElement): { top: number, left: number } {
 }
 
 export function formatNumber (num: number, precision = 0): string {
-  if (num / 1e8 >= 1) {
+  if (Math.abs(num / 1e8) >= 1) {
     return (num / 1e8).toFixed(precision) + '亿'
-  } else if (num / 1e4 >= 1) {
+  } else if (Math.abs(num / 1e4) >= 1) {
     return (num / 1e4).toFixed(precision) + '万'
   } else {
     return num.toFixed(precision)

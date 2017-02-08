@@ -143,11 +143,6 @@ export type FinancingInfo = {
   total_operating_income: string
 }
 
-export type PlateList = {
-  concept: string[],
-  industry: string[],
-}
-
 export type NonRealtimeTools = {
   bankCapital: string[]
   stockForumSentiment: string
@@ -163,13 +158,17 @@ export type NonRealtimeTools = {
   newInvester: string
 }
 
+export type Plate = {
+  n: string, bk_id: string
+}
+
 export type PollData = {
   stockInfo?: StockInfo
   capitalFlowInfo?: CapitalFlowInfo
   indexesInfo?: IndexesInfo
   realtimeTools?: RealtimeTools
   financingInfo?: FinancingInfo
-  plates?: PlateList
+  plates?: Plate[]
   nonRealtimeTools?: NonRealtimeTools
 }
 
@@ -183,6 +182,9 @@ export default class PollManager extends EventEmitter {
     capitalFlowInfo?: number
     indexesInfo?: number
     realtimeTools?: number
+    plates?: number
+    financingInfo?: number
+    nonrealtimeTools?: number
   } = {}
 
   private _data: PollData = {}
@@ -209,16 +211,26 @@ export default class PollManager extends EventEmitter {
     if (tabIndex === this._tabIndex) {
       return
     }
-    // switch (this._tabIndex) {
-    //   case 0:
-    //     // clearTimeout(this._timers.stockInfo)
-    //     clearTimeout(this._timers.capitalFlowInfo)
-    //     break
-    //   case 1:
-    //     clearTimeout(this._timers.indexesInfo)
-    //     clearTimeout(this._timers.realtimeTools)
-    //   default:
-    // }
+    switch (this._tabIndex) {
+      case 0:
+        // clearTimeout(this._timers.stockInfo)
+        clearTimeout(this._timers.capitalFlowInfo)
+        break
+      case 1:
+        clearTimeout(this._timers.indexesInfo)
+        clearTimeout(this._timers.realtimeTools)
+        break
+      case 2:
+        clearTimeout(this._timers.financingInfo)
+        break
+      case 3:
+        clearTimeout(this._timers.plates)
+        break
+      case 4:
+        clearTimeout(this._timers.nonrealtimeTools)
+        break
+      default:
+    }
     this._tabIndex = tabIndex
     switch (tabIndex) {
       case 0:
@@ -456,6 +468,9 @@ export default class PollManager extends EventEmitter {
             this.emit('data', this._data)
           })
       )
+      .catch(() => {
+        this._timers.financingInfo = setTimeout(this.getFinancingInfo, RETRY_DELAY)
+      })
   }
 
   private getPlates () {
@@ -466,10 +481,13 @@ export default class PollManager extends EventEmitter {
       .then(response =>
         response.json()
           .then(data => {
-            this._data.plates = data.data
+            this._data.plates = data.data.bk_list
             this.emit('data', this._data)
           })
       )
+      .catch(() => {
+        this._timers.plates = setTimeout(this.getPlates, RETRY_DELAY)
+      })
   }
 
   private getNonRealtimeTools () {
@@ -497,6 +515,9 @@ export default class PollManager extends EventEmitter {
               newInvester: data.xinzeng_str.replace(tagReg, ''),
             }
             this.emit('data', this._data)
+          })
+          .catch(() => {
+            this._timers.nonrealtimeTools = setTimeout(this.getNonRealtimeTools, RETRY_DELAY)
           })
       )
   }

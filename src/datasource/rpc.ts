@@ -4,6 +4,7 @@ ES6Promise.polyfill()
 
 import 'isomorphic-fetch'
 
+const API = 'http://api.quchaogu.com'
 const QU_CHAO_GU = 'http://www.quchaogu.com'
 
 /**
@@ -53,11 +54,15 @@ export function getFinancingInfo (symbol: string): Promise<IResponse> {
 }
 
 export function getPlatesBySymbol (symbol: string): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/stock/industry?code=${symbol}`)
+  return fetch(`${API}/chart/bankuai/bystock?code=${symbol}`)
 }
 
-export function getStockListByPlate (plateName: string, type: string): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/stock/industrystock?name=${plateName}&type=${type}`)
+export function getAllPlates (key: 'zdf' | 'big_amount' | 'big_rate', sort: 'asc' | 'desc', start: number, count: number): Promise<IResponse> {
+  return fetch(`${API}/chart/bankuai/list?sort=${key}&sort=${sort}&start=${start}&count=${count}`)
+}
+
+export function getStockListByPlate (plateId: string): Promise<IResponse> {
+  return fetch(`${API}/chart/bankuai/stocklist?bk_id=${plateId}`)
 }
 
 export function getNonrealtimeTools (): Promise<IResponse> {

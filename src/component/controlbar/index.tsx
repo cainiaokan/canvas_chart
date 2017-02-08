@@ -35,7 +35,11 @@ export default class ControlBar extends React.Component<Prop, any> {
         <div className='control-list'>
           {
             preferredTimeRange.map(range =>
-              <a key={range} className='mini-btn' href='javascript:;' data-value={range} onClick={this.timeRangeClickHandler}>{range}</a>
+              <a key={range}
+                 className='mini-btn'
+                 href='javascript:;'
+                 data-value={range}
+                 onClick={this.timeRangeClickHandler}>{range}</a>
             )
           }
           <GoToDate />

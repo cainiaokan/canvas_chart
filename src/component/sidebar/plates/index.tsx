@@ -1,25 +1,22 @@
 import './index.less'
 import * as React from 'react'
 import IScroll = require('iscroll')
-import { PlateList } from '../pollmanager'
+import { Plate } from '../pollmanager'
 import { getStockListByPlate } from '../../../datasource'
 
 type Prop = {
-  plates: PlateList
+  plates: Plate[]
   height: number
 }
 
 type State = {
   activeIndex?: number
-  stocks?: StockInfo[]
-}
-
-type StockInfo = {
-  code: string
-  name: string
-  p_change: number
-  pre_close: number
-  price: number
+  stocks?: Array<{
+    c: string
+    n: string
+    p_change: number
+    price: number
+  }>
 }
 
 export default class Plates extends React.Component<Prop, State> {
@@ -76,27 +73,25 @@ export default class Plates extends React.Component<Prop, State> {
       <h3>所属板块</h3>
         <ul className='plate-list'>
           {
-            plates.industry
-              .map(name => ({name, type: 'industry'}))
-              .concat(plates.concept.map(name => { return {name, type: 'concept'} }))
-              .map((stock, i) =>
-              <li key={stock.name} className={this.state.activeIndex === i ? 'active' : ''}>
+            plates
+              .map((plate, i) =>
+              <li key={plate.n} className={this.state.activeIndex === i ? 'active' : ''}>
                 <h4 data-index={i}
-                    data-type={stock.type}
-                    onClick={this.selectPlate}>{stock.name}</h4>
+                    data-id={plate.bk_id}
+                    onClick={this.selectPlate}>{plate.n}</h4>
                 {
                   this.state.activeIndex === i ? <ul className='stocks-in-same-plate'>
                     {
                       this.state.stocks ? this.state.stocks.map(stockInfo => {
                         const clazzName = stockInfo.p_change > 0 ? 'positive' : stockInfo.p_change < 0 ? 'negtive' : ''
-                        return <li key={stockInfo.code}>
+                        return <li key={stockInfo.c}>
                           <span className='stock-name'>
-                            <b>{stockInfo.name}</b>
-                            <i>{stockInfo.code}</i>
+                            <b>{stockInfo.n}</b>
+                            <i>{stockInfo.c}</i>
                           </span>
                           <span className={clazzName + ' price'}>{stockInfo.price}</span>
                           <span className={clazzName + ' change-rate'}>
-                            {stockInfo.p_change > 0 ? '+' + stockInfo.p_change : stockInfo.p_change}%
+                            {stockInfo.p_change > 0 ? '+' : ''}{(stockInfo.p_change * 100).toFixed(2)}%
                           </span>
                         </li>
                       }) : null
@@ -119,11 +114,12 @@ export default class Plates extends React.Component<Prop, State> {
       ev.preventDefault()
     }
     const index = +ev.target.dataset.index
+    const plateId = ev.target.dataset.id
     if (index === this.state.activeIndex) {
       this.cancelStockListTimer()
       this.setState({ activeIndex: -1 })
     } else {
-      this.loadStockList(ev.target.innerHTML, ev.target.dataset.type)
+      this.loadStockList(plateId)
       this.setState({
         activeIndex: index,
         stocks: null,
@@ -131,17 +127,16 @@ export default class Plates extends React.Component<Prop, State> {
     }
   }
 
-  private loadStockList (name: string, type: string) {
+  private loadStockList (plateId: string) {
     this.cancelStockListTimer()
-    getStockListByPlate(name, type)
+    getStockListByPlate(plateId)
       .then(response =>
         response.json()
           .then(data => {
-            data = data.data
             this.setState({
-              stocks: data.stock_list,
+              stocks: data.data.list,
             })
-            this.timer = setTimeout(() => this.loadStockList(name, type), data.reflush_time * 1000)
+            this.timer = setTimeout(() => this.loadStockList(plateId), data.data.intver * 1000)
           })
       )
   }
