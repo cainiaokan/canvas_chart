@@ -41,20 +41,14 @@ export type CapitalFlowInfo = {
   donutChartData: number[]
 }
 
-export type IndexInfo = {
-  symbol: string
-  price: string
-  changeRate: number
-  changeAmount: number
-}
-
 export type IndexesInfo = {
-  sh000001: IndexInfo
-  sz399001: IndexInfo
-  sz399005: IndexInfo
-  sz399006: IndexInfo
-  sz399300: IndexInfo
-}
+  index_id: string
+  name: string
+  code: string
+  price: number
+  p_change: number
+  price_change: number
+}[]
 
 export type RealtimeTools = {
   hugutong: any[]
@@ -345,7 +339,7 @@ export default class PollManager extends EventEmitter {
             }
 
             this._data.stockInfo = stockInfo
-            this._timers.stockInfo = setTimeout(this.pollStockInfo, data.data.reflush_time * 1000)
+            this._timers.stockInfo = data.data.reflush_time ? setTimeout(this.pollStockInfo, data.data.reflush_time * 1000) : -1
             this.emit('data', this._data)
           })
       )
@@ -396,27 +390,11 @@ export default class PollManager extends EventEmitter {
       .then(response =>
         response.json()
           .then(data => {
-            const reflushinter = data.data.reflushinter
-            data = data.data.data
-            const indexesInfo: IndexesInfo = {
-              sh000001: null,
-              sz399001: null,
-              sz399005: null,
-              sz399006: null,
-              sz399300: null,
-            }
-            Object.keys(data).forEach(key => {
-              const res = data[key]
-              indexesInfo[key] = {
-                symbol: key,
-                price: res.price,
-                changeRate: res.p_change,
-                changeAmount: res.price_change,
-              }
-            })
+            const reflushinter = data.data.intver
+            const indexesInfo = data.data.list
 
             this._data.indexesInfo = indexesInfo
-            this._timers.indexesInfo = setTimeout(this.pollIndexesInfo, reflushinter * 1000)
+            this._timers.indexesInfo = reflushinter ? setTimeout(this.pollIndexesInfo, reflushinter * 1000) : -1
             this.emit('data', this._data)
           })
       )
@@ -447,7 +425,7 @@ export default class PollManager extends EventEmitter {
             }
 
             this._data.realtimeTools = realtimeTools
-            this._timers.realtimeTools = setTimeout(this.pollRealtimeTools, data.flush_time * 1000)
+            this._timers.realtimeTools = data.flush_time ? setTimeout(this.pollRealtimeTools, data.flush_time * 1000) : -1
             this.emit('data', this._data)
           })
       )

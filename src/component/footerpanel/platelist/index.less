@@ -24,6 +24,9 @@
     height: 248px;
 
     color: #616161;
+    tr {
+      cursor: pointer;
+    }
   }
   .plate-list {
     display: inline-block;
@@ -31,6 +34,31 @@
     width: 68%;
 
     vertical-align: top;
+    .body tr {
+      td:last-child {
+        background: #fff;
+      }
+      &.selected {
+        td:last-child:before {
+          display: inline-block;
+          float: right;
+
+          width: 8px;
+          height: 8px;
+
+          content: '\0020';
+          -webkit-transform: rotate(45deg);
+                  transform: rotate(45deg);
+
+          border-top: 1px solid currentColor;
+          border-right: 1px solid currentColor;
+        }
+        &,
+        td {
+          background: rgba(48, 63, 159, .05);
+        }
+      }
+    }
   }
   .separator {
     display: inline-block;

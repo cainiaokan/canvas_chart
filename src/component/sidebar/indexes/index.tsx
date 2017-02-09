@@ -44,6 +44,13 @@ export default class Indexes extends React.Component<Prop, State> {
     clearTimeout(this._highLightTimeout)
   }
 
+  public componentWillReceiveProps (nextProps: Prop) {
+    if (!_.isEqual(nextProps.indexesInfo, this.props.indexesInfo)) {
+      this.state.highlightFinished = false
+      this._highLightTimeout = setTimeout(() => this.setState({ highlightFinished: true}), 500)
+    }
+  }
+
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
     return !_.isEqual(this.props, nextProps) ||
            !_.isEqual(this.state, nextState)
@@ -57,21 +64,19 @@ export default class Indexes extends React.Component<Prop, State> {
     const classList: any = {}
 
     if (oldIndexesInfo) {
-      Object.keys(indexesInfo)
-        .forEach(code =>
-          mutations[code] = oldIndexesInfo[code].changeAmount !== indexesInfo[code].changeAmount ? 'mutation' : ''
-        )
+      indexesInfo.forEach((index, i) =>
+        mutations[index.code] = oldIndexesInfo[i].price !== index.price ? 'mutation' : ''
+      )
     }
 
     this._oldIndexesInfo = indexesInfo
 
     if (indexesInfo) {
-      Object.keys(indexesInfo)
-        .forEach(code =>
-          classList[code] =
-            indexesInfo[code].changeAmount > 0 ? 'positive' :
-              indexesInfo[code].changeAmount < 0 ? 'negtive' : ''
-        )
+      indexesInfo.forEach(index =>
+          classList[index.code] =
+            index.price > 0 ? 'positive' :
+              index.price < 0 ? 'negtive' : ''
+      )
     }
 
     if (realtimeTools) {
@@ -83,12 +88,6 @@ export default class Indexes extends React.Component<Prop, State> {
         )
     }
 
-    if (this.state.highlightFinished) {
-      this.state.highlightFinished = false
-    } else {
-      this._highLightTimeout = setTimeout(() => this.setState({ highlightFinished: true}), 500)
-    }
-
     return <div className='chart-indexes' style={ {height: this.props.height + 'px'} } ref='indexes'>
       <div>
         {
@@ -97,57 +96,22 @@ export default class Indexes extends React.Component<Prop, State> {
             <h3>股指</h3>
             <table className='index-table s-table stripe left-header'>
               <tbody>
-                <tr data-symbol={'sh000001'}
-                    onClick={this.selectIndex}>
-                  <th width='70'>上证指数</th>
-                  <td width='70' className={`${classList.sh000001} ${mutations.sh000001}`}>
-                    <span>{indexesInfo.sh000001.price}</span>
-                  </td>
-                  <td width='127' className={classList.sh000001}>
-                    {(indexesInfo.sh000001.changeAmount > 0 ? '+' : '') + indexesInfo.sh000001.changeAmount.toFixed(2)}
-                    ({(indexesInfo.sh000001.changeRate > 0 ? '+' : '') + indexesInfo.sh000001.changeRate.toFixed(2)}%)
-                  </td>
-                </tr>
-                <tr data-symbol={'sz399001'} onClick={this.selectIndex}>
-                  <th>深证成指</th>
-                  <td className={`${classList.sz399001} ${mutations.sz399001}`}>
-                    <span>{indexesInfo.sz399001.price}</span>
-                  </td>
-                  <td className={classList.sz399001}>
-                    {(indexesInfo.sz399001.changeAmount > 0 ? '+' : '') + indexesInfo.sz399001.changeAmount.toFixed(2)}
-                    ({(indexesInfo.sz399001.changeRate > 0 ? '+' : '') + indexesInfo.sz399001.changeRate.toFixed(2)}%)
-                  </td>
-                </tr>
-                <tr data-symbol={'sz399300'} onClick={this.selectIndex}>
-                  <th>沪深300</th>
-                  <td className={`${classList.sz399300} ${mutations.sz399300}`}>
-                    <span>{indexesInfo.sz399300.price}</span>
-                  </td>
-                  <td className={classList.sz399300}>
-                    {(indexesInfo.sz399300.changeAmount > 0 ? '+' : '') + indexesInfo.sz399300.changeAmount.toFixed(2)}
-                    ({(indexesInfo.sz399300.changeRate > 0 ? '+' : '') + indexesInfo.sz399300.changeRate.toFixed(2)}%)
-                  </td>
-                </tr>
-                <tr data-symbol={'sz399005'} onClick={this.selectIndex}>
-                  <th>中小板指</th>
-                  <td className={`${classList.sz399005} ${mutations.sz399005}`}>
-                    <span>{indexesInfo.sz399005.price}</span>
-                  </td>
-                  <td className={classList.sz399005}>
-                    {(indexesInfo.sz399005.changeAmount > 0 ? '+' : '') + indexesInfo.sz399005.changeAmount.toFixed(2)}
-                    ({(indexesInfo.sz399005.changeRate > 0 ? '+' : '') + indexesInfo.sz399005.changeRate.toFixed(2)}%)
-                  </td>
-                </tr>
-                <tr data-symbol={'sz399006'} onClick={this.selectIndex}>
-                  <th>创业板指</th>
-                  <td className={`${classList.sz399006} ${mutations.sz399006}`}>
-                    <span>{indexesInfo.sz399006.price}</span>
-                  </td>
-                  <td className={classList.sz399006}>
-                    {(indexesInfo.sz399006.changeAmount > 0 ? '+' : '') + indexesInfo.sz399006.changeAmount.toFixed(2)}
-                    ({(indexesInfo.sz399006.changeRate > 0 ? '+' : '') + indexesInfo.sz399006.changeRate.toFixed(2)}%)
-                  </td>
-                </tr>
+                {
+                  indexesInfo.map(index =>
+                    <tr key={index.code}
+                        data-symbol={index.code}
+                        onClick={this.selectIndex}>
+                      <th width='70'>{index.name}</th>
+                      <td width='70' className={`${classList[index.code]} ${mutations[index.code]}`}>
+                        <span>{index.price}</span>
+                      </td>
+                      <td width='127' className={classList.sh000001}>
+                        {(index.price_change > 0 ? '+' : '') + (+index.price_change).toFixed(2)}
+                        ({(index.p_change > 0 ? '+' : '') + (index.p_change * 100).toFixed(2)}%)
+                      </td>
+                    </tr>
+                  )
+                }
               </tbody>
             </table>
           </div> : null

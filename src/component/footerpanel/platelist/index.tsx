@@ -5,31 +5,7 @@ import * as React from 'react'
 import IScroll = require('iscroll')
 import ChartLayoutModel from '../../../model/chartlayout'
 import { formatNumber } from '../../../util'
-import { getAllPlates } from '../../../datasource'
-
-const STOCKS = [
-  ['中国银行', 33.27, 2.43],
-  ['中国中车', 12.78, 1.65],
-  ['上海电力', 6.90, 1.98],
-  ['苏宁云商', 65.98, 8.54],
-  ['中铁二局', 18.43, 7.66],
-  ['中国银行', 33.27, 2.43],
-  ['中国中车', 12.78, 1.65],
-  ['上海电力', 6.90, 1.98],
-  ['苏宁云商', 65.98, 8.54],
-  ['中铁二局', 18.43, 7.66],
-  ['中国银行', 33.27, 2.43],
-  ['中国中车', 12.78, 1.65],
-  ['上海电力', 6.90, 1.98],
-  ['苏宁云商', 65.98, 8.54],
-  ['中铁二局', 18.43, 7.66],
-  ['中国银行', 33.27, 2.43],
-  ['中国中车', 12.78, 1.65],
-  ['上海电力', 6.90, 1.98],
-  ['苏宁云商', 65.98, 8.54],
-  ['中铁二局', 18.43, 7.66],
-
-]
+import { getAllPlates, getStockListByPlateId } from '../../../datasource'
 
 type SortKey = 'zdf' | 'big_amount' | 'big_rate'
 
@@ -49,6 +25,13 @@ type State = {
     z_num: number
     d_num: number
   }[]
+  stocks?: {
+    n: string
+    c: string
+    price: number
+    p_change: number
+  }[]
+  activePlateId?: string
   total?: number
   sortKey?: SortKey
   order?: Order
@@ -56,6 +39,7 @@ type State = {
 }
 
 const LOAD_SIZE = 9
+const RETRY_DELAY = 10000
 
 export default class MainBoard extends React.Component<Prop, State> {
   public static contextTypes = {
@@ -76,6 +60,9 @@ export default class MainBoard extends React.Component<Prop, State> {
   private _platelistScroller: IScroll
   private _stockListScroller: IScroll
 
+  private _pollPlateListTimer: number
+  private _pollStockListTimer: number
+
   constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
     super(props, context)
     this.state = {
@@ -84,13 +71,21 @@ export default class MainBoard extends React.Component<Prop, State> {
       startIndex: 0,
     }
     this._chartLayout = context.chartLayout
-    this.clickHandler = this.clickHandler.bind(this)
     this.onScrollEnd = this.onScrollEnd.bind(this)
     this.sortHandler = this.sortHandler.bind(this)
+    this.selectHandler = this.selectHandler.bind(this)
+    this.setSymbolHandler = this.setSymbolHandler.bind(this)
+    this.loadPlates = this.loadPlates.bind(this)
+    this.loadStocks = this.loadStocks.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
-    return this.state.plates !== nextState.plates
+    const curState = this.state
+    return curState.plates !== nextState.plates ||
+           curState.stocks !== nextState.stocks ||
+           curState.activePlateId !== nextState.activePlateId ||
+           curState.sortKey !== nextState.sortKey ||
+           curState.order !== nextState.order
   }
 
   public componentWillReceiveProps (nextProps: Prop) {
@@ -114,11 +109,13 @@ export default class MainBoard extends React.Component<Prop, State> {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
+      click: true,
     })
     this._stockListScroller = new IScroll(this.refs.stockListBody, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
+      click: true,
     })
     this._platelistScroller.on('scrollEnd', this.onScrollEnd)
     this.loadPlates(this.state.sortKey, this.state.order, this.state.startIndex)
@@ -134,6 +131,8 @@ export default class MainBoard extends React.Component<Prop, State> {
     this._platelistScroller.destroy()
     this._stockListScroller.destroy()
     this._wrapperScroller.destroy()
+    clearTimeout(this._pollPlateListTimer)
+    clearTimeout(this._pollStockListTimer)
   }
 
   public render () {
@@ -146,9 +145,9 @@ export default class MainBoard extends React.Component<Prop, State> {
         <td width='16%'>--</td>
         <td width='18%'>--</td>
         <td width='18%'>--</td>
-        <td width='14%'>--</td>
-        <td width='14%'>--</td>
-        <td width='2%'></td>
+        <td width='12%'>--</td>
+        <td width='12%'>--</td>
+        <td width='6%'></td>
       </tr>)
     }
 
@@ -158,9 +157,9 @@ export default class MainBoard extends React.Component<Prop, State> {
         <td width='16%'>--</td>
         <td width='18%'>--</td>
         <td width='18%'>--</td>
-        <td width='14%'>--</td>
-        <td width='14%'>--</td>
-        <td width='2%'></td>
+        <td width='12%'>--</td>
+        <td width='12%'>--</td>
+        <td width='6%'></td>
       </tr>)
     }
 
@@ -168,7 +167,7 @@ export default class MainBoard extends React.Component<Prop, State> {
       <div className='chart-plate' ref='wrapper'>
         <div className='wrapper'>
           <div className='plate-list'>
-            <table className='header s-table stripe top-header'>
+            <table className='header s-table top-header'>
               <thead>
                 <tr>
                   <th width='18%'>板块名称</th>
@@ -196,9 +195,9 @@ export default class MainBoard extends React.Component<Prop, State> {
                         : ''
                     }
                   </th>
-                  <th width='14%'>上涨数</th>
-                  <th width='14%'>下跌数</th>
-                  <th width='2%'></th>
+                  <th width='12%'>上涨数</th>
+                  <th width='12%'>下跌数</th>
+                  <th width='6%'></th>
                 </tr>
               </thead>
             </table>
@@ -208,14 +207,17 @@ export default class MainBoard extends React.Component<Prop, State> {
                   { topPaddingRows }
                   {
                     this.state.plates && this.state.plates.map((plate, i) =>
-                      <tr key={i}>
+                      <tr key={i}
+                          className={plate.bk_id === this.state.activePlateId ? 'selected' : ''}
+                          data-id={plate.bk_id}
+                          onClick={this.selectHandler}>
                         <td width='18%'>{plate.name}</td>
                         <td width='16%'>{(plate.zdf * 100).toFixed(2)}%</td>
                         <td width='18%'>{(plate.big_rate * 100).toFixed(2)}%</td>
                         <td width='18%'>{formatNumber(+plate.big_amount, 2)}</td>
-                        <td width='14%'>{plate.z_num}</td>
-                        <td width='14%'>{plate.d_num}</td>
-                        <td width='2%'></td>
+                        <td width='12%'>{plate.z_num}</td>
+                        <td width='12%'>{plate.d_num}</td>
+                        <td width='6%'></td>
                       </tr>
                     )
                   }
@@ -226,7 +228,7 @@ export default class MainBoard extends React.Component<Prop, State> {
           </div>
           <div className='separator'></div>
           <div className='stock-list'>
-            <table className='header s-table stripe top-header'>
+            <table className='header s-table top-header'>
               <thead>
                 <tr>
                   <th width='40%'>股票名称</th>
@@ -239,11 +241,13 @@ export default class MainBoard extends React.Component<Prop, State> {
               <table className='s-table stripe top-header'>
                 <tbody>
                   {
-                    STOCKS.map((stock, i) =>
-                      <tr key={i}>
-                        <td width='40%'>{stock[0]}</td>
-                        <td width='30%'>{(+stock[1]).toFixed(2)}</td>
-                        <td width='30%'>{stock[2]}%</td>
+                    this.state.stocks && this.state.stocks.map((stock, i) =>
+                      <tr key={i}
+                          data-symbol={stock.c}
+                          onClick={this.setSymbolHandler}>
+                        <td width='40%'>{stock.n}</td>
+                        <td width='30%'>{(+stock.price).toFixed(2)}</td>
+                        <td width='30%'>{(stock.p_change * 100).toFixed(2)}%</td>
                       </tr>
                     )
                   }
@@ -272,7 +276,17 @@ export default class MainBoard extends React.Component<Prop, State> {
     this.loadPlates(sortKey, order, this.state.startIndex)
   }
 
+  private selectHandler (ev) {
+    const plateId = ev.currentTarget.dataset.id
+    this.loadStocks(plateId)
+  }
+
+  private setSymbolHandler (ev) {
+    this.context.chartLayout.setSymbol(ev.currentTarget.dataset.symbol)
+  }
+
   private loadPlates (sortKey: SortKey, order: Order, startIndex: number) {
+    clearTimeout(this._pollPlateListTimer)
     getAllPlates(sortKey, order, startIndex, LOAD_SIZE)
       .then(response =>
         response.json()
@@ -284,10 +298,29 @@ export default class MainBoard extends React.Component<Prop, State> {
               plates: data.data.list,
               total: data.data.total_count,
             })
+            this._pollPlateListTimer =
+              data.data.intver ?
+                setTimeout(() => this.loadPlates(sortKey, order, startIndex), data.data.intver) : -1
           })
       )
+      .catch(ex => this._pollPlateListTimer = setTimeout(() => this.loadPlates(sortKey, order, startIndex), RETRY_DELAY))
   }
 
-  private clickHandler (ev) {
+  private loadStocks (plateId: string) {
+    clearTimeout(this._pollStockListTimer)
+    getStockListByPlateId(plateId)
+      .then(response =>
+        response.json()
+          .then(data => {
+            this.setState({
+              activePlateId: plateId,
+              stocks: data.data.list,
+            })
+            this._pollStockListTimer =
+              data.data.intver ?
+                setTimeout(() => this.loadStocks(plateId), data.data.intver) : -1
+          })
+      )
+      .catch(ex => this._pollStockListTimer = setTimeout(() => this.loadStocks(plateId), RETRY_DELAY))
   }
 }

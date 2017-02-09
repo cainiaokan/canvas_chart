@@ -67,6 +67,7 @@ type Prop = {
 
 type State = {
   popUpOprList?: boolean
+  isSymbolAdded?: boolean
 }
 
 export default class Sidebar extends React.Component<Prop, State> {
@@ -91,6 +92,7 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.symbolChangeHandler = this.symbolChangeHandler.bind(this)
     this.foldingBtnClickHandler = this.foldingBtnClickHandler.bind(this)
     this.showMoreOprHandler = this.showMoreOprHandler.bind(this)
+    this.clickOprHandler = this.clickOprHandler.bind(this)
     this.hideMoreResolutionHandler = this.hideMoreResolutionHandler.bind(this)
   }
 
@@ -189,8 +191,14 @@ export default class Sidebar extends React.Component<Prop, State> {
           </a>
           {
             this.state.popUpOprList ?
-            <ul className='popup-menu'>
-              <li>加入自选股</li>
+            <ul className='popup-menu'
+                onMouseDown={this.clickOprHandler}
+                onTouchStart={this.clickOprHandler}>
+              {
+                this.state.isSymbolAdded ?
+                <li data-opr='delete-self-select'>删除自选股</li> :
+                <li data-opr='add-self-select'>加入自选股</li>
+              }
             </ul> : null
           }
           {
@@ -232,7 +240,10 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   private showMoreOprHandler () {
-    this.setState({ popUpOprList: true })
+    const chartLayout = this._chartLayout
+    const symbolInfo = chartLayout.mainDatasource.symbolInfo
+    const selfSelectList = chartLayout.readFromLS('qchart.selfselectlist') || []
+    this.setState({ popUpOprList: true, isSymbolAdded: _.findIndex(selfSelectList, { symbol: symbolInfo.symbol }) !== -1 })
   }
 
   private hideMoreResolutionHandler (ev) {
@@ -241,6 +252,20 @@ export default class Sidebar extends React.Component<Prop, State> {
         ev.preventDefault()
       }
       this.setState({ popUpOprList: false })
+    }
+  }
+
+  private clickOprHandler (ev) {
+    const opr = ev.target.dataset.opr
+    const chartLayout = this._chartLayout
+    const symbolInfo = chartLayout.mainDatasource.symbolInfo
+    const selfSelectList = chartLayout.readFromLS('qchart.selfselectlist') || []
+
+    if (opr === 'add-self-select') {
+      selfSelectList.push(symbolInfo)
+      chartLayout.saveToLS('qchart.selfselectlist', selfSelectList)
+    } else if (opr === 'delete-self-select') {
+      chartLayout.saveToLS('qchart.selfselectlist', _.reject<{symbol: string}>(selfSelectList, el => el.symbol === symbolInfo.symbol))
     }
   }
 

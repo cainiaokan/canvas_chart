@@ -2,7 +2,7 @@ import './index.less'
 import * as React from 'react'
 import IScroll = require('iscroll')
 import { Plate } from '../pollmanager'
-import { getStockListByPlate } from '../../../datasource'
+import { getStockListByPlateId } from '../../../datasource'
 
 type Prop = {
   plates: Plate[]
@@ -129,7 +129,7 @@ export default class Plates extends React.Component<Prop, State> {
 
   private loadStockList (plateId: string) {
     this.cancelStockListTimer()
-    getStockListByPlate(plateId)
+    getStockListByPlateId(plateId)
       .then(response =>
         response.json()
           .then(data => {

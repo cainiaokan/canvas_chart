@@ -42,7 +42,7 @@ export function getCapitalFlow (symbol: string): Promise<IResponse> {
 }
 
 export function getIndexesInfo (): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/stock/guzhi/`)
+  return fetch(`${API}/chart/index/list/`)
 }
 
 export function getRealtimeTools (): Promise<IResponse> {
@@ -53,16 +53,52 @@ export function getFinancingInfo (symbol: string): Promise<IResponse> {
   return fetch(`${QU_CHAO_GU}/chart/stock/finance?code=${symbol}`)
 }
 
+/**
+ * 根据股票代码获取相关板块列表
+ * @param  {string}             symbol 股票代码
+ * @return {Promise<IResponse>}        响应
+ */
 export function getPlatesBySymbol (symbol: string): Promise<IResponse> {
   return fetch(`${API}/chart/bankuai/bystock?code=${symbol}`)
 }
 
+/**
+ * 获取所有板块的数据
+ * @param  {'zdf'|'big_amount'|'big_rate'}  key 排序的key
+ * @param  {'asc'|'desc'}                   sort 排序方式
+ * @param  {number}                         start 起始下标
+ * @param  {number}                         count 获取总条数
+ * @return {Promise<IResponse>}             响应
+ */
 export function getAllPlates (key: 'zdf' | 'big_amount' | 'big_rate', sort: 'asc' | 'desc', start: number, count: number): Promise<IResponse> {
-  return fetch(`${API}/chart/bankuai/list?sort=${key}&sort=${sort}&start=${start}&count=${count}`)
+  return fetch(`${API}/chart/bankuai/list?key=${key}&sort=${sort}&start=${start}&count=${count}`)
 }
 
-export function getStockListByPlate (plateId: string): Promise<IResponse> {
+/**
+ * 通过板块ID获取股票列表
+ * @param  {string}             plateId 板块ID
+ * @return {Promise<IResponse>}         响应
+ */
+export function getStockListByPlateId (plateId: string): Promise<IResponse> {
   return fetch(`${API}/chart/bankuai/stocklist?bk_id=${plateId}`)
+}
+
+/**
+ * 通过code批量获取股票信息
+ * @param  {string[]}           codes code数组
+ * @return {Promise<IResponse>}       响应
+ */
+export function getStockListByCodes (codes: string[], key: 'zdf' | 'price' | 'sz' | 'it_sz' | 'hy', sort: 'desc' | 'asc'): Promise<IResponse> {
+  return fetch(`${API}/chart/stock/zixuan?code_list=${codes.join(',')}&key=${key}&sort=${sort}`)
+}
+
+/**
+ * 获取指数下的股票列表
+ * @param  {string}             indexId 指数ID
+ * @return {Promise<IResponse>}         响应
+ */
+export function getStockListByIndexId (indexId: string): Promise<IResponse> {
+  return fetch(`${API}/chart/index/stocks?index_id=${indexId}`)
 }
 
 export function getNonrealtimeTools (): Promise<IResponse> {

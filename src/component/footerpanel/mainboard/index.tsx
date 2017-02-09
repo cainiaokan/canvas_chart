@@ -3,67 +3,36 @@ import './index.less'
 import * as React from 'react'
 import IScroll = require('iscroll')
 import ChartLayoutModel from '../../../model/chartlayout'
+import { getIndexesInfo, getStockListByIndexId } from '../../../datasource'
 
-const INDEXES = [
-  ['上证指数', 2.31, 2.35],
-  ['堔成指数', -1.23, 1.34],
-  ['中小板指', 2.31, 2.35],
-  ['创业板指', -1.23, -12.66],
-]
+type IndexInfo = {
+  p_change: number
+  price: number
+  price_change: number
+}
 
-const DESC_STOCK_LIST = [
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 10.01],
-  [600482, '中国动力', 33.27, 9.99],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-]
-
-const ASC_STOCK_LIST = [
-  [600482, '中国动力', 33.27, -10.01],
-  [600482, '中国动力', 33.27, -10],
-  [600482, '中国动力', 33.27, -9.84],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-  [600482, '中国动力', 33.27, 44],
-]
+type StockInfo = [string, string, number, number]
 
 type Prop = {
   width: number
 }
 
-export default class PlateList extends React.Component<Prop, any> {
+type State = {
+  indexes?: {
+    index_id: string
+    name: string
+    code: string
+    price: number
+    p_change: number
+    price_change: number
+  }[]
+  rising_rank?: StockInfo[]
+  declining_rank?: StockInfo[]
+}
+
+const RETRY_DELAY = 10000
+
+export default class PlateList extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -84,14 +53,24 @@ export default class PlateList extends React.Component<Prop, any> {
   private _descListScroller: IScroll
   private _ascListScroller: IScroll
 
+  private _pollIndexListTimer: number
+  private _pollRankListTimer: number
+
   constructor (props: any, context: { chartLayout: ChartLayoutModel }) {
     super(props, context)
+    this.state = {}
     this._chartLayout = context.chartLayout
-    this.clickHandler = this.clickHandler.bind(this)
+    this.selectHandler = this.selectHandler.bind(this)
+    this.setSymbolHandler = this.setSymbolHandler.bind(this)
+    this.loadRankList = this.loadRankList.bind(this)
+    this.loadIndexList = this.loadIndexList.bind(this)
   }
 
-  public shouldComponentUpdate () {
-    return false
+  public shouldComponentUpdate (nextProp: Prop, nextState: State) {
+    const curState = this.state
+    return curState.indexes !== nextState.indexes ||
+           curState.rising_rank !== nextState.rising_rank ||
+           curState.declining_rank !== nextState.declining_rank
   }
 
   public componentWillReceiveProps (nextProps: Prop) {
@@ -116,17 +95,21 @@ export default class PlateList extends React.Component<Prop, any> {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
+      click: true,
     })
     this._descListScroller = new IScroll(this.refs.descList, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
+      click: true,
     })
     this._ascListScroller = new IScroll(this.refs.ascList, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
+      click: true,
     })
+    this.loadIndexList()
   }
 
   public componentDidUpdate () {
@@ -141,14 +124,19 @@ export default class PlateList extends React.Component<Prop, any> {
     this._indexesListScroller.destroy()
     this._descListScroller.destroy()
     this._ascListScroller.destroy()
+    clearTimeout(this._pollIndexListTimer)
+    clearTimeout(this._pollRankListTimer)
   }
 
   public render () {
+    const indexes = this.state.indexes
+    const risingRank = this.state.rising_rank
+    const decliningRank = this.state.declining_rank
     return (
       <div ref='wrapper' className='chart-main-board'>
         <div className='wrapper'>
           <div className='indexes-list'>
-            <table className='header s-table stripe top-header'>
+            <table className='header s-table top-header'>
               <thead>
                 <tr>
                   <th width='33%'>指数名称</th>
@@ -161,11 +149,15 @@ export default class PlateList extends React.Component<Prop, any> {
               <table className='s-table stripe top-header'>
                 <tbody>
                   {
-                    INDEXES.map((plate, i) =>
-                      <tr key={i}>
-                        <td width='33%'>{plate[0]}</td>
-                        <td width='33%'>{(+plate[1]).toFixed(2)}%</td>
-                        <td width='34%'>{(+plate[2]).toFixed(2)}</td>
+                    indexes && indexes.map((index, i) =>
+                      <tr key={i} data-id={index.index_id} onClick={this.selectHandler}>
+                        <td width='33%'>{index.name}</td>
+                        <td width='33%'>
+                        {(index.p_change * 100).toFixed(2)}%
+                        </td>
+                        <td width='34%'>
+                        {(+index.price_change).toFixed(2)}
+                        </td>
                       </tr>
                     )
                   }
@@ -175,7 +167,7 @@ export default class PlateList extends React.Component<Prop, any> {
           </div>
           <div className='separator'></div>
           <div className='desc-list'>
-            <table className='header s-table stripe top-header'>
+            <table className='header s-table top-header'>
               <thead>
                 <tr>
                   <th width='33%'>股票名称</th>
@@ -188,11 +180,13 @@ export default class PlateList extends React.Component<Prop, any> {
               <table className='s-table stripe top-header'>
                 <tbody>
                   {
-                    DESC_STOCK_LIST.map((stock, i) =>
-                      <tr key={i}>
+                    risingRank && risingRank.map((stock, i) =>
+                      <tr key={i}
+                          data-symbol={stock[0]}
+                          onClick={this.setSymbolHandler}>
                         <td width='33%'>{stock[1]}</td>
-                        <td width='34%'>{(+stock[2]).toFixed(2)}</td>
-                        <td width='34%'>{(+stock[3]).toFixed(2)}%</td>
+                        <td width='34%'>{(+stock[3]).toFixed(2)}</td>
+                        <td width='34%'>{(stock[2] * 100).toFixed(2)}%</td>
                       </tr>
                     )
                   }
@@ -202,7 +196,7 @@ export default class PlateList extends React.Component<Prop, any> {
           </div>
           <div className='separator'></div>
           <div className='asc-list'>
-            <table className='header s-table stripe top-header'>
+            <table className='header s-table top-header'>
               <thead>
                 <tr>
                   <th width='33%'>股票名称</th>
@@ -215,11 +209,13 @@ export default class PlateList extends React.Component<Prop, any> {
               <table className='s-table stripe top-header'>
                 <tbody>
                   {
-                    ASC_STOCK_LIST.map((stock, i) =>
-                      <tr key={i}>
+                    decliningRank && decliningRank.map((stock, i) =>
+                      <tr key={i}
+                          data-symbol={stock[0]}
+                          onClick={this.setSymbolHandler}>
                         <td width='33%'>{stock[1]}</td>
-                        <td width='34%'>{(+stock[2]).toFixed(2)}</td>
-                        <td width='34%'>{(+stock[3]).toFixed(2)}%</td>
+                        <td width='34%'>{(+stock[3]).toFixed(2)}</td>
+                        <td width='34%'>{(stock[2] * 100).toFixed(2)}%</td>
                       </tr>
                     )
                   }
@@ -232,6 +228,40 @@ export default class PlateList extends React.Component<Prop, any> {
     )
   }
 
-  private clickHandler (ev) {
+  private selectHandler (ev) {
+    const indexId = ev.currentTarget.dataset.id
+    this.loadRankList(indexId)
+  }
+
+  private setSymbolHandler (ev) {
+    this.context.chartLayout.setSymbol(ev.currentTarget.dataset.symbol)
+  }
+
+  private loadIndexList () {
+    getIndexesInfo()
+      .then(response =>
+        response.json()
+          .then(data => {
+            this.setState({ indexes: data.data.list })
+            this._pollIndexListTimer = data.data.intver ? setTimeout(this.loadIndexList, data.data.intver) : -1
+          })
+      )
+      .catch(ex => this._pollIndexListTimer = setTimeout(this.loadIndexList, RETRY_DELAY))
+  }
+
+  private loadRankList (indexId: string) {
+    clearTimeout(this._pollRankListTimer)
+    getStockListByIndexId(indexId)
+      .then(response =>
+        response.json()
+          .then(data => {
+            this.setState({
+              rising_rank: data.data.up,
+              declining_rank: data.data.down,
+            })
+            this._pollRankListTimer = data.data.intver ? setTimeout(() => this.loadRankList(indexId), data.data.intver) : -1
+          })
+      )
+      .catch(ex => this._pollRankListTimer = setTimeout(() => this.loadRankList(indexId), RETRY_DELAY))
   }
 }
