@@ -259,13 +259,11 @@ export default class Sidebar extends React.Component<Prop, State> {
     const opr = ev.target.dataset.opr
     const chartLayout = this._chartLayout
     const symbolInfo = chartLayout.mainDatasource.symbolInfo
-    const selfSelectList = chartLayout.readFromLS('qchart.selfselectlist') || []
 
     if (opr === 'add-self-select') {
-      selfSelectList.push(symbolInfo)
-      chartLayout.saveToLS('qchart.selfselectlist', selfSelectList)
+      chartLayout.addSelfSelect(symbolInfo)
     } else if (opr === 'delete-self-select') {
-      chartLayout.saveToLS('qchart.selfselectlist', _.reject<{symbol: string}>(selfSelectList, el => el.symbol === symbolInfo.symbol))
+      chartLayout.deleteSelfSelect(symbolInfo)
     }
   }
 

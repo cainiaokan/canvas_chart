@@ -88,7 +88,7 @@ export function getStockListByPlateId (plateId: string): Promise<IResponse> {
  * @param  {string[]}           codes code数组
  * @return {Promise<IResponse>}       响应
  */
-export function getStockListByCodes (codes: string[], key: 'zdf' | 'price' | 'sz' | 'it_sz' | 'hy', sort: 'desc' | 'asc'): Promise<IResponse> {
+export function getStockListByCodes (codes: string[], key: 'zdf' | 'price' | 'sz' | 'lt_sz' | 'hy', sort: 'desc' | 'asc'): Promise<IResponse> {
   return fetch(`${API}/chart/stock/zixuan?code_list=${codes.join(',')}&key=${key}&sort=${sort}`)
 }
 

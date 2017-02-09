@@ -8,9 +8,13 @@ import { formatNumber } from '../../../util'
 import ChartLayoutModel from '../../../model/chartlayout'
 import { getStockListByCodes } from '../../../datasource'
 
+type SortKey = 'zdf' | 'price' | 'sz' | 'lt_sz' | 'hy'
+
+type Order = 'desc' | 'asc'
+
 type State = {
-  sortKey?: 'zdf' | 'price' | 'sz' | 'it_sz' | 'hy'
-  sortType?: 'asc' | 'desc'
+  sortKey?: SortKey
+  order?: Order
   stocks?: {
     name: string
     code: string
@@ -45,10 +49,11 @@ export default class SelfSelectStock extends React.Component<any, State> {
     super(props, context)
     this.state = {
       sortKey: 'zdf',
-      sortType: 'desc',
+      order: 'desc',
     }
     this._chartLayout = context.chartLayout
     this.loadStocks = this.loadStocks.bind(this)
+    this.sortHandler = this.sortHandler.bind(this)
     this.setSymbolHandler = this.setSymbolHandler.bind(this)
   }
 
@@ -63,11 +68,15 @@ export default class SelfSelectStock extends React.Component<any, State> {
       fadeScrollbars: true,
       click: true,
     })
-    this.loadStocks()
+    this._chartLayout.addListener('self_select_add', this.loadStocks)
+    this._chartLayout.addListener('self_select_delete', this.loadStocks)
+    this.loadStocks(this.state.sortKey, this.state.order)
   }
 
   public componentWillUnmount () {
     this._scroller.destroy()
+    this._chartLayout.removeListener('self_select_add', this.loadStocks)
+    this._chartLayout.removeListener('self_select_delete', this.loadStocks)
     clearTimeout(this._pollStocksTimer)
   }
 
@@ -80,11 +89,46 @@ export default class SelfSelectStock extends React.Component<any, State> {
           <thead>
             <tr>
               <th width='18%'>股票</th>
-              <th width='14%'>最新价</th>
-              <th width='14%'>涨跌幅</th>
-              <th width='16%'>总市值</th>
-              <th width='20%'>实际流通市值</th>
-              <th width='18%'>所属行业</th>
+              <th width='14%' data-key='price' onClick={this.sortHandler}>
+                最新价
+                {
+                  this.state.sortKey === 'price' ?
+                  this.state.order === 'desc' ? '↑' : '↓'
+                    : ''
+                }
+              </th>
+              <th width='14%' data-key='zdf' onClick={this.sortHandler}>
+                涨跌幅
+                {
+                  this.state.sortKey === 'zdf' ?
+                  this.state.order === 'desc' ? '↑' : '↓'
+                    : ''
+                }
+              </th>
+              <th width='16%' data-key='sz' onClick={this.sortHandler}>
+                总市值
+                {
+                  this.state.sortKey === 'sz' ?
+                  this.state.order === 'desc' ? '↑' : '↓'
+                    : ''
+                }
+              </th>
+              <th width='20%' data-key='lt_sz' onClick={this.sortHandler}>
+                实际流通市值
+                {
+                  this.state.sortKey === 'lt_sz' ?
+                  this.state.order === 'desc' ? '↑' : '↓'
+                    : ''
+                }
+              </th>
+              <th width='18%' data-key='hy' onClick={this.sortHandler}>
+                所属行业
+                {
+                  this.state.sortKey === 'hy' ?
+                  this.state.order === 'desc' ? '↑' : '↓'
+                    : ''
+                }
+              </th>
             </tr>
           </thead>
         </table>
@@ -99,8 +143,8 @@ export default class SelfSelectStock extends React.Component<any, State> {
                     <td width='18%'>{stock.name}</td>
                     <td width='14%'>{(+stock.price).toFixed(2)}</td>
                     <td width='14%'>{(stock.zdf * 100).toFixed(2)}%</td>
-                    <td width='16%'>{formatNumber(+stock.sz)}</td>
-                    <td width='20%'>{formatNumber(+stock.lt_sz)}</td>
+                    <td width='16%'>{formatNumber(+stock.sz, 2)}</td>
+                    <td width='20%'>{formatNumber(+stock.lt_sz, 2)}</td>
                     <td width='18%'>{stock.hy}</td>
                   </tr>
                 )
@@ -112,17 +156,32 @@ export default class SelfSelectStock extends React.Component<any, State> {
     )
   }
 
-  private loadStocks () {
+  private loadStocks (sortKey: SortKey, order: Order) {
     const codes = _.pluck(this._chartLayout.readFromLS('qchart.selfselectlist') || [], 'symbol')
-    getStockListByCodes(codes, this.state.sortKey, this.state.sortType)
+    getStockListByCodes(codes, sortKey, order)
       .then(response =>
         response.json()
           .then(data => {
-            this.setState({ stocks: data.data.list })
+            this.setState({
+              sortKey,
+              order,
+              stocks: data.data.list,
+            })
             this._pollStocksTimer = data.data.intver ? setTimeout(() => this.loadStocks, data.data.intver) : -1
           })
       )
       .catch(ex => this._pollStocksTimer = setTimeout(() => this.loadStocks, RETRY_DELAY))
+  }
+
+  private sortHandler (ev) {
+    const sortKey: SortKey = ev.target.dataset.key
+    let order: Order = 'desc'
+
+    if (sortKey === this.state.sortKey) {
+      order = this.state.order === 'desc' ? 'asc' : 'desc'
+    }
+
+    this.loadStocks(sortKey, order)
   }
 
   private setSymbolHandler (ev) {

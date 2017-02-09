@@ -15,6 +15,7 @@ import {
   studyConfig,
   getServerTime,
   Right,
+  SymbolInfo,
 } from '../datasource'
 import { Point } from '../model/crosshair'
 import {
@@ -440,8 +441,8 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
-   * 设置除权、复权
-   * @param {number} right 0: 除权 1: 前复权
+   * 设置不复权、前复权
+   * @param {number} right 0: 不复权 1: 前复权
    */
   public setRight (right: Right) {
     // 批量设置数据源的解析度
@@ -830,6 +831,19 @@ export default class ChartLayoutModel extends EventEmitter {
     }
 
     axisX.resetOffset()
+  }
+
+  public addSelfSelect (symbolInfo: SymbolInfo) {
+    const selfSelectList = this.readFromLS('qchart.selfselectlist') || []
+    selfSelectList.push(symbolInfo)
+    this.saveToLS('qchart.selfselectlist', selfSelectList)
+    this.emit('self_select_add')
+  }
+
+  public deleteSelfSelect (symbolInfo: SymbolInfo) {
+    const selfSelectList = this.readFromLS('qchart.selfselectlist') || []
+    this.saveToLS('qchart.selfselectlist', _.reject<{symbol: string}>(selfSelectList, el => el.symbol === symbolInfo.symbol))
+    this.emit('self_select_delete')
   }
 
   /**

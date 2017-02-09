@@ -3,7 +3,7 @@ import * as React from 'react'
 import ChartLayoutModel from '../../../model/chartlayout'
 import { Right } from '../../../datasource'
 
-const rightLabels = ['除权', '前复权']
+const rightLabels = ['不复权', '前复权']
 const rightValues = [0, 1]
 
 export default class RightOption extends React.Component<any, any> {
