@@ -390,11 +390,11 @@ export default class PollManager extends EventEmitter {
       .then(response =>
         response.json()
           .then(data => {
-            const reflushinter = data.data.intver
+            const reflushinter = data.data.intver * 1000
             const indexesInfo = data.data.list
 
             this._data.indexesInfo = indexesInfo
-            this._timers.indexesInfo = reflushinter ? setTimeout(this.pollIndexesInfo, reflushinter * 1000) : -1
+            this._timers.indexesInfo = reflushinter ? setTimeout(this.pollIndexesInfo, reflushinter) : -1
             this.emit('data', this._data)
           })
       )

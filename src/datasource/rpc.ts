@@ -42,11 +42,11 @@ export function getCapitalFlow (symbol: string): Promise<IResponse> {
 }
 
 export function getIndexesInfo (): Promise<IResponse> {
-  return fetch(`${API}/chart/index/list/`)
+  return fetch(`${API}/chart/index/list`)
 }
 
 export function getRealtimeTools (): Promise<IResponse> {
-  return fetch(`${QU_CHAO_GU}/chart/stock/realtimetool/`)
+  return fetch(`${QU_CHAO_GU}/chart/stock/realtimetool`)
 }
 
 export function getFinancingInfo (symbol: string): Promise<IResponse> {

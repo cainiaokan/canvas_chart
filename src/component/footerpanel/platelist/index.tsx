@@ -41,7 +41,7 @@ type State = {
 const LOAD_SIZE = 9
 const RETRY_DELAY = 10000
 
-export default class MainBoard extends React.Component<Prop, State> {
+export default class PlateList extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -102,7 +102,6 @@ export default class MainBoard extends React.Component<Prop, State> {
       hScrollbar: true,
       scrollX: true,
       scrollY: false,
-      eventPassthrough: true,
       fadeScrollbars: true,
     })
     this._platelistScroller = new IScroll(this.refs.plateListBody, {
@@ -136,32 +135,41 @@ export default class MainBoard extends React.Component<Prop, State> {
   }
 
   public render () {
-    const topPaddingRows = []
-    const bottomPaddingRows = []
+    // const topPaddingRows = []
+    // const bottomPaddingRows = []
+    const total = this.state.total
+    const startIndex = this.state.startIndex
+    const plates = this.state.plates
+    const paddingTop = 30 * startIndex
+    const paddingBottom = 30 * (total - startIndex - LOAD_SIZE - 1)
 
-    for (let i = 0, len = this.state.startIndex; i < len; i++) {
-      topPaddingRows.push(<tr key={i}>
-        <td width='18%'>--</td>
-        <td width='16%'>--</td>
-        <td width='18%'>--</td>
-        <td width='18%'>--</td>
-        <td width='12%'>--</td>
-        <td width='12%'>--</td>
-        <td width='6%'></td>
-      </tr>)
-    }
+    // for (let i = 0, len = startIndex; i < len; i++) {
+    //   topPaddingRows.push(
+    //     <tr key={i}>
+    //       <td width='18%'>--</td>
+    //       <td width='16%'>--</td>
+    //       <td width='18%'>--</td>
+    //       <td width='18%'>--</td>
+    //       <td width='12%'>--</td>
+    //       <td width='12%'>--</td>
+    //       <td width='6%'></td>
+    //     </tr>
+    //   )
+    // }
 
-    for (let i = this.state.startIndex + LOAD_SIZE, len = this.state.total; i < len; i++) {
-      bottomPaddingRows.push(<tr key={i}>
-        <td width='18%'>--</td>
-        <td width='16%'>--</td>
-        <td width='18%'>--</td>
-        <td width='18%'>--</td>
-        <td width='12%'>--</td>
-        <td width='12%'>--</td>
-        <td width='6%'></td>
-      </tr>)
-    }
+    // for (let i = startIndex + LOAD_SIZE, len = total; i < len; i++) {
+    //   bottomPaddingRows.push(
+    //     <tr key={i}>
+    //       <td width='18%'>--</td>
+    //       <td width='16%'>--</td>
+    //       <td width='18%'>--</td>
+    //       <td width='18%'>--</td>
+    //       <td width='12%'>--</td>
+    //       <td width='12%'>--</td>
+    //       <td width='6%'></td>
+    //     </tr>
+    //   )
+    // }
 
     return (
       <div className='chart-plate' ref='wrapper'>
@@ -204,9 +212,10 @@ export default class MainBoard extends React.Component<Prop, State> {
             <div className='body' ref='plateListBody'>
               <table className='s-table stripe top-header'>
                 <tbody>
-                  { topPaddingRows }
+                  { /*topPaddingRows*/ }
+                  { <tr key='paddingTop'><td style={ { height: paddingTop + 'px' } }></td></tr> }
                   {
-                    this.state.plates && this.state.plates.map((plate, i) =>
+                    plates && plates.map((plate, i) =>
                       <tr key={i}
                           className={plate.bk_id === this.state.activePlateId ? 'selected' : ''}
                           data-id={plate.bk_id}
@@ -221,7 +230,8 @@ export default class MainBoard extends React.Component<Prop, State> {
                       </tr>
                     )
                   }
-                  { bottomPaddingRows }
+                  { <tr key='paddingBottom'><td style={ { height: paddingBottom + 'px' } }></td></tr> }
+                  { /*bottomPaddingRows*/ }
                 </tbody>
               </table>
             </div>
@@ -291,6 +301,7 @@ export default class MainBoard extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
+            const reflushinter = data.data.intver * 1000
             this.setState({
               sortKey,
               order,
@@ -298,9 +309,7 @@ export default class MainBoard extends React.Component<Prop, State> {
               plates: data.data.list,
               total: data.data.total_count,
             })
-            this._pollPlateListTimer =
-              data.data.intver ?
-                setTimeout(() => this.loadPlates(sortKey, order, startIndex), data.data.intver) : -1
+            this._pollPlateListTimer = reflushinter ? setTimeout(() => this.loadPlates(sortKey, order, startIndex), reflushinter) : -1
           })
       )
       .catch(ex => this._pollPlateListTimer = setTimeout(() => this.loadPlates(sortKey, order, startIndex), RETRY_DELAY))
@@ -312,13 +321,12 @@ export default class MainBoard extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
+            const reflushinter = data.data.intver * 1000
             this.setState({
               activePlateId: plateId,
               stocks: data.data.list,
             })
-            this._pollStockListTimer =
-              data.data.intver ?
-                setTimeout(() => this.loadStocks(plateId), data.data.intver) : -1
+            this._pollStockListTimer = reflushinter ? setTimeout(() => this.loadStocks(plateId), reflushinter) : -1
           })
       )
       .catch(ex => this._pollStockListTimer = setTimeout(() => this.loadStocks(plateId), RETRY_DELAY))

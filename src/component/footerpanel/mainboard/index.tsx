@@ -32,7 +32,7 @@ type State = {
 
 const RETRY_DELAY = 10000
 
-export default class PlateList extends React.Component<Prop, State> {
+export default class MainBoard extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -242,8 +242,9 @@ export default class PlateList extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
+            const reflushinter = data.data.intver * 1000
             this.setState({ indexes: data.data.list })
-            this._pollIndexListTimer = data.data.intver ? setTimeout(this.loadIndexList, data.data.intver) : -1
+            this._pollIndexListTimer = reflushinter ? setTimeout(this.loadIndexList, reflushinter) : -1
           })
       )
       .catch(ex => this._pollIndexListTimer = setTimeout(this.loadIndexList, RETRY_DELAY))
@@ -255,11 +256,12 @@ export default class PlateList extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
+            const reflushinter = data.data.intver * 1000
             this.setState({
               rising_rank: data.data.up,
               declining_rank: data.data.down,
             })
-            this._pollRankListTimer = data.data.intver ? setTimeout(() => this.loadRankList(indexId), data.data.intver) : -1
+            this._pollRankListTimer = reflushinter ? setTimeout(() => this.loadRankList(indexId), reflushinter) : -1
           })
       )
       .catch(ex => this._pollRankListTimer = setTimeout(() => this.loadRankList(indexId), RETRY_DELAY))

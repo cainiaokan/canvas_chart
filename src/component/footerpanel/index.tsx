@@ -47,7 +47,7 @@ export default class FooterPanel extends React.Component<Prop, any> {
           <div className='panel-board'>
             {
               activeIndex === 0 ?
-              <SelfSelectStock /> : null
+              <SelfSelectStock width={width} /> : null
             }
             {
               activeIndex === 1 ?

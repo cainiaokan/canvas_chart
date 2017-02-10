@@ -133,10 +133,11 @@ export default class Plates extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
+            const reflushinter = data.data.intver * 1000
             this.setState({
               stocks: data.data.list,
             })
-            this.timer = setTimeout(() => this.loadStockList(plateId), data.data.intver * 1000)
+            this.timer = reflushinter ? setTimeout(() => this.loadStockList(plateId), reflushinter) : -1
           })
       )
   }
