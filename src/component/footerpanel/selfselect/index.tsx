@@ -24,8 +24,8 @@ type State = {
     code: string
     price: number
     zdf: number
-    sz: number
-    lt_sz: number
+    sz: string
+    lt_sz: string
     hy: number
   }[]
 }
@@ -170,8 +170,8 @@ export default class SelfSelectStock extends React.Component<Prop, State> {
                       <td width='18%'>{stock.name}</td>
                       <td width='14%'>{(+stock.price).toFixed(2)}</td>
                       <td width='14%'>{(stock.zdf * 100).toFixed(2)}%</td>
-                      <td width='16%'>{formatNumber(+stock.sz, 2)}</td>
-                      <td width='20%'>{formatNumber(+stock.lt_sz, 2)}</td>
+                      <td width='16%'>{stock.sz !== '--' ? formatNumber(+stock.sz, 2) : '--'}</td>
+                      <td width='20%'>{stock.lt_sz !== '--' ? formatNumber(+stock.lt_sz, 2) : '--'}</td>
                       <td width='18%'>{stock.hy}</td>
                     </tr>
                   )

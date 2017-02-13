@@ -431,12 +431,22 @@ export default class ChartLayoutModel extends EventEmitter {
     datasource
       .resolveSymbol()
       .then(() => {
+        const symbolInfo = datasource.symbolInfo
+        const recentList = this.readFromLS('chart.recentlist') || []
         this.clearCache()
         this.switchStudies()
         this.removeAllTools()
         this.restartPulseUpdate()
         this._axisx.resetOffset()
-        this.emit('symbol_change', datasource.symbolInfo)
+        if (_.findIndex(recentList, { symbol: symbolInfo.symbol}) === -1) {
+          recentList.push(symbolInfo)
+          // 最近访问最多存放50条
+          if (recentList.length > 50) {
+            recentList.shift()
+          }
+          this.saveToLS('chart.recentlist', recentList)
+        }
+        this.emit('symbol_change', symbolInfo)
       })
   }
 

@@ -51,7 +51,7 @@ export default class FooterPanel extends React.Component<Prop, any> {
             }
             {
               activeIndex === 1 ?
-              <RecentVisit /> : null
+              <RecentVisit width={width} /> : null
             }
             {
               activeIndex === 2 ?
