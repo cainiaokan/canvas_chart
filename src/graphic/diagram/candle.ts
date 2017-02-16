@@ -15,8 +15,8 @@ enum PLOT_DATA {
 }
 
 const DEFAULT_STYLE = {
-  color: '#ff524f',
-  colorDown: '#2bbe65',
+  color: 'rgb(215, 84, 66)',
+  colorDown: 'rgb(107, 165, 131)',
 }
 
 export class CandleChartRenderer extends BaseChartRenderer {

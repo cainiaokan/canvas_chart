@@ -156,7 +156,7 @@ export default class Chart extends React.Component<Prop, State> {
     const width = ~~this.props.width - AXIS_Y_WIDTH
     const height = ~~this.props.height
 
-    return <div className='chart-line'>
+    return <div className={`chart-line ${chart.isMain ? 'main' : ''}`}>
       <div className='chart-plot'
         style={
           {

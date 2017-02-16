@@ -51,8 +51,8 @@ export default class StockDetail extends React.Component<Prop, any> {
             <tr>
               <th width='42'>昨收</th>
               <td width='76'>{stockInfo.preClose}</td>
-              <th width='48'>成交量</th>
-              <td width='72'>{formatNumber(stockInfo.volume * 1e4, 2)}手</td>
+              <th width='46'>成交量</th>
+              <td width='74'>{formatNumber(stockInfo.volume * 1e4, 2)}手</td>
             </tr>
             <tr>
               <th>今开</th>

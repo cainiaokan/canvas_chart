@@ -1,4 +1,6 @@
 .chart-tick-list {
+  font-size: 14px;
+
   position: relative;
 
   overflow: hidden;
@@ -9,24 +11,25 @@
   }
   tr td:last-child {
     text-align: right;
-    &:after {
-      display: inline-block;
+    > svg {
+      display: none;
 
-      width: 8px;
-      height: 10px;
+      width: 10px;
+      height: 12px;
       margin-left: 2px;
-
-      background: url(../../image/new_icon.png) no-repeat;
     }
   }
-  .positive:after {
-    content: '\0020';
-
-    background-position: 0 -115px!important;
+  .positive svg,
+  .negative svg {
+    display: inline-block!important;
   }
-  .negtive:after {
-    content: '\0020';
+  .positive svg {
+    fill: #b71c1c;
+  }
+  .negative svg {
+    -webkit-transform: rotate(180deg);
+            transform: rotate(180deg);
 
-    background-position: 0 -130px!important;
+    fill: #00796b;
   }
 }

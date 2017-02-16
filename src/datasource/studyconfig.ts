@@ -229,21 +229,21 @@ export const studyConfig: StudyConfig = {
       {
         shape: 'histogram',
         style: {
-          color: '#FF0000',
-          colorDown: '#008000',
+          color: 'rgb(255, 0, 110)',
+          colorDown: 'rgb(255, 0, 110)',
           histogramBase: 0,
         },
       },
       {
         shape: 'line',
         style: {
-          color: '#0000FF',
+          color: 'rgb(0, 148, 255)',
         },
       },
       {
         shape: 'line',
         style: {
-          color: '#FFA600',
+          color: 'rgb(255, 106, 0)',
         },
       },
     ],

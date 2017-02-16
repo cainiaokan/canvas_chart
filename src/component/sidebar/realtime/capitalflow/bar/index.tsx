@@ -48,7 +48,7 @@ export default class CapitalBarChart extends React.Component<Prop, any> {
                   x={x - rectWidth / 2}
                   y={data[i] > 0 ? -height * data[i] / diff : 0}
                   width={rectWidth}
-                  height={Math.abs(height * data[i] / diff)}
+                  height={data[i] > 0 ? Math.abs(height * data[i] / diff) : 0}
                   fill={data[i] > 0 ? '#ff524f' : '#15af3d'}
                 />
               )

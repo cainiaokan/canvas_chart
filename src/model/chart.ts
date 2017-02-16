@@ -8,7 +8,6 @@ import CrosshairModel from './crosshair'
 import GraphModel from './graph'
 import { BaseToolRenderer } from '../graphic/tool'
 import GridRenderer from '../graphic/grid'
-import WaterMarkRenerer from '../graphic/watermark'
 import { clientOffset } from '../util'
 
 let sequence = 1
@@ -31,7 +30,6 @@ export default class ChartModel extends EventEmitter {
   private _axisY: AxisYModel
   private _crosshair: CrosshairModel
   private _grid: GridRenderer
-  private _watermark: WaterMarkRenerer
   private _isPrice: boolean
   private _isMain: boolean
   private _isValid = false
@@ -60,9 +58,6 @@ export default class ChartModel extends EventEmitter {
     this._grid = new GridRenderer(this)
     this._graphs = []
     this._tools = []
-    if (isMain) {
-      this._watermark = new WaterMarkRenerer(this)
-    }
   }
 
   get id (): number {
@@ -280,10 +275,6 @@ export default class ChartModel extends EventEmitter {
     const ctx = this.ctx
     // 首先绘制背景色
     this.drawBg(ctx)
-    // 如果是主chart就绘制趣炒股水印
-    if (this._isMain) {
-      this._watermark.draw(ctx)
-    }
     // 绘制网格
     this._grid.draw(ctx)
     // 先绘制没有hover的图形
@@ -314,8 +305,7 @@ export default class ChartModel extends EventEmitter {
 
   private drawBg (ctx: CanvasRenderingContext2D) {
     ctx.save()
-    ctx.fillStyle = '#fff'
-    ctx.fillRect(0, 0, this.width, this.height)
+    ctx.clearRect(0, 0, this.width, this.height)
     ctx.restore()
   }
 }

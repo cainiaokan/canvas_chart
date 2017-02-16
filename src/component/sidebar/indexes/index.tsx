@@ -74,8 +74,8 @@ export default class Indexes extends React.Component<Prop, State> {
     if (indexesInfo) {
       indexesInfo.forEach(index =>
           classList[index.code] =
-            index.price > 0 ? 'positive' :
-              index.price < 0 ? 'negtive' : ''
+            +index.price > 0 ? 'positive' :
+              +index.price < 0 ? 'negtive' : ''
       )
     }
 
@@ -102,7 +102,7 @@ export default class Indexes extends React.Component<Prop, State> {
                         data-symbol={index.code}
                         onClick={this.selectIndex}>
                       <th width='70'>{index.name}</th>
-                      <td width='70' className={`${classList[index.code]} ${mutations[index.code]}`}>
+                      <td width='70' className={`${classList[index.code]} ${mutations[index.code] || ''}`}>
                         <span>{index.price}</span>
                       </td>
                       <td width='127' className={classList.sh000001}>
