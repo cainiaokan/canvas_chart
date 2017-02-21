@@ -50,7 +50,7 @@ export default class CapitalDonutChart extends React.Component<Prop, any> {
     const sectors = this.getSectors(data, radius)
     const labels = this.getLabels(data, radius)
 
-    const addup = ~~(data[0] + data[1] - data[2] - data[3] + 0.5)
+    const addup = ~~(data[1] - data[2] + 0.5)
 
     return (
       <div className='chart-capital-flow-donut'>
@@ -93,7 +93,7 @@ export default class CapitalDonutChart extends React.Component<Prop, any> {
 
               })
             }
-            <text x={0} y={-32} textAnchor='middle' fontSize={14} fill='#999999'>今日资金</text>
+            <text x={0} y={-32} textAnchor='middle' fontSize={14} fill='#999999'>主力资金</text>
             <text x={0} y={-6} textAnchor='middle' fontSize={26} fill={addup > 0 ? '#ff524f' : '#15af3d'}>
               {addup > 0 ? '+' + addup : addup}
             </text>
@@ -103,13 +103,13 @@ export default class CapitalDonutChart extends React.Component<Prop, any> {
             <p className='capital-in'>
               流入
               <i className='capital-in-num'>
-                {data ? ~~(data[0] + data[1] + 0.5) : 'N/A'}
+                {data ? ~~(data[1] + 0.5) : 'N/A'}
               </i>
             </p>
             <p className='capital-out'>
               流出
               <i className='capital-out-num'>
-                {data ? ~~(data[2] + data[3] + 0.5) : 'N/A'}
+                {data ? ~~(data[2] + 0.5) : 'N/A'}
               </i>
             </p>
         </div>

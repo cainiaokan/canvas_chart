@@ -74,8 +74,8 @@ export default class Indexes extends React.Component<Prop, State> {
     if (indexesInfo) {
       indexesInfo.forEach(index =>
           classList[index.code] =
-            +index.price > 0 ? 'positive' :
-              +index.price < 0 ? 'negtive' : ''
+            +index.price_change > 0 ? 'positive' :
+              +index.price_change < 0 ? 'negtive' : ''
       )
     }
 

@@ -14,7 +14,6 @@ const dateFormat = 'YYYY-MM-DD'
 
 type State = {
   showDialog?: boolean
-  showDatetimePicker?: boolean
 }
 
 export default class GoToDate extends React.Component<any, State> {
@@ -37,9 +36,7 @@ export default class GoToDate extends React.Component<any, State> {
     this._chartLayout = context.chartLayout
     this.state = {
       showDialog: false,
-      showDatetimePicker: false,
     }
-    this.inputClickHandler = this.inputClickHandler.bind(this)
     this.dateChangeHandler = this.dateChangeHandler.bind(this)
     this.datePickerBlurHandler = this.datePickerBlurHandler.bind(this)
     this.openDialogHandler = this.openDialogHandler.bind(this)
@@ -75,19 +72,18 @@ export default class GoToDate extends React.Component<any, State> {
             <input ref='dateInput'
                    type='text'
                    readOnly={true}
-                   defaultValue={nowDateStr}
-                   onClick={this.inputClickHandler} />
+                   defaultValue={nowDateStr} />
             <button className='btn btn-blue' onClick={this.goToDateHandler}>前往</button>
           </div>
           <DatetimePicker
             input={false}
             value={thisMoment.toDate()}
-            open={this.state.showDatetimePicker}
+            open={true}
             isValidDate={this.checkDateHandler}
             dateFormat={true}
             timeFormat={dontShowTime ? null : true}
             timeConstraints={ { hours: { min: OPEN_HOUR, max: CLOSE_HOUR }, minutes: { step: 5 } } }
-            closeOnSelect={true}
+            closeOnSelect={false}
             disableOnClickOutside={true}
             locale={'zh-cn'}
             onBlur={this.datePickerBlurHandler}
@@ -95,13 +91,6 @@ export default class GoToDate extends React.Component<any, State> {
         </Dialog> : null
       }
     </div>
-  }
-
-  // 输入框点击时
-  private inputClickHandler () {
-    this.setState({
-      showDatetimePicker: true,
-    })
   }
 
   private openDialogHandler () {
@@ -112,7 +101,6 @@ export default class GoToDate extends React.Component<any, State> {
   private dialogCloseHandler () {
     this.setState({
       showDialog: false,
-      showDatetimePicker: false,
     })
   }
 
@@ -143,7 +131,6 @@ export default class GoToDate extends React.Component<any, State> {
   // 日期选择器关闭时
   private datePickerBlurHandler () {
     this.setState({
-      showDatetimePicker: false,
     })
   }
 

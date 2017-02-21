@@ -33,13 +33,13 @@ export default class CapitalBarChart extends React.Component<Prop, any> {
       barWidth / 2 * 9,
     ]
 
-    const tranlate = height * max / diff
+    const tranlate = max > 0 ? (height - 40) * max / diff : 20
 
     return (
       <div className='chart-capital-flow-bar-chart'>
         <h3>最近5日主力流入</h3>
         <svg width={width} height={height}>
-          <g transform={`translate(0, ${(tranlate > 20 ? tranlate : 20).toFixed(2)})`}>
+          <g transform={`translate(0, ${tranlate.toFixed(2)})`}>
             <line x1={0} y1={0} x2={width} y2={0} stroke='#999' />
             {
               tickmarks.map((x, i) =>
@@ -48,7 +48,7 @@ export default class CapitalBarChart extends React.Component<Prop, any> {
                   x={x - rectWidth / 2}
                   y={data[i] > 0 ? -height * data[i] / diff : 0}
                   width={rectWidth}
-                  height={data[i] > 0 ? Math.abs(height * data[i] / diff) : 0}
+                  height={Math.abs(height * data[i] / diff)}
                   fill={data[i] > 0 ? '#ff524f' : '#15af3d'}
                 />
               )
@@ -57,8 +57,8 @@ export default class CapitalBarChart extends React.Component<Prop, any> {
               tickmarks.map((x, i) =>
                 <text
                   key={i}
-                  x={x}
-                  y={data[i] > 0 ? 16 : -8}
+                  x={`${x}px`}
+                  y={`${data[i] > 0 ? 16 : -8}px`}
                   fill={data[i] > 0 ? '#ff524f' : '#15af3d'}
                   textAnchor='middle'
                 >{~~(data[i] + 0.5)}</text>

@@ -26,6 +26,7 @@ type State = {
     p_change: number
     price_change: number
   }[]
+  activeIndexId?: string
   rising_rank?: StockInfo[]
   declining_rank?: StockInfo[]
 }
@@ -45,6 +46,8 @@ export default class MainBoard extends React.Component<Prop, State> {
     descList: HTMLDivElement
     ascList: HTMLDivElement
   }
+
+  private _isMounted: boolean
 
   private _chartLayout: ChartLayoutModel
 
@@ -83,6 +86,8 @@ export default class MainBoard extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
+    this._isMounted = true
+
     this._wrapperScroller = new IScroll(this.refs.wrapper, {
       scrollbars: true,
       hScrollbar: true,
@@ -91,25 +96,30 @@ export default class MainBoard extends React.Component<Prop, State> {
       eventPassthrough: true,
       fadeScrollbars: true,
     })
+
     this._indexesListScroller = new IScroll(this.refs.indexesList, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
       click: true,
     })
+
     this._descListScroller = new IScroll(this.refs.descList, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
       click: true,
     })
+
     this._ascListScroller = new IScroll(this.refs.ascList, {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
       click: true,
     })
+
     this.loadIndexList()
+      .then(() => this.state.indexes ? this.loadRankList(this.state.indexes[0].index_id) : null)
   }
 
   public componentDidUpdate () {
@@ -120,6 +130,7 @@ export default class MainBoard extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
+    this._isMounted = false
     this._wrapperScroller.destroy()
     this._indexesListScroller.destroy()
     this._descListScroller.destroy()
@@ -146,11 +157,14 @@ export default class MainBoard extends React.Component<Prop, State> {
               </thead>
             </table>
             <div className='body' ref='indexesList'>
-              <table className='s-table stripe top-header'>
+              <table className='s-table top-header'>
                 <tbody>
                   {
                     indexes && indexes.map((index, i) =>
-                      <tr key={i} data-id={index.index_id} onClick={this.selectHandler}>
+                      <tr key={i}
+                          className={this.state.activeIndexId === index.index_id ? 'active' : ''}
+                          data-id={index.index_id}
+                          onClick={this.selectHandler}>
                         <td width='33%'>{index.name}</td>
                         <td width='33%'>
                         {(index.p_change * 100).toFixed(2)}%
@@ -237,14 +251,16 @@ export default class MainBoard extends React.Component<Prop, State> {
     this.context.chartLayout.setSymbol(ev.currentTarget.dataset.symbol)
   }
 
-  private loadIndexList () {
-    getIndexesInfo()
+  private loadIndexList (): Promise<any> {
+    return getIndexesInfo()
       .then(response =>
         response.json()
           .then(data => {
-            const reflushinter = data.data.intver * 1000
-            this.setState({ indexes: data.data.list })
-            this._pollIndexListTimer = reflushinter ? setTimeout(this.loadIndexList, reflushinter) : -1
+            if (this._isMounted) {
+              const reflushinter = data.data.intver * 1000
+              this.setState({ indexes: data.data.list })
+              this._pollIndexListTimer = reflushinter ? setTimeout(this.loadIndexList, reflushinter) : -1
+            }
           })
       )
       .catch(ex => this._pollIndexListTimer = setTimeout(this.loadIndexList, RETRY_DELAY))
@@ -256,12 +272,15 @@ export default class MainBoard extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
-            const reflushinter = data.data.intver * 1000
-            this.setState({
-              rising_rank: data.data.up,
-              declining_rank: data.data.down,
-            })
-            this._pollRankListTimer = reflushinter ? setTimeout(() => this.loadRankList(indexId), reflushinter) : -1
+            if (this._isMounted) {
+              const reflushinter = data.data.intver * 1000
+              this.setState({
+                activeIndexId: indexId,
+                rising_rank: data.data.up,
+                declining_rank: data.data.down,
+              })
+              this._pollRankListTimer = reflushinter ? setTimeout(() => this.loadRankList(indexId), reflushinter) : -1
+            }
           })
       )
       .catch(ex => this._pollRankListTimer = setTimeout(() => this.loadRankList(indexId), RETRY_DELAY))

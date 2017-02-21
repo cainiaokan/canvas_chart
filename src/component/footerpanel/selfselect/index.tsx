@@ -44,6 +44,8 @@ export default class SelfSelectStock extends React.Component<Prop, State> {
     wrapper: HTMLDivElement
   }
 
+  private _isMounted: boolean
+
   private _chartLayout: ChartLayoutModel
 
   private _wrapperScroller: IScroll
@@ -68,6 +70,7 @@ export default class SelfSelectStock extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
+    this._isMounted = true
     this._wrapperScroller = new IScroll(this.refs.wrapper, {
       scrollbars: true,
       hScrollbar: true,
@@ -99,6 +102,7 @@ export default class SelfSelectStock extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
+    this._isMounted = false
     this._wrapperScroller.destroy()
     this._scroller.destroy()
     this._chartLayout.removeListener('self_select_add', this.loadStocks)
@@ -159,7 +163,7 @@ export default class SelfSelectStock extends React.Component<Prop, State> {
               </tr>
             </thead>
           </table>
-          <div ref='body' className='body'>
+          <div className='body' ref='body'>
             <table className='s-table stripe top-header'>
               <tbody>
                 {
@@ -190,13 +194,15 @@ export default class SelfSelectStock extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
-            const reflushinter = data.data.intver * 1000
-            this.setState({
-              sortKey,
-              order,
-              stocks: data.data.list,
-            })
-            this._pollStocksTimer = reflushinter ? setTimeout(() => this.loadStocks, reflushinter) : -1
+            if (this._isMounted) {
+              const reflushinter = data.data.intver * 1000
+              this.setState({
+                sortKey,
+                order,
+                stocks: data.data.list,
+              })
+              this._pollStocksTimer = reflushinter ? setTimeout(() => this.loadStocks, reflushinter) : -1
+            }
           })
       )
       .catch(ex => this._pollStocksTimer = setTimeout(() => this.loadStocks, RETRY_DELAY))

@@ -70,7 +70,7 @@ export default class SearchBox extends React.Component<Prop, State> {
   public render () {
     const state = this.state
     return (
-      <div className={`chart-searchbox ${this.props.className}`}>
+      <div className={`chart-searchbox ${this.props.className} ${this.state.focus ? 'extended' : ''}`}>
         <input className='chart-searchbox-input'
                defaultValue={''}
                type='text'

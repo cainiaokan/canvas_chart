@@ -54,6 +54,8 @@ export default class PlateList extends React.Component<Prop, State> {
     stockListBody: HTMLDivElement
   }
 
+  private _isMounted: boolean
+
   private _chartLayout: ChartLayoutModel
 
   private _wrapperScroller: IScroll
@@ -97,6 +99,7 @@ export default class PlateList extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
+    this._isMounted = true
     this._wrapperScroller = new IScroll(this.refs.wrapper, {
       scrollbars: true,
       hScrollbar: true,
@@ -127,6 +130,7 @@ export default class PlateList extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
+    this._isMounted = false
     this._platelistScroller.destroy()
     this._stockListScroller.destroy()
     this._wrapperScroller.destroy()
@@ -301,15 +305,17 @@ export default class PlateList extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
-            const reflushinter = data.data.intver * 1000
-            this.setState({
-              sortKey,
-              order,
-              startIndex,
-              plates: data.data.list,
-              total: data.data.total_count,
-            })
-            this._pollPlateListTimer = reflushinter ? setTimeout(() => this.loadPlates(sortKey, order, startIndex), reflushinter) : -1
+            if (this._isMounted) {
+              const reflushinter = data.data.intver * 1000
+              this.setState({
+                sortKey,
+                order,
+                startIndex,
+                plates: data.data.list,
+                total: data.data.total_count,
+              })
+              this._pollPlateListTimer = reflushinter ? setTimeout(() => this.loadPlates(sortKey, order, startIndex), reflushinter) : -1
+            }
           })
       )
       .catch(ex => this._pollPlateListTimer = setTimeout(() => this.loadPlates(sortKey, order, startIndex), RETRY_DELAY))
@@ -321,12 +327,14 @@ export default class PlateList extends React.Component<Prop, State> {
       .then(response =>
         response.json()
           .then(data => {
-            const reflushinter = data.data.intver * 1000
-            this.setState({
-              activePlateId: plateId,
-              stocks: data.data.list,
-            })
-            this._pollStockListTimer = reflushinter ? setTimeout(() => this.loadStocks(plateId), reflushinter) : -1
+            if (this._isMounted) {
+              const reflushinter = data.data.intver * 1000
+              this.setState({
+                activePlateId: plateId,
+                stocks: data.data.list,
+              })
+              this._pollStockListTimer = reflushinter ? setTimeout(() => this.loadStocks(plateId), reflushinter) : -1
+            }
           })
       )
       .catch(ex => this._pollStockListTimer = setTimeout(() => this.loadStocks(plateId), RETRY_DELAY))

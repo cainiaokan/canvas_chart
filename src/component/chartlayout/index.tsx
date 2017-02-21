@@ -137,17 +137,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
     Promise.all([
       chartLayout.getServerTime(),
       chartLayout.mainDatasource.resolveSymbol(),
-      chartLayout.loadHistory(),
     ])
     .then(() => {
       this.setState({
         loaded: true,
       })
       spinner.stop()
-      setTimeout(() => {
-        this.initEvents()
-        chartLayout.pulseUpdate()
-      }, 100)
+      this.initEvents()
+      chartLayout.pulseUpdate()
     })
   }
 
