@@ -46,7 +46,7 @@ export default class NonRealtime extends React.Component<Prop, any> {
       <div>
         <h3>非实时工具</h3>
         {
-          <table className='s-table stripe left-header'>
+          <table className='s-table stripe even left-header'>
             <tbody>
               <tr>
                 <th width='130'>上证压力支撑</th>

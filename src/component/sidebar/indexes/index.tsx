@@ -94,7 +94,7 @@ export default class Indexes extends React.Component<Prop, State> {
           indexesInfo ?
           <div>
             <h3>股指</h3>
-            <table className='index-table s-table stripe left-header'>
+            <table className='index-table s-table stripe even left-header'>
               <tbody>
                 {
                   indexesInfo.map(index =>
@@ -105,7 +105,7 @@ export default class Indexes extends React.Component<Prop, State> {
                       <td width='70' className={`${classList[index.code]} ${mutations[index.code] || ''}`}>
                         <span>{index.price}</span>
                       </td>
-                      <td width='127' className={classList.sh000001}>
+                      <td width='127' className={classList[index.code]}>
                         {(index.price_change > 0 ? '+' : '') + (+index.price_change).toFixed(2)}
                         ({(index.p_change > 0 ? '+' : '') + (index.p_change * 100).toFixed(2)}%)
                       </td>
@@ -120,7 +120,7 @@ export default class Indexes extends React.Component<Prop, State> {
           realtimeTools ?
           <div>
             <h3>实用工具</h3>
-            <table className='s-table stripe left-header'>
+            <table className='s-table stripe even left-header'>
               <tbody>
                 <tr>
                   <th width='157'>沪股通资金流入</th>

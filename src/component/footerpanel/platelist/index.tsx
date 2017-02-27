@@ -214,7 +214,7 @@ export default class PlateList extends React.Component<Prop, State> {
               </thead>
             </table>
             <div className='body' ref='plateListBody'>
-              <table className='s-table stripe top-header'>
+              <table className={`s-table stripe ${this.state.startIndex % 2 === 0 ? 'even' : 'odd'} top-header`}>
                 <tbody>
                   { /*topPaddingRows*/ }
                   { <tr key='paddingTop'><td style={ { height: paddingTop + 'px' } }></td></tr> }
@@ -252,7 +252,7 @@ export default class PlateList extends React.Component<Prop, State> {
               </thead>
             </table>
             <div className='body' ref='stockListBody'>
-              <table className='s-table stripe top-header'>
+              <table className='s-table stripe even top-header'>
                 <tbody>
                   {
                     this.state.stocks && this.state.stocks.map((stock, i) =>

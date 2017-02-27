@@ -1,7 +1,10 @@
 import './index.less'
+
 import Spinner = require('spin')
 import * as React from 'react'
 import * as _ from 'underscore'
+
+import Welcome from './welcome'
 import Chart from '../chart'
 import AxisX from '../axisX'
 import ToolBox from '../toolbox'
@@ -55,6 +58,7 @@ type Prop  = {
 
 type State = {
   loaded?: boolean
+  welcomeClosed?: boolean
   sidebarFolded?: boolean
   sidebarActiveIndex?: number
   footerPanelFolded?: boolean
@@ -117,8 +121,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
       footerPanelFolded: true,
       footerPanelActiveIndex: 0,
       loaded: false,
+      welcomeClosed: false,
     }
     this.updateView = this.updateView.bind(this)
+    this.welcomeCloseHandler = this.welcomeCloseHandler.bind(this)
     this.sidebarChangeHandler = this.sidebarChangeHandler.bind(this)
     this.footerPanelChangeHandler = this.footerPanelChangeHandler.bind(this)
     this.wheelHandler = this.wheelHandler.bind(this)
@@ -298,6 +304,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <ToolBox /> : null
         }
         {
+          !this.state.welcomeClosed ? <Welcome onClose={this.welcomeCloseHandler} /> : null
+        }
+        {
           showSideBar ?
           <Sidebar
             folded={this.state.sidebarFolded}
@@ -330,6 +339,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
         }
       </div>
     )
+  }
+
+  private welcomeCloseHandler () {
+    this.setState({ welcomeClosed: true })
   }
 
   private sidebarChangeHandler (folded: boolean, index: number) {

@@ -191,7 +191,7 @@ export default class MainBoard extends React.Component<Prop, State> {
               </thead>
             </table>
             <div className='body' ref='descList' >
-              <table className='s-table stripe top-header'>
+              <table className='s-table stripe even top-header'>
                 <tbody>
                   {
                     risingRank && risingRank.map((stock, i) =>
@@ -220,7 +220,7 @@ export default class MainBoard extends React.Component<Prop, State> {
               </thead>
             </table>
             <div className='body' ref='ascList' >
-              <table className='s-table stripe top-header'>
+              <table className='s-table stripe even top-header'>
                 <tbody>
                   {
                     decliningRank && decliningRank.map((stock, i) =>

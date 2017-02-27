@@ -164,7 +164,7 @@ export default class SelfSelectStock extends React.Component<Prop, State> {
             </thead>
           </table>
           <div className='body' ref='body'>
-            <table className='s-table stripe top-header'>
+            <table className='s-table stripe even top-header'>
               <tbody>
                 {
                   stocks && stocks.map((stock, i) =>

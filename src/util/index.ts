@@ -77,3 +77,43 @@ export function getCanvasHeight (canvas: HTMLCanvasElement) {
 export function getCanvasWidth (canvas: HTMLCanvasElement) {
   return canvas.style.width ? parseInt(canvas.style.width) : canvas.width
 }
+
+type AnimationQueue = {
+  _itvl: number
+  _queue: Array<['delay' | 'action', Function | number]>
+  _go: () => void
+  delay: (millis: number) => AnimationQueue
+  enqueue: (action: Function) => AnimationQueue}
+
+export function animationQueue () {
+    const q: AnimationQueue = {
+      _itvl: 0,
+      _queue: [],
+      delay (millis: number) {
+        q._queue.push(['delay', millis])
+        q._go()
+        return q
+      },
+      enqueue (action: Function) {
+        q._queue.push(['action', action])
+        q._go()
+        return q
+      },
+      _go () {
+        clearTimeout(q._itvl)
+        q._itvl = setTimeout(function () {
+          const job = q._queue.shift()
+          if (!!job) {
+            if (job[0] === 'delay') {
+              setTimeout(() => q._go(), job[1])
+            } else if (job[0] === 'action') {
+              (job[1] as Function)()
+              setTimeout(() => q._go(), 0)
+            }
+          }
+        }, 0)
+      },
+    }
+
+    return q
+  }

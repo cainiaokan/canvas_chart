@@ -164,7 +164,7 @@ export default class RecentList extends React.Component<Prop, State> {
             </thead>
           </table>
           <div ref='body' className='body'>
-            <table className='s-table stripe top-header'>
+            <table className='s-table stripe even top-header'>
               <tbody>
                 {
                   stocks && stocks.map((stock, i) =>

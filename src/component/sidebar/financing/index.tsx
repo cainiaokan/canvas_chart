@@ -45,7 +45,7 @@ export default class Financing extends React.Component<Prop, any> {
     <div className='financing' ref='financing' style={ {height: this.props.height + 'px'} }>
       <div>
         <h3>财务信息</h3>
-        <table className='indexes-display s-table stripe left-header'>
+        <table className='indexes-display s-table stripe even left-header'>
           <tbody>
             <tr>
               <th width='133'>每股收益</th>
