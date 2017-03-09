@@ -23,7 +23,6 @@ type State = {
   showEditModeToolTip?: boolean
   pointX?: number
   pointY?: number
-  showContextMenu?: boolean
 }
 
 export default class Chart extends React.Component<Prop, State> {
@@ -38,6 +37,7 @@ export default class Chart extends React.Component<Prop, State> {
     topCanvas: HTMLCanvasElement
   }
 
+  private _chartLayout: ChartLayoutModel
   private _dragOffsetStart: boolean
   private _dragDrawingToolStart: boolean
   private _pinchHorzStart: boolean
@@ -53,16 +53,16 @@ export default class Chart extends React.Component<Prop, State> {
   private _v: number = 0
   private _momentumTimer: number
 
-  constructor () {
-    super()
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
+    super(props)
     this.state = {
       hover: false,
       cursor: 'crosshair',
       showEditModeToolTip: false,
-      showContextMenu: false,
       pointX: 0,
       pointY: 0,
     }
+    this._chartLayout = context.chartLayout
     this.dragMoveHandler = this.dragMoveHandler.bind(this)
     this.gestureMoveHandler = this.gestureMoveHandler.bind(this)
     this.mouseDownHandler = this.mouseDownHandler.bind(this)
@@ -607,11 +607,24 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private contextMenuHanlder (ev?) {
-    const pointX = ev ? ev.pageX : this._dragPosX
-    const pointY = ev ? ev.pageY : this._dragPosY
-    this.setState({
-      showContextMenu: true,
-      pointX, pointY,
+    if (ev) {
+      ev.preventDefault()
+    }
+    const chartLayout = this._chartLayout
+    const offset = this.props.chart.offset
+    const x = ev ? parseInt(ev.pageX) : this._dragPosX + offset.left
+    const y = ev ? parseInt(ev.pageY) : this._dragPosY + offset.top
+    chartLayout.setContextMenu({
+      x, y,
+      items: [{
+        name: '定位时间',
+        type: 'gotodate',
+      }],
+      actions: function (actionType: string) {
+        if (actionType === 'gotodate') {
+          chartLayout.toggleGoToDate(true)
+        }
+      },
     })
   }
 }

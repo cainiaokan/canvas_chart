@@ -3,7 +3,6 @@ import '../../style/btn.less'
 import * as React from 'react'
 import * as _ from 'underscore'
 import ChartLayoutModel, { preferredTimeRange } from '../../model/chartlayout'
-import GoToDate from './gotodate'
 
 type Prop = {
   width: number
@@ -22,6 +21,7 @@ export default class ControlBar extends React.Component<Prop, any> {
     super(props, context)
     this._chartLayout = context.chartLayout
     this.state = {}
+    this.openDialogHandler = this.openDialogHandler.bind(this)
     this.timeRangeClickHandler = this.timeRangeClickHandler.bind(this)
   }
 
@@ -42,7 +42,7 @@ export default class ControlBar extends React.Component<Prop, any> {
                  onClick={this.timeRangeClickHandler}>{range}</a>
             )
           }
-          <GoToDate />
+          <a className='mini-btn' href='javascript:;' onClick={this.openDialogHandler}>定位时间</a>
         </div>
       </div>
     )
@@ -51,5 +51,9 @@ export default class ControlBar extends React.Component<Prop, any> {
   private timeRangeClickHandler (ev) {
     const range = ev.target.dataset.value
     this._chartLayout.setTimeRange(range)
+  }
+
+  private openDialogHandler () {
+    this._chartLayout.toggleGoToDate(true)
   }
 }

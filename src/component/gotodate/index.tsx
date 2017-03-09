@@ -1,22 +1,17 @@
 import './index.less'
-import '../../../style/btn.less'
+import '../../style/btn.less'
 import 'react-datetime/css/react-datetime.css'
 import * as React from 'react'
 import * as moment from 'moment'
-import * as _ from 'underscore'
 import * as DatetimePicker from 'react-datetime'
-import Dialog from '../../../component/widget/dialog'
-import ChartLayoutModel from '../../../model/chartlayout'
-import { OPEN_HOUR, OPEN_MINUTE, CLOSE_HOUR, CLOSE_MINUTE } from '../../../constant'
+import Dialog from '../../component/widget/dialog'
+import ChartLayoutModel from '../../model/chartlayout'
+import { OPEN_HOUR, OPEN_MINUTE, CLOSE_HOUR, CLOSE_MINUTE } from '../../constant'
 
 const dateTimeFormat = 'YYYY-MM-DD HH:mm'
 const dateFormat = 'YYYY-MM-DD'
 
-type State = {
-  showDialog?: boolean
-}
-
-export default class GoToDate extends React.Component<any, State> {
+export default class GoToDateDialog extends React.Component<any, any> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -35,18 +30,16 @@ export default class GoToDate extends React.Component<any, State> {
     super(props, context)
     this._chartLayout = context.chartLayout
     this.state = {
-      showDialog: false,
     }
     this.dateChangeHandler = this.dateChangeHandler.bind(this)
     this.datePickerBlurHandler = this.datePickerBlurHandler.bind(this)
-    this.openDialogHandler = this.openDialogHandler.bind(this)
     this.dialogCloseHandler = this.dialogCloseHandler.bind(this)
     this.goToDateHandler = this.goToDateHandler.bind(this)
     this.checkDateHandler = this.checkDateHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: any, nextState: State) {
-    return !_.isEqual(this.state, nextState)
+  public shouldComponentUpdate (nextProps: any, nextState: any) {
+    return false
   }
 
   public render () {
@@ -63,45 +56,29 @@ export default class GoToDate extends React.Component<any, State> {
 
     this._inputDateValue = thisMoment
 
-    return <div className='chart-gotodate chart-btn-group'>
-      <a className='mini-btn' href='javascript:;' onClick={this.openDialogHandler}>定位时间</a>
-      {
-        this.state.showDialog ?
-        <Dialog title='定位时间' onClose={this.dialogCloseHandler}>
-          <div>
-            <input ref='dateInput'
-                   type='text'
-                   readOnly={true}
-                   defaultValue={nowDateStr} />
-            <button className='btn btn-blue' onClick={this.goToDateHandler}>前往</button>
-          </div>
-          <DatetimePicker
-            input={false}
-            value={thisMoment.toDate()}
-            open={true}
-            isValidDate={this.checkDateHandler}
-            dateFormat={true}
-            timeFormat={dontShowTime ? null : true}
-            timeConstraints={ { hours: { min: OPEN_HOUR, max: CLOSE_HOUR }, minutes: { step: 5 } } }
-            closeOnSelect={false}
-            disableOnClickOutside={true}
-            locale={'zh-cn'}
-            onBlur={this.datePickerBlurHandler}
-            onChange={this.dateChangeHandler} />
-        </Dialog> : null
-      }
-    </div>
-  }
-
-  private openDialogHandler () {
-    this.setState({ showDialog: true })
-  }
-
-  // 定位时间对话框关闭时
-  private dialogCloseHandler () {
-    this.setState({
-      showDialog: false,
-    })
+    return <Dialog title='定位时间' className='chart-gotodate' onClose={this.dialogCloseHandler}>
+      <div>
+        <input
+          ref='dateInput'
+          type='text'
+          readOnly={true}
+          defaultValue={nowDateStr} />
+        <button className='btn btn-blue' onClick={this.goToDateHandler}>前往</button>
+      </div>
+      <DatetimePicker
+        input={false}
+        value={thisMoment.toDate()}
+        open={true}
+        isValidDate={this.checkDateHandler}
+        dateFormat={true}
+        timeFormat={dontShowTime ? null : true}
+        timeConstraints={ { hours: { min: OPEN_HOUR, max: CLOSE_HOUR }, minutes: { step: 5 } } }
+        closeOnSelect={false}
+        disableOnClickOutside={true}
+        locale={'zh-cn'}
+        onBlur={this.datePickerBlurHandler}
+        onChange={this.dateChangeHandler} />
+    </Dialog>
   }
 
   private goToDateHandler () {
@@ -116,8 +93,12 @@ export default class GoToDate extends React.Component<any, State> {
       toDate.setMinutes(0)
     }
 
-    this.dialogCloseHandler()
     chartLayout.goToDate(~~(toDate.getTime() / 1000))
+    this.dialogCloseHandler()
+  }
+
+  private dialogCloseHandler () {
+    this._chartLayout.toggleGoToDate(false)
   }
 
   // 日期选择器值发生变化时

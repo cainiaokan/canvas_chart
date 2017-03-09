@@ -26,7 +26,6 @@ type Prop = {
   onAddStudy: (study: StudyType) => void
   onStudyModified: (study: StudyModel, properties: {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}) => void
   onFullScreen: () => void
-  onShowAbout: () => void
 }
 
 export default class Navbar extends React.Component<Prop, any> {
@@ -98,7 +97,7 @@ export default class Navbar extends React.Component<Prop, any> {
   }
 
   private onShowAbout () {
-    this.props.onShowAbout()
+    this._chartLayout.toggleAbout(true)
   }
 
   private updateView () {

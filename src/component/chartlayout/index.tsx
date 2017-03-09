@@ -4,7 +4,9 @@ import Spinner = require('spin')
 import * as React from 'react'
 import * as _ from 'underscore'
 
-import Welcome from './welcome'
+import About from '../about'
+import GoToDateDialog from '../gotodate'
+import ContextMenu, { ContextMenuConfig } from '../contextmenu'
 import Chart from '../chart'
 import AxisX from '../axisX'
 import ToolBox from '../toolbox'
@@ -66,7 +68,9 @@ type Prop  = {
 
 type State = {
   loaded?: boolean
-  welcomeClosed?: boolean
+  showAbout?: boolean
+  showGoToDate?: boolean
+  contextMenuConfig?: ContextMenuConfig
   sidebarFolded?: boolean
   sidebarActiveIndex?: number
   footerPanelFolded?: boolean
@@ -123,13 +127,16 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayout = this.context.chartLayout
 
     const chartLayout = this._chartLayout
+
+    chartLayout.component = this
     this.state = {
       sidebarFolded: chartLayout.readFromLS('qchart.sidebar.folded'),
       sidebarActiveIndex: chartLayout.readFromLS('qchart.sidebar.activeIndex') || 0,
       footerPanelFolded: true,
       footerPanelActiveIndex: 0,
       loaded: false,
-      welcomeClosed: this._chartLayout.readFromLS('chart.welcome'),
+      showAbout: !this._chartLayout.readFromLS('chart.welcome'),
+      showGoToDate: false,
     }
     this.updateView = this.updateView.bind(this)
     this.onSymbolChange = this.onSymbolChange.bind(this)
@@ -140,8 +147,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this.onAddStudy = this.onAddStudy.bind(this)
     this.onStudyModified = this.onStudyModified.bind(this)
     this.onFullScreen = this.onFullScreen.bind(this)
-    this.onShowAbout = this.onShowAbout.bind(this)
-    this.onCloseAbout = this.onCloseAbout.bind(this)
     this.sidebarChangeHandler = this.sidebarChangeHandler.bind(this)
     this.footerPanelChangeHandler = this.footerPanelChangeHandler.bind(this)
     this.wheelHandler = this.wheelHandler.bind(this)
@@ -321,8 +326,16 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <ToolBox /> : null
         }
         {
-          !this.state.welcomeClosed ?
-          <Welcome onClose={this.onCloseAbout} /> : null
+          this.state.showAbout ?
+          <About /> : null
+        }
+        {
+          this.state.showGoToDate ?
+          <GoToDateDialog /> : null
+        }
+        {
+          this.state.contextMenuConfig ?
+          <ContextMenu {...this.state.contextMenuConfig} /> : null
         }
         {
           showSideBar ?
@@ -344,8 +357,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
             onAddStudy={this.onAddStudy}
             onStudyModified={this.onStudyModified}
             onFullScreen={this.onFullScreen}
-            onRightChange={this.onRightChange}
-            onShowAbout={this.onShowAbout} /> : null
+            onRightChange={this.onRightChange} /> : null
         }
         <div
           className='chart-body'
@@ -406,15 +418,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
     } else {
       requestFullscreen(root)
     }
-  }
-
-  private onShowAbout () {
-    this.setState({ welcomeClosed: false })
-  }
-
-  private onCloseAbout () {
-    this._chartLayout.saveToLS('chart.welcome', true)
-    this.setState({ welcomeClosed: true })
   }
 
   private sidebarChangeHandler (folded: boolean, index: number) {

@@ -2,19 +2,15 @@ import './index.less'
 
 import * as React from 'react'
 import * as _ from 'underscore'
-import { animationQueue } from '../../../util'
+import { animationQueue } from '../../util'
 
-import ChartLayoutModel from '../../../model/chartlayout'
-
-type Prop = {
-  onClose: () => void
-}
+import ChartLayoutModel from '../../model/chartlayout'
 
 type State = {
   animateStep?: 0 | 1 | 2 | 3 | 4 | 5
 }
 
-export default class Welcome extends React.Component<Prop, State> {
+export default class Welcome extends React.Component<any, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -45,8 +41,7 @@ export default class Welcome extends React.Component<Prop, State> {
   }
 
   public shouldComponentUpdate (nextProps: any, nextState: State) {
-    return !_.isEqual(this.state, nextState) ||
-           !_.isEqual(this.props, nextProps)
+    return !_.isEqual(this.state, nextState)
   }
 
   public render () {
@@ -83,7 +78,7 @@ export default class Welcome extends React.Component<Prop, State> {
           <p>我们走访了数百家专业机构，发现他们<em>看盘的方式</em>和<em>主流看盘工具提供的功能</em>有非常<em>巨大的信息鸿沟</em>。</p>
           <p><em>几个IT工程师</em>，尝试做些创新， 试图帮您具备<em>专业的看盘视角和能力</em>。</p>
           <a href='javascript:;' className='proceed-btn' onClick={this.clickHandler}></a>
-          <a href='javascript:;' className='close-btn'></a>
+          <a href='/forums/' target='_blank' className='feedback-btn'>建议/反馈</a>
         </div>
       </div>
     )
@@ -94,6 +89,6 @@ export default class Welcome extends React.Component<Prop, State> {
       .delay(300)
       .enqueue(() => this.setState({ animateStep: 0 }))
       .delay(300)
-      .enqueue(() => this.props.onClose())
+      .enqueue(() => this._chartLayout.toggleAbout(false))
   }
 }

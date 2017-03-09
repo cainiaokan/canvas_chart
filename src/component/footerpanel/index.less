@@ -24,4 +24,27 @@
 
     background-color: #fff;
   }
+  .toggle-btn {
+    float: right;
+
+    padding: 4px;
+    &:hover,
+    &:active {
+      background: #fff;
+    }
+    > svg {
+      width: 22px;
+      height: 22px;
+    }
+    .up,
+    .down {
+      transform-origin: center;
+    }
+  }
+  .folded {
+    .up,
+    .down {
+      transform: rotate(180deg);
+    }
+  }
 }

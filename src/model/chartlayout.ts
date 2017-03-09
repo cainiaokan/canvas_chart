@@ -63,6 +63,7 @@ export default class ChartLayoutModel extends EventEmitter {
   public selectedDrawingTool: BaseToolRenderer
   public willEraseDrawingTool: boolean = false
 
+  private _component
   private _maStudies: StudyModel[]
   private _charts: ChartModel[]
   private _axisx: AxisXModel
@@ -95,6 +96,10 @@ export default class ChartLayoutModel extends EventEmitter {
     this.pulseUpdate = this.pulseUpdate.bind(this)
     this.fullUpdate = this.fullUpdate.bind(this)
     this.lightUpdate = this.lightUpdate.bind(this)
+  }
+
+  set component (component) {
+    this._component = component
   }
 
   get charts (): ChartModel[] {
@@ -851,6 +856,21 @@ export default class ChartLayoutModel extends EventEmitter {
     const selfSelectList = this.readFromLS('qchart.selfselectlist') || []
     this.saveToLS('qchart.selfselectlist', _.reject<{symbol: string}>(selfSelectList, el => el.symbol === symbolInfo.symbol))
     this.emit('self_select_delete')
+  }
+
+  public toggleAbout (showAbout: boolean) {
+    this._component.setState({ showAbout })
+  }
+
+  public toggleGoToDate (showGoToDate: boolean) {
+    if (showGoToDate) {
+      this.saveToLS('chart.welcome', true)
+    }
+    this._component.setState({ showGoToDate })
+  }
+
+  public setContextMenu (contextMenuConfig) {
+    this._component.setState({ contextMenuConfig })
   }
 
   /**
