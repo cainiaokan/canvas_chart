@@ -1,3 +1,4 @@
+import './style/normalize.css'
 import './style/common.css'
 
 import * as React from 'react'
@@ -30,18 +31,5 @@ function renderChart () {
 
 // 页面resize时重新渲染
 window.onresize = renderChart
-
-// 避免触屏设备拖拽页面
-document.ontouchmove = ev => ev.preventDefault()
-
-let lastDownTime = null
-
-// touchend时阻止默认事件，避免触屏设备中双击放大页面
-document.ontouchend = ev => {
-  if (lastDownTime && ev.timeStamp - lastDownTime < 300) {
-    ev.preventDefault()
-  }
-  lastDownTime = ev.timeStamp
-}
 
 renderChart()

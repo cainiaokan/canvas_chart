@@ -7,20 +7,18 @@ import * as _ from 'underscore'
 import ChartLayoutModel from '../../model/chartlayout'
 import PollManager, { PollData } from './pollmanager'
 import Realtime from './realtime'
-import Indexes from './indexes'
+import Market from './market'
 import Financing from './financing'
 import Plates from './plates'
-import NonRealtime from './nonrealtime'
 import Briefing from './briefing'
 
 const STOCK_PANEL_HEIGHT = 76
 
 const tabsConfig = [
   '实时看盘',
-  '指数概况',
+  '大盘概况',
   '财务信息',
   '所属板块',
-  '更多工具',
 ]
 
 const tabsIcon = [
@@ -48,13 +46,13 @@ const tabsIcon = [
       <path d='M5,2.4C2.6,4,1.2,6.6,1,9.3l8,0L5,2.4z M4.6,4.5l1.9,3.3l-3.9,0C3,6.6,3.7,5.5,4.6,4.5z'/>
     </g>
   </svg>,
-  <svg viewBox='0 0 20 20'>
+  /*<svg viewBox='0 0 20 20'>
   <g>
     <g>
       <path d='M3.3,7.8C2,7.8,1,8.8,1,10s1,2.3,2.3,2.3s2.3-1,2.3-2.3S4.5,7.8,3.3,7.8z M16.8,7.8c-1.2,0-2.3,1-2.3,2.3s1,2.3,2.3,2.3s2.3-1,2.3-2.3S18,7.8,16.8,7.8z M10,7.8c-1.2,0-2.3,1-2.3,2.3s1,2.3,2.3,2.3s2.3-1,2.3-2.3S11.2,7.8,10,7.8z'/>
     </g>
   </g>
-  </svg>,
+  </svg>,*/
 ]
 
 type Prop = {
@@ -148,10 +146,11 @@ export default class Sidebar extends React.Component<Prop, State> {
         break
       case 1:
         tabPage = realtimeTools && indexesInfo ?
-                  <Indexes
+                  <Market
                     height={height}
                     realtimeTools={realtimeTools}
-                    indexesInfo={indexesInfo} /> : null
+                    indexesInfo={indexesInfo}
+                    nonRealtimeTools={nonRealtimeTools} /> : null
         break
       case 2:
         tabPage = <Financing
@@ -162,12 +161,6 @@ export default class Sidebar extends React.Component<Prop, State> {
         tabPage = <Plates
                     height={height}
                     plates={plates} />
-        break
-      case 4:
-        tabPage = nonRealtimeTools ?
-                  <NonRealtime
-                    height={height}
-                    nonRealtimeTools={nonRealtimeTools} /> : null
         break
       default:
     }

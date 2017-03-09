@@ -5,14 +5,21 @@ import * as _ from 'underscore'
 import ChartLayoutModel, { DEFAULT_MA_PROPS, MA_PROP } from '../../../model/chartlayout'
 import Dialog from '../../widget/dialog'
 import ColorPicker from '../../widget/colorpicker'
+import StudyModel from '../../../model/study'
+
 import { cloneObj } from '../../../util'
+import { ChartStyle } from '../../../graphic/diagram'
+
+type Prop = {
+  onStudyModified: (study: StudyModel, properties: {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}) => void
+}
 
 type State = {
   showDialog?: boolean
   colorPickerIndex?: number
 }
 
-export default class MASettings extends React.Component<any, State> {
+export default class MASettings extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -37,8 +44,9 @@ export default class MASettings extends React.Component<any, State> {
     this.cancelHandler = this.cancelHandler.bind(this)
   }
 
-  public shouldComponentUpdate (nextProps: any, nextState: State) {
-    return !_.isEqual(this.state, nextState)
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+    return !_.isEqual(this.props, nextProps) ||
+           !_.isEqual(this.state, nextState)
   }
 
   public render () {
@@ -150,7 +158,7 @@ export default class MASettings extends React.Component<any, State> {
       const styles = study.styles
       if (!_.isEqual(originMAProp, maProps[i])) {
         styles[0].color = originMAProp.color
-        chartLayout.modifyGraph(study, {
+        this.props.onStudyModified(study, {
           input: [originMAProp.length],
           isVisible: originMAProp.isVisible,
           styles,

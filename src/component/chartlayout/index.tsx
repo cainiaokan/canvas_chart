@@ -13,12 +13,15 @@ import Sidebar from '../sidebar'
 import ControlBar from '../controlbar'
 import FooterPanel from '../footerpanel'
 import ChartModel from '../../model/chart'
+import StudyModel from '../../model/study'
 import CrosshairModel from '../../model/crosshair'
-import { StockDatasource, Right } from '../../datasource'
+import { ChartStyle } from '../../graphic/diagram'
+import { StockDatasource } from '../../datasource'
 import {
   ShapeType,
   ResolutionType,
   StudyType,
+  RightType,
   AXIS_Y_WIDTH,
   AXIS_X_HEIGHT,
   NAVBAR_HEIGHT,
@@ -29,6 +32,11 @@ import {
   SIDEBAR_FOLD_WIDTH,
   TOOLBOX_WIDTH,
 } from '../../constant'
+import {
+  requestFullscreen,
+  exitFullscreen,
+  getFullScreenElement,
+} from '../../util'
 import AxisXModel from '../../model/axisx'
 import AxisYModel from '../../model/axisy'
 import StockModel from '../../model/stock'
@@ -53,7 +61,7 @@ type Prop  = {
   showsidebar?: boolean
   showcontrolbar?: boolean
   showfooterpanel?: boolean
-  right?: Right
+  right?: RightType
 }
 
 type State = {
@@ -121,10 +129,19 @@ export default class ChartLayout extends React.Component<Prop, State> {
       footerPanelFolded: true,
       footerPanelActiveIndex: 0,
       loaded: false,
-      welcomeClosed: false,
+      welcomeClosed: this._chartLayout.readFromLS('chart.welcome'),
     }
     this.updateView = this.updateView.bind(this)
-    this.welcomeCloseHandler = this.welcomeCloseHandler.bind(this)
+    this.onSymbolChange = this.onSymbolChange.bind(this)
+    this.onResolutionChange = this.onResolutionChange.bind(this)
+    this.onRightChange = this.onRightChange.bind(this)
+    this.onAddComparison = this.onAddComparison.bind(this)
+    this.onRemoveComparison = this.onRemoveComparison.bind(this)
+    this.onAddStudy = this.onAddStudy.bind(this)
+    this.onStudyModified = this.onStudyModified.bind(this)
+    this.onFullScreen = this.onFullScreen.bind(this)
+    this.onShowAbout = this.onShowAbout.bind(this)
+    this.onCloseAbout = this.onCloseAbout.bind(this)
     this.sidebarChangeHandler = this.sidebarChangeHandler.bind(this)
     this.footerPanelChangeHandler = this.footerPanelChangeHandler.bind(this)
     this.wheelHandler = this.wheelHandler.bind(this)
@@ -304,7 +321,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <ToolBox /> : null
         }
         {
-          !this.state.welcomeClosed ? <Welcome onClose={this.welcomeCloseHandler} /> : null
+          !this.state.welcomeClosed ?
+          <Welcome onClose={this.onCloseAbout} /> : null
         }
         {
           showSideBar ?
@@ -317,11 +335,22 @@ export default class ChartLayout extends React.Component<Prop, State> {
         }
         {
           showNavBar ?
-          <Navbar width={availWidth} /> : null
+          <Navbar
+            width={availWidth}
+            onSymbolChange={this.onSymbolChange}
+            onResolutionChange={this.onResolutionChange}
+            onAddComparison={this.onAddComparison}
+            onRemoveComparison={this.onRemoveComparison}
+            onAddStudy={this.onAddStudy}
+            onStudyModified={this.onStudyModified}
+            onFullScreen={this.onFullScreen}
+            onRightChange={this.onRightChange}
+            onShowAbout={this.onShowAbout} /> : null
         }
-        <div className='chart-body'
-             style={ {width: availWidth + 2 + 'px'} }
-             onWheel={this.wheelHandler}>
+        <div
+          className='chart-body'
+          style={ {width: availWidth + 2 + 'px'} }
+          onWheel={this.wheelHandler}>
           {chartLines}
           <AxisX height={AXIS_X_HEIGHT} width={availWidth - AXIS_Y_WIDTH} />
         </div>
@@ -341,7 +370,50 @@ export default class ChartLayout extends React.Component<Prop, State> {
     )
   }
 
-  private welcomeCloseHandler () {
+  private onSymbolChange (symbol: string) {
+    this._chartLayout.setSymbol(symbol)
+  }
+
+  private onResolutionChange (resolution: ResolutionType) {
+    this._chartLayout.saveToLS('qchart.resolution', resolution)
+    this._chartLayout.setResolution(resolution)
+  }
+
+  private onRightChange (right: RightType) {
+    this._chartLayout.setRight(right)
+  }
+
+  private onAddComparison (symbol: string): number {
+    return this._chartLayout.addComparison(symbol)
+  }
+
+  private onRemoveComparison (graphId: number) {
+    this._chartLayout.removeComparison(graphId)
+  }
+
+  private onAddStudy (study: StudyType) {
+    this._chartLayout.addStudy(study)
+  }
+
+  private onStudyModified (study: StudyModel, properties: {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}) {
+    this._chartLayout.modifyGraph(study, properties)
+  }
+
+  private onFullScreen () {
+    const root = this.refs.root
+    if (getFullScreenElement() === root) {
+      exitFullscreen()
+    } else {
+      requestFullscreen(root)
+    }
+  }
+
+  private onShowAbout () {
+    this.setState({ welcomeClosed: false })
+  }
+
+  private onCloseAbout () {
+    this._chartLayout.saveToLS('chart.welcome', true)
     this.setState({ welcomeClosed: true })
   }
 

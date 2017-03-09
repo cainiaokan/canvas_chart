@@ -97,8 +97,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
       bar = bars[i]
       isUp = bar[PLOT_DATA.CLOSE] >= bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
-      ctx.strokeStyle = color
-      ctx.fillStyle = color
+      ctx.strokeStyle = '#000000'
       ctx.beginPath()
       ctx.moveTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.HIGH], rangeY))
       ctx.lineTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.LOW], rangeY))
@@ -110,18 +109,22 @@ export class CandleChartRenderer extends BaseChartRenderer {
       bar = bars[i]
       isUp = bar[PLOT_DATA.CLOSE] >= bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
-      ctx.strokeStyle = color
+      ctx.strokeStyle = '#000000'
+      ctx.lineWidth = 1
       ctx.fillStyle = color
       x = ~~bar[PLOT_DATA.X] - ~~(candleWidth / 2)
       y = ~~axisY.getYByValue(isUp ? bar[PLOT_DATA.CLOSE] : bar[PLOT_DATA.OPEN], rangeY)
-      ctx.fillRect(
-        x,
-        y,
-        candleWidth,
-        ~~Math.ceil(Math.abs(
-          axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY) - y
-        ))
+      ctx.beginPath()
+      ctx.moveTo(x, y)
+      ctx.lineTo(x + candleWidth, y)
+      y = ~~Math.ceil(
+        axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY)
       )
+      ctx.lineTo(x + candleWidth, y)
+      ctx.lineTo(x, y)
+      ctx.closePath()
+      ctx.fill()
+      ctx.stroke()
     }
   }
 

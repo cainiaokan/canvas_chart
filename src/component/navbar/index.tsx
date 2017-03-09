@@ -1,4 +1,6 @@
 import './index.less'
+import '../../style/btn.less'
+
 import * as React from 'react'
 import * as _ from 'underscore'
 import ResolutionOption from './resolution'
@@ -9,9 +11,22 @@ import FullScreen from './fullscreen'
 import RightOption from './right'
 import MASetting from './ma'
 import ChartLayoutModel from '../../model/chartlayout'
+import StudyModel from '../../model/study'
+
+import { ChartStyle } from '../../graphic/diagram'
+import { ResolutionType, RightType, StudyType } from '../../constant'
 
 type Prop = {
   width: number
+  onSymbolChange: (symbol: string) => void
+  onResolutionChange: (resolution: ResolutionType) => void
+  onRightChange: (rightType: RightType) => void
+  onAddComparison: (symbol: string) => number
+  onRemoveComparison: (graphId: number) => void
+  onAddStudy: (study: StudyType) => void
+  onStudyModified: (study: StudyModel, properties: {input?: any[], isVisible?: boolean, styles?: ChartStyle[]}) => void
+  onFullScreen: () => void
+  onShowAbout: () => void
 }
 
 export default class Navbar extends React.Component<Prop, any> {
@@ -27,7 +42,7 @@ export default class Navbar extends React.Component<Prop, any> {
     super(props, context)
     this._chartLayout = context.chartLayout
     this.updateView = this.updateView.bind(this)
-    this.selectSymbolHandler = this.selectSymbolHandler.bind(this)
+    this.onShowAbout = this.onShowAbout.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop) {
@@ -55,27 +70,38 @@ export default class Navbar extends React.Component<Prop, any> {
         <SearchBox
           className='chart-navbar-search'
           autofill={true}
-          onSelect={this.selectSymbolHandler} />
-        <ResolutionOption />
-        <FullScreen />
-        <Compare />
-        <StudySelector />
+          onSelect={this.props.onSymbolChange} />
+
+        <ResolutionOption
+          onResolutionChange={this.props.onResolutionChange} />
+
+        <FullScreen
+          onFullScreen={this.props.onFullScreen} />
+
+        <Compare
+          onAddComparison={this.props.onAddComparison}
+          onRemoveComparison={this.props.onRemoveComparison} />
+
+        <StudySelector onAddStudy={this.props.onAddStudy} />
+
         {
-          resolution > '1' ? <MASetting /> : null
+          resolution > '1' ? <MASetting onStudyModified={this.props.onStudyModified} /> : null
         }
+
         {
           chartLayout.mainDatasource.symbolInfo.type === 'stock' ?
-          <RightOption /> : null
+          <RightOption onRightChange={this.props.onRightChange} /> : null
         }
+        <button className='about btn' onClick={this.onShowAbout}>关于</button>
       </div>
     )
   }
 
-  private updateView () {
-    this.forceUpdate()
+  private onShowAbout () {
+    this.props.onShowAbout()
   }
 
-  private selectSymbolHandler (symbol) {
-    this._chartLayout.setSymbol(symbol)
+  private updateView () {
+    this.forceUpdate()
   }
 }

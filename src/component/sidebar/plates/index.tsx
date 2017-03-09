@@ -105,7 +105,7 @@ export default class Plates extends React.Component<Prop, State> {
       </div>
     </div> :
     <div className='plates' ref='plates' style={ {height: this.props.height + 'px'} }>
-      <div className='no-plates'>无板块信息</div>
+      <div className='no-plates'>非个股无板块信息</div>
     </div>
   }
 
@@ -130,16 +130,13 @@ export default class Plates extends React.Component<Prop, State> {
   private loadStockList (plateId: string) {
     this.cancelStockListTimer()
     getStockListByPlateId(plateId)
-      .then(response =>
-        response.json()
-          .then(data => {
-            const reflushinter = data.data.intver * 1000
-            this.setState({
-              stocks: data.data.list,
-            })
-            this.timer = reflushinter ? setTimeout(() => this.loadStockList(plateId), reflushinter) : -1
-          })
-      )
+      .then(data => {
+        const reflushinter = data.data.intver * 1000
+        this.setState({
+          stocks: data.data.list,
+        })
+        this.timer = reflushinter ? setTimeout(() => this.loadStockList(plateId), reflushinter) : -1
+      })
   }
 
   private cancelStockListTimer () {

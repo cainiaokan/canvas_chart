@@ -150,9 +150,9 @@ export default class MainBoard extends React.Component<Prop, State> {
             <table className='header s-table top-header'>
               <thead>
                 <tr>
-                  <th width='33%'>指数名称</th>
-                  <th width='33%'>涨跌幅</th>
-                  <th width='34%'>涨跌点数</th>
+                  <th width='38%'>指数名称</th>
+                  <th width='31%'>涨跌幅</th>
+                  <th width='31%'>涨跌点数</th>
                 </tr>
               </thead>
             </table>
@@ -165,11 +165,11 @@ export default class MainBoard extends React.Component<Prop, State> {
                           className={this.state.activeIndexId === index.index_id ? 'active' : ''}
                           data-id={index.index_id}
                           onClick={this.selectHandler}>
-                        <td width='33%'>{index.name}</td>
-                        <td width='33%'>
+                        <td width='38%'>{index.name}</td>
+                        <td width='31%'>
                         {(index.p_change * 100).toFixed(2)}%
                         </td>
-                        <td width='34%'>
+                        <td width='31%'>
                         {(+index.price_change).toFixed(2)}
                         </td>
                       </tr>
@@ -184,9 +184,9 @@ export default class MainBoard extends React.Component<Prop, State> {
             <table className='header s-table top-header'>
               <thead>
                 <tr>
-                  <th width='33%'>股票名称</th>
-                  <th width='34%'>最新价</th>
-                  <th width='34%'>涨跌幅</th>
+                  <th width='38%'>股票名称</th>
+                  <th width='31%'>最新价</th>
+                  <th width='31%'>涨跌幅</th>
                 </tr>
               </thead>
             </table>
@@ -198,9 +198,9 @@ export default class MainBoard extends React.Component<Prop, State> {
                       <tr key={i}
                           data-symbol={stock[0]}
                           onClick={this.setSymbolHandler}>
-                        <td width='33%'>{stock[1]}</td>
-                        <td width='34%'>{(+stock[3]).toFixed(2)}</td>
-                        <td width='34%'>{(stock[2] * 100).toFixed(2)}%</td>
+                        <td width='38%'>{stock[1]}</td>
+                        <td width='31%'>{(+stock[3]).toFixed(2)}</td>
+                        <td width='31%'>{(stock[2] * 100).toFixed(2)}%</td>
                       </tr>
                     )
                   }
@@ -213,9 +213,9 @@ export default class MainBoard extends React.Component<Prop, State> {
             <table className='header s-table top-header'>
               <thead>
                 <tr>
-                  <th width='33%'>股票名称</th>
-                  <th width='34%'>最新价</th>
-                  <th width='34%'>涨跌幅</th>
+                  <th width='38%'>股票名称</th>
+                  <th width='31%'>最新价</th>
+                  <th width='31%'>涨跌幅</th>
                 </tr>
               </thead>
             </table>
@@ -227,9 +227,9 @@ export default class MainBoard extends React.Component<Prop, State> {
                       <tr key={i}
                           data-symbol={stock[0]}
                           onClick={this.setSymbolHandler}>
-                        <td width='33%'>{stock[1]}</td>
-                        <td width='34%'>{(+stock[3]).toFixed(2)}</td>
-                        <td width='34%'>{(stock[2] * 100).toFixed(2)}%</td>
+                        <td width='38%'>{stock[1]}</td>
+                        <td width='31%'>{(+stock[3]).toFixed(2)}</td>
+                        <td width='31%'>{(stock[2] * 100).toFixed(2)}%</td>
                       </tr>
                     )
                   }
@@ -253,36 +253,30 @@ export default class MainBoard extends React.Component<Prop, State> {
 
   private loadIndexList (): Promise<any> {
     return getIndexesInfo()
-      .then(response =>
-        response.json()
-          .then(data => {
-            if (this._isMounted) {
-              const reflushinter = data.data.intver * 1000
-              this.setState({ indexes: data.data.list })
-              this._pollIndexListTimer = reflushinter ? setTimeout(this.loadIndexList, reflushinter) : -1
-            }
-          })
-      )
+      .then(data => {
+          if (this._isMounted) {
+            const reflushinter = data.data.intver * 1000
+            this.setState({ indexes: data.data.list })
+            this._pollIndexListTimer = reflushinter ? setTimeout(this.loadIndexList, reflushinter) : -1
+          }
+      })
       .catch(ex => this._pollIndexListTimer = setTimeout(this.loadIndexList, RETRY_DELAY))
   }
 
   private loadRankList (indexId: string) {
     clearTimeout(this._pollRankListTimer)
     getStockListByIndexId(indexId)
-      .then(response =>
-        response.json()
-          .then(data => {
-            if (this._isMounted) {
-              const reflushinter = data.data.intver * 1000
-              this.setState({
-                activeIndexId: indexId,
-                rising_rank: data.data.up,
-                declining_rank: data.data.down,
-              })
-              this._pollRankListTimer = reflushinter ? setTimeout(() => this.loadRankList(indexId), reflushinter) : -1
-            }
+      .then(data => {
+        if (this._isMounted) {
+          const reflushinter = data.data.intver * 1000
+          this.setState({
+            activeIndexId: indexId,
+            rising_rank: data.data.up,
+            declining_rank: data.data.down,
           })
-      )
+          this._pollRankListTimer = reflushinter ? setTimeout(() => this.loadRankList(indexId), reflushinter) : -1
+        }
+      })
       .catch(ex => this._pollRankListTimer = setTimeout(() => this.loadRankList(indexId), RETRY_DELAY))
   }
 }

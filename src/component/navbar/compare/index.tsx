@@ -1,10 +1,19 @@
 import './index.less'
 import '../../../style/btn.less'
+
 import * as React from 'react'
 import * as _ from 'underscore'
+
 import ChartLayoutModel from '../../../model/chartlayout'
+import GraphModel from '../../../model/graph'
+
 import SearchBox from '../searchbox'
 import Dialog from '../../widget/dialog'
+
+type Prop = {
+  onAddComparison: (symbol: string) => number
+  onRemoveComparison: (graphId: number) => void
+}
 
 type State = {
   showCompareDialog?: boolean,
@@ -24,7 +33,7 @@ const indexes = [
   ],
 ]
 
-export default class Compare extends React.Component<any, State> {
+export default class Compare extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -56,7 +65,8 @@ export default class Compare extends React.Component<any, State> {
   }
 
   public shouldComponentUpdate (nextProps: any, nextState: State) {
-    return !_.isEqual(this.state, nextState)
+    return !_.isEqual(this.props, nextProps) ||
+           !_.isEqual(this.state, nextState)
   }
 
   public render () {
@@ -109,20 +119,20 @@ export default class Compare extends React.Component<any, State> {
   private checkChangeHandler (ev) {
     const checked = ev.target.checked
     const symbol = ev.target.value
-    const chartLayout = this._chartLayout
 
     if (checked) {
-      this._indexesCheckState[symbol] = chartLayout.addComparison(symbol)
+      this._indexesCheckState[symbol] = this.props.onAddComparison(symbol)
     } else {
-      chartLayout.removeComparison(this._indexesCheckState[symbol])
+      this.props.onRemoveComparison(this._indexesCheckState[symbol])
       this._indexesCheckState[symbol] = null
     }
   }
 
-  private graphRemoveHandler (graph) {
+  // 用户手动移除比较图形时
+  private graphRemoveHandler (graph: GraphModel) {
     const indexesCheckState = this._indexesCheckState
     Object.keys(indexesCheckState).forEach(key => {
-      if (graph.id === indexesCheckState[key]) {
+      if (graph.isComparison && graph.id === indexesCheckState[key]) {
         indexesCheckState[key] = null
       }
     })

@@ -27,7 +27,6 @@ export default class Financing extends React.Component<Prop, any> {
 
   public componentWillUnmount () {
     this._financingScroll.destroy()
-    this._financingScroll = null
   }
 
   public componentDidUpdate () {
@@ -120,7 +119,7 @@ export default class Financing extends React.Component<Prop, any> {
       </div>
     </div> :
     <div className='financing' ref='financing' style={ {height: this.props.height + 'px'} }>
-      <div className='no-financing-info'>无财务信息</div>
+      <div className='no-financing-info'>非个股无财务信息</div>
     </div>
   }
 }

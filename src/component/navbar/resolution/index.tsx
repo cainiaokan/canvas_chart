@@ -6,6 +6,12 @@ import * as React from 'react'
 import * as _ from 'underscore'
 import ChartLayoutModel from '../../../model/chartlayout'
 
+import { ResolutionType } from '../../../constant'
+
+type Prop = {
+  onResolutionChange: (resolution: ResolutionType) => void
+}
+
 type State = {
   showMoreResolution?: boolean
 }
@@ -23,7 +29,7 @@ const resolutionConfig = {
   'M': '月K',
 }
 
-export default class ResolutionOption extends React.Component<any, State> {
+export default class ResolutionOption extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -58,7 +64,8 @@ export default class ResolutionOption extends React.Component<any, State> {
   }
 
   public shouldComponentUpdate (nextProps: any, nextState: State) {
-    return !_.isEqual(this.state, nextState)
+    return !_.isEqual(this.props, nextProps) ||
+           !_.isEqual(this.state, nextState)
   }
 
   public render () {
@@ -115,9 +122,7 @@ export default class ResolutionOption extends React.Component<any, State> {
     const chartLayout = this._chartLayout
     const resolution = ev.target.dataset.value
     if (chartLayout.mainDatasource.resolution !== resolution) {
-      chartLayout.saveToLS('qchart.resolution', resolution)
-      chartLayout.setResolution(resolution)
-      this.forceUpdate()
+      this.props.onResolutionChange(resolution)
     }
   }
 

@@ -2,10 +2,8 @@ import * as _ from 'underscore'
 import moment = require('moment')
 import * as RPC from './rpc'
 import PlotList  from './plotlist'
-import { ResolutionType, OPEN_DAYS, OPEN_MINITES_COUNT } from '../constant'
+import { ResolutionType, RightType, OPEN_DAYS, OPEN_MINITES_COUNT } from '../constant'
 import { IBar, Datasource } from './base'
-
-export type Right = 0 | 1 | 2
 
 /**
  * 股票信息的数据规格
@@ -51,14 +49,14 @@ export class StockDatasource extends Datasource {
    */
   private _symbolInfo: SymbolInfo
 
-  private _right: Right
+  private _right: RightType
 
   /**
    * @constructor
    * @param {string} symbol     股票代码
    * @param {string} resolution 解析度
    */
-  constructor (symbol: string, resolution: ResolutionType, right: Right, timeDiff: number = 0) {
+  constructor (symbol: string, resolution: ResolutionType, right: RightType, timeDiff: number = 0) {
     super(resolution, timeDiff)
     this._symbol = symbol
     this._right = right
@@ -66,11 +64,11 @@ export class StockDatasource extends Datasource {
     this._plotList = new PlotList<IStockBar>()
   }
 
-  get right (): Right {
+  get right (): RightType {
     return this._right
   }
 
-  set right (right: Right) {
+  set right (right: RightType) {
     this._right = right
   }
 
@@ -155,43 +153,40 @@ export class StockDatasource extends Datasource {
 
     return new Promise((resolve, reject) =>
       RPC.getStockBars(symbol, resolution, right, from, to)
-        .then(
-          response => response.json()
-            .then(data => {
-              let stockBars: IStockBar[] = []
-              data.t.forEach((time, index) => {
-                const barData: IStockBar = {
-                  amount: data.a[index],
-                  close: data.c[index],
-                  high: data.h[index],
-                  low: data.l[index],
-                  open: data.o[index],
-                  time: data.t[index],
-                  volume: data.v[index],
-                }
-                this._pulseInterval = data.interval
-                if (data.tr) {
-                  barData.turnover = data.tr[index]
-                }
-                if (data.zd) {
-                  barData.changerate = data.zd[index]
-                }
-                stockBars.push(barData)
-              })
+        .then(data => {
+          let stockBars: IStockBar[] = []
+          data.t.forEach((time, index) => {
+            const barData: IStockBar = {
+              amount: data.a[index],
+              close: data.c[index],
+              high: data.h[index],
+              low: data.l[index],
+              open: data.o[index],
+              time: data.t[index],
+              volume: data.v[index],
+            }
+            this._pulseInterval = data.interval
+            if (data.tr) {
+              barData.turnover = data.tr[index]
+            }
+            if (data.zd) {
+              barData.changerate = data.zd[index]
+            }
+            stockBars.push(barData)
+          })
 
-              // 过滤time重复的bar数据
-              stockBars = _.unique(stockBars, bar => bar.time)
+          // 过滤time重复的bar数据
+          stockBars = _.unique(stockBars, bar => bar.time)
 
-              // 请求期间symbol和resolution都没发生改变，则merge
-              if (symbol.toUpperCase() === this._symbol.toUpperCase() &&
-                  resolution === this._resolution) {
-                this._plotList.merge(stockBars)
-                resolve(stockBars)
-              } else {
-                reject('response expired')
-              }
-            })
-        )
+          // 请求期间symbol和resolution都没发生改变，则merge
+          if (symbol.toUpperCase() === this._symbol.toUpperCase() &&
+              resolution === this._resolution) {
+            this._plotList.merge(stockBars)
+            resolve(stockBars)
+          } else {
+            reject('response expired')
+          }
+        })
         .catch(reject)
     )
   }
@@ -289,19 +284,15 @@ export class StockDatasource extends Datasource {
   public resolveSymbol (): Promise<SymbolInfo> {
     return new Promise((resolve, reject) => {
       RPC.resolveSymbol(this._symbol)
-        .then(response => response
-          .json()
-          .then(data => {
-            this._symbolInfo = {
-              description: data.description,
-              exchange: data['exchange-listed'],
-              symbol: data.symbol,
-              type: data.type,
-            }
-            resolve()
-          })
-          .catch(reject)
-        )
+        .then(data => {
+          this._symbolInfo = {
+            description: data.description,
+            exchange: data['exchange-listed'],
+            symbol: data.symbol,
+            type: data.type,
+          }
+          resolve()
+        })
         .catch(reject)
     })
   }
@@ -309,21 +300,17 @@ export class StockDatasource extends Datasource {
   public searchSymbols (keyword): Promise<SymbolInfo[]> {
     return new Promise(resolve =>
       RPC.searchSymbols(keyword)
-        .then(response =>
-          response
-            .json()
-            .then(data =>
-              resolve(
-                data.map(
-                  symbol => ({
-                    description: symbol.description,
-                    exchange: symbol.exchange,
-                    symbol: symbol.symbol,
-                    type: symbol.type,
-                  })
-                )
-              )
+        .then(data =>
+          resolve(
+            data.map(
+              symbol => ({
+                description: symbol.description,
+                exchange: symbol.exchange,
+                symbol: symbol.symbol,
+                type: symbol.type,
+              })
             )
+          )
         )
     )
   }

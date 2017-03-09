@@ -302,41 +302,35 @@ export default class PlateList extends React.Component<Prop, State> {
   private loadPlates (sortKey: SortKey, order: Order, startIndex: number) {
     clearTimeout(this._pollPlateListTimer)
     getAllPlates(sortKey, order, startIndex, LOAD_SIZE)
-      .then(response =>
-        response.json()
-          .then(data => {
-            if (this._isMounted) {
-              const reflushinter = data.data.intver * 1000
-              this.setState({
-                sortKey,
-                order,
-                startIndex,
-                plates: data.data.list,
-                total: data.data.total_count,
-              })
-              this._pollPlateListTimer = reflushinter ? setTimeout(() => this.loadPlates(sortKey, order, startIndex), reflushinter) : -1
-            }
+      .then(data => {
+        if (this._isMounted) {
+          const reflushinter = data.data.intver * 1000
+          this.setState({
+            sortKey,
+            order,
+            startIndex,
+            plates: data.data.list,
+            total: data.data.total_count,
           })
-      )
+          this._pollPlateListTimer = reflushinter ? setTimeout(() => this.loadPlates(sortKey, order, startIndex), reflushinter) : -1
+        }
+      })
       .catch(ex => this._pollPlateListTimer = setTimeout(() => this.loadPlates(sortKey, order, startIndex), RETRY_DELAY))
   }
 
   private loadStocks (plateId: string) {
     clearTimeout(this._pollStockListTimer)
     getStockListByPlateId(plateId)
-      .then(response =>
-        response.json()
-          .then(data => {
-            if (this._isMounted) {
-              const reflushinter = data.data.intver * 1000
-              this.setState({
-                activePlateId: plateId,
-                stocks: data.data.list,
-              })
-              this._pollStockListTimer = reflushinter ? setTimeout(() => this.loadStocks(plateId), reflushinter) : -1
-            }
+      .then(data => {
+        if (this._isMounted) {
+          const reflushinter = data.data.intver * 1000
+          this.setState({
+            activePlateId: plateId,
+            stocks: data.data.list,
           })
-      )
+          this._pollStockListTimer = reflushinter ? setTimeout(() => this.loadStocks(plateId), reflushinter) : -1
+        }
+      })
       .catch(ex => this._pollStockListTimer = setTimeout(() => this.loadStocks(plateId), RETRY_DELAY))
   }
 }

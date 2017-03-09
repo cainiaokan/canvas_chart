@@ -191,6 +191,7 @@ export default class PollManager extends EventEmitter {
     this.pollCapitalFlow = this.pollCapitalFlow.bind(this)
     this.pollIndexesInfo = this.pollIndexesInfo.bind(this)
     this.pollRealtimeTools = this.pollRealtimeTools.bind(this)
+    this.getNonRealtimeTools = this.getNonRealtimeTools.bind(this)
   }
 
   set symbolInfo (symbolInfo: SymbolInfo) {
@@ -213,15 +214,13 @@ export default class PollManager extends EventEmitter {
       case 1:
         clearTimeout(this._timers.indexesInfo)
         clearTimeout(this._timers.realtimeTools)
+        clearTimeout(this._timers.nonrealtimeTools)
         break
       case 2:
         clearTimeout(this._timers.financingInfo)
         break
       case 3:
         clearTimeout(this._timers.plates)
-        break
-      case 4:
-        clearTimeout(this._timers.nonrealtimeTools)
         break
       default:
     }
@@ -241,6 +240,9 @@ export default class PollManager extends EventEmitter {
         if (!this._timers.realtimeTools) {
           this.pollRealtimeTools()
         }
+        if (!this._timers.nonrealtimeTools && !this._data.nonRealtimeTools) {
+          this.getNonRealtimeTools()
+        }
         break
       case 2:
         if (this._symbolInfo.type === 'stock' && !this._data.financingInfo) {
@@ -250,11 +252,6 @@ export default class PollManager extends EventEmitter {
       case 3:
         if (this._symbolInfo.type === 'stock' && !this._data.plates) {
           this.getPlates()
-        }
-        break
-      case 4:
-        if (!this._data.nonRealtimeTools) {
-          this.getNonRealtimeTools()
         }
         break
       default:
@@ -272,6 +269,7 @@ export default class PollManager extends EventEmitter {
       case 1:
         this.pollIndexesInfo()
         this.pollRealtimeTools()
+        this.getNonRealtimeTools()
         break
       case 2:
         this.getFinancingInfo()
@@ -300,49 +298,46 @@ export default class PollManager extends EventEmitter {
 
   private pollStockInfo () {
     getStockInfo(this._symbolInfo.symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            const ds = data.data.stock_info
-            const dp = data.data.pressure
-            const stockInfo: StockInfo = {
-              open: ds.open,
-              high: ds.high,
-              low: ds.low,
-              preClose: ds.pre_close,
-              price: ds.price,
-              changeRate: ds.p_change,
-              changePrice: ds.price_change,
-              amount: ds.amount,
-              volume: ds.volume,
-              turnover: ds.turnover,
-              amplitude: ds.zf,
-              inVol: ds.invol,
-              outVol: ds.outvol,
-              selling: ds.a5_p ? [
-                [ds.a5_p, ds.a5_v],
-                [ds.a4_p, ds.a4_v],
-                [ds.a3_p, ds.a3_v],
-                [ds.a2_p, ds.a2_v],
-                [ds.a1_p, ds.a1_v],
-              ] : null,
-              buying: ds.b1_p ? [
-                [ds.b1_p, ds.b1_v],
-                [ds.b2_p, ds.b2_v],
-                [ds.b3_p, ds.b3_v],
-                [ds.b4_p, ds.b4_v],
-                [ds.b5_p, ds.b5_v],
-              ] : null,
-              pressure: +dp.upper_price,
-              support: +dp.lower_price,
-              ticks: data.data.ticks_list,
-            }
+      .then(data => {
+        const ds = data.data.stock_info
+        const dp = data.data.pressure
+        const stockInfo: StockInfo = {
+          open: ds.open,
+          high: ds.high,
+          low: ds.low,
+          preClose: ds.pre_close,
+          price: ds.price,
+          changeRate: ds.p_change,
+          changePrice: ds.price_change,
+          amount: ds.amount,
+          volume: ds.volume,
+          turnover: ds.turnover,
+          amplitude: ds.zf,
+          inVol: ds.invol,
+          outVol: ds.outvol,
+          selling: ds.a5_p ? [
+            [ds.a5_p, ds.a5_v],
+            [ds.a4_p, ds.a4_v],
+            [ds.a3_p, ds.a3_v],
+            [ds.a2_p, ds.a2_v],
+            [ds.a1_p, ds.a1_v],
+          ] : null,
+          buying: ds.b1_p ? [
+            [ds.b1_p, ds.b1_v],
+            [ds.b2_p, ds.b2_v],
+            [ds.b3_p, ds.b3_v],
+            [ds.b4_p, ds.b4_v],
+            [ds.b5_p, ds.b5_v],
+          ] : null,
+          pressure: +dp.upper_price,
+          support: +dp.lower_price,
+          ticks: data.data.ticks_list,
+        }
 
-            this._data.stockInfo = stockInfo
-            this._timers.stockInfo = data.data.reflush_time ? setTimeout(this.pollStockInfo, data.data.reflush_time * 1000) : -1
-            this.emit('data', this._data)
-          })
-      )
+        this._data.stockInfo = stockInfo
+        this._timers.stockInfo = data.data.reflush_time ? setTimeout(this.pollStockInfo, data.data.reflush_time * 1000) : -1
+        this.emit('data', this._data)
+      })
       .catch(() => {
         this._timers.stockInfo = setTimeout(this.pollStockInfo, RETRY_DELAY)
       })
@@ -354,28 +349,25 @@ export default class PollManager extends EventEmitter {
       return
     }
     getCapitalFlow(this._symbolInfo.symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            data = data.data
-            const barChartData = data.map(d => (d.mainIn - d.mainOut) / 1E4).reverse()
-            data = data[0]
-            const retailIn = data.retailIn / 1E4
-            const retailOut = data.retailOut / 1E4
-            const mainIn = data.mainIn / 1E4
-            const mainOut = data.mainOut / 1E4
-            const donutChartData = [retailIn, mainIn, mainOut, retailOut]
+      .then(data => {
+        data = data.data
+        const barChartData = data.map(d => (d.mainIn - d.mainOut) / 1E4).reverse()
+        data = data[0]
+        const retailIn = data.retailIn / 1E4
+        const retailOut = data.retailOut / 1E4
+        const mainIn = data.mainIn / 1E4
+        const mainOut = data.mainOut / 1E4
+        const donutChartData = [retailIn, mainIn, mainOut, retailOut]
 
-            const chartData: CapitalFlowInfo = {
-              barChartData,
-              donutChartData,
-            }
+        const chartData: CapitalFlowInfo = {
+          barChartData,
+          donutChartData,
+        }
 
-            this._data.capitalFlowInfo = chartData
-            this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, 3 * 60 * 1000)
-            this.emit('data', this._data)
-          })
-      )
+        this._data.capitalFlowInfo = chartData
+        this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, 3 * 60 * 1000)
+        this.emit('data', this._data)
+      })
       .catch(() => {
         this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, RETRY_DELAY)
       })
@@ -387,17 +379,14 @@ export default class PollManager extends EventEmitter {
       return
     }
     getIndexesInfo()
-      .then(response =>
-        response.json()
-          .then(data => {
-            const reflushinter = data.data.intver * 1000
-            const indexesInfo = data.data.list
+      .then(data => {
+        const reflushinter = data.data.intver * 1000
+        const indexesInfo = data.data.list
 
-            this._data.indexesInfo = indexesInfo
-            this._timers.indexesInfo = reflushinter ? setTimeout(this.pollIndexesInfo, reflushinter) : -1
-            this.emit('data', this._data)
-          })
-      )
+        this._data.indexesInfo = indexesInfo
+        this._timers.indexesInfo = reflushinter ? setTimeout(this.pollIndexesInfo, reflushinter) : -1
+        this.emit('data', this._data)
+      })
       .catch(() => {
         this._timers.indexesInfo = setTimeout(this.pollIndexesInfo, RETRY_DELAY)
       })
@@ -409,26 +398,23 @@ export default class PollManager extends EventEmitter {
       return
     }
     getRealtimeTools()
-      .then(response =>
-        response.json()
-          .then(data => {
-            data = data.data
-            const clzReg = /class='(.*?)'/
-            const innerTextReg = />(.*?)</
-            const upAndFallStaying = data.zhangdieting.split('/<')
+      .then(data => {
+        data = data.data
+        const clzReg = /class='(.*?)'/
+        const innerTextReg = />(.*?)</
+        const upAndFallStaying = data.zhangdieting.split('/<')
 
-            const realtimeTools: RealtimeTools = {
-              hugutong: [innerTextReg.exec(data.hugutong)[1], clzReg.exec(data.hugutong)[1]],
-              shortTermMove: [innerTextReg.exec(data.jzjd)[1], clzReg.exec(data.jzjd)[1]],
-              goUpStaying: [innerTextReg.exec(upAndFallStaying[0])[1], clzReg.exec(upAndFallStaying[0])[1]],
-              fallStaying: [innerTextReg.exec(upAndFallStaying[1])[1], clzReg.exec(upAndFallStaying[1])[1]],
-            }
+        const realtimeTools: RealtimeTools = {
+          hugutong: [innerTextReg.exec(data.hugutong)[1], clzReg.exec(data.hugutong)[1]],
+          shortTermMove: [innerTextReg.exec(data.jzjd)[1], clzReg.exec(data.jzjd)[1]],
+          goUpStaying: [innerTextReg.exec(upAndFallStaying[0])[1], clzReg.exec(upAndFallStaying[0])[1]],
+          fallStaying: [innerTextReg.exec(upAndFallStaying[1])[1], clzReg.exec(upAndFallStaying[1])[1]],
+        }
 
-            this._data.realtimeTools = realtimeTools
-            this._timers.realtimeTools = data.flush_time ? setTimeout(this.pollRealtimeTools, data.flush_time * 1000) : -1
-            this.emit('data', this._data)
-          })
-      )
+        this._data.realtimeTools = realtimeTools
+        this._timers.realtimeTools = data.flush_time ? setTimeout(this.pollRealtimeTools, data.flush_time * 1000) : -1
+        this.emit('data', this._data)
+      })
       .catch(() => {
         this._timers.realtimeTools = setTimeout(this.pollRealtimeTools, RETRY_DELAY)
       })
@@ -439,13 +425,10 @@ export default class PollManager extends EventEmitter {
       return
     }
     getFinancingInfo(this._symbolInfo.symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            this._data.financingInfo = data.data
-            this.emit('data', this._data)
-          })
-      )
+      .then(data => {
+        this._data.financingInfo = data.data
+        this.emit('data', this._data)
+      })
       .catch(() => {
         this._timers.financingInfo = setTimeout(this.getFinancingInfo, RETRY_DELAY)
       })
@@ -456,13 +439,10 @@ export default class PollManager extends EventEmitter {
       return
     }
     getPlatesBySymbol(this._symbolInfo.symbol)
-      .then(response =>
-        response.json()
-          .then(data => {
-            this._data.plates = data.data.bk_list
-            this.emit('data', this._data)
-          })
-      )
+      .then(data => {
+        this._data.plates = data.data.bk_list
+        this.emit('data', this._data)
+      })
       .catch(() => {
         this._timers.plates = setTimeout(this.getPlates, RETRY_DELAY)
       })
@@ -470,33 +450,30 @@ export default class PollManager extends EventEmitter {
 
   private getNonRealtimeTools () {
     getNonrealtimeTools()
-      .then(respopnse =>
-        respopnse.json()
-          .then(data => {
-            const clzReg = /class="(.*?)"/
-            const tagReg = /<.*?>/g
-            const pressureStrs = data.data.pressure_str.split(/\/(?=\<)/)
-            const financingStrs = data.data.rzInfo_str.split('\&nbsp;')
-            data = data.data
-            this._data.nonRealtimeTools = {
-              bankCapital: [data.bankInfo_str.replace(tagReg, ''), clzReg.exec(data.bankInfo_str)[1]],
-              stockForumSentiment: data.guba_str.replace(tagReg, ''),
-              searchSentiment: data.search_str.replace(tagReg, ''),
-              institutionCapital: [data.jgInfo_str.replace(tagReg, ''), clzReg.exec(data.jgInfo_str)[1]],
-              investerCapital: [data.zijin_str.replace(tagReg, ''), clzReg.exec(data.zijin_str)[1]],
-              tradingInvester: data.jiaoyi_str.replace(tagReg, ''),
-              liftBanCapitalisation: data.jiejingInfo_str.replace(tagReg, ''),
-              support: pressureStrs[1].replace(tagReg, ''),
-              pressure: pressureStrs[0].replace(tagReg, ''),
-              financingBalance: financingStrs[0],
-              financingBalanceChange: [financingStrs[1].replace(tagReg, ''), clzReg.exec(financingStrs[1])[1]],
-              newInvester: data.xinzeng_str.replace(tagReg, ''),
-            }
-            this.emit('data', this._data)
-          })
-          .catch(() => {
-            this._timers.nonrealtimeTools = setTimeout(this.getNonRealtimeTools, RETRY_DELAY)
-          })
-      )
+      .then(data => {
+        const clzReg = /class="(.*?)"/
+        const tagReg = /<.*?>/g
+        const pressureStrs = data.data.pressure_str.split(/\/(?=\<)/)
+        const financingStrs = data.data.rzInfo_str.split('\&nbsp;')
+        data = data.data
+        this._data.nonRealtimeTools = {
+          bankCapital: [data.bankInfo_str.replace(tagReg, ''), clzReg.exec(data.bankInfo_str)[1]],
+          stockForumSentiment: data.guba_str.replace(tagReg, ''),
+          searchSentiment: data.search_str.replace(tagReg, ''),
+          institutionCapital: [data.jgInfo_str.replace(tagReg, ''), clzReg.exec(data.jgInfo_str)[1]],
+          investerCapital: [data.zijin_str.replace(tagReg, ''), clzReg.exec(data.zijin_str)[1]],
+          tradingInvester: data.jiaoyi_str.replace(tagReg, ''),
+          liftBanCapitalisation: data.jiejingInfo_str.replace(tagReg, ''),
+          support: pressureStrs[1].replace(tagReg, ''),
+          pressure: pressureStrs[0].replace(tagReg, ''),
+          financingBalance: financingStrs[0],
+          financingBalanceChange: [financingStrs[1].replace(tagReg, ''), clzReg.exec(financingStrs[1])[1]],
+          newInvester: data.xinzeng_str.replace(tagReg, ''),
+        }
+        this.emit('data', this._data)
+      })
+      .catch(() => {
+        this._timers.nonrealtimeTools = setTimeout(this.getNonRealtimeTools, RETRY_DELAY)
+      })
   }
 }

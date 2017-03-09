@@ -4,7 +4,14 @@ import '../../../style/popup_menu.less'
 
 import * as React from 'react'
 import * as _ from 'underscore'
+
 import ChartLayoutModel from '../../../model/chartlayout'
+
+import { StudyType } from '../../../constant'
+
+type Prop = {
+  onAddStudy: (study: StudyType) => void
+}
 
 type State = {
   showStudySelector?: boolean
@@ -12,7 +19,7 @@ type State = {
 
 const studyNames = ['MACD', 'KDJ', 'RSI', 'BOLL', 'CCI', 'CR']
 
-export default class StudySelector extends React.Component<any, State> {
+export default class StudySelector extends React.Component<Prop, State> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -42,8 +49,9 @@ export default class StudySelector extends React.Component<any, State> {
     document.removeEventListener('touchstart', this.hideMoreIndicatorHandler)
   }
 
-  public shouldComponentUpdate (nextProps: any, nextState: State) {
-    return !_.isEqual(this.state, nextState)
+  public shouldComponentUpdate (nextProps: Prop, nextState: State) {
+    return !_.isEqual(this.props, nextProps) ||
+           !_.isEqual(this.state, nextState)
   }
 
   public render () {
@@ -84,6 +92,6 @@ export default class StudySelector extends React.Component<any, State> {
     if (!!ev.touches) {
       ev.preventDefault()
     }
-    this._chartLayout.addStudy(ev.target.dataset.value)
+    this.props.onAddStudy(ev.target.dataset.value)
   }
 }

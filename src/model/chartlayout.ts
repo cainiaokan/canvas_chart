@@ -14,13 +14,13 @@ import {
   StockDatasource,
   studyConfig,
   getServerTime,
-  Right,
   SymbolInfo,
 } from '../datasource'
 import { Point } from '../model/crosshair'
 import {
   ResolutionType,
   StudyType,
+  RightType,
   OPEN_HOUR,
   OPEN_MINUTE,
   CLOSE_HOUR,
@@ -261,19 +261,16 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public getServerTime (): Promise<any> {
     return getServerTime()
-      .then(
-        response => response.text()
-          .then(timeStr => {
-            const timeDiff = ~~(Date.now() / 1000) - (+timeStr)
-            const datasources = []
-            this.charts.forEach(chart => {
-              chart.graphs.forEach(graph => {
-                datasources.push(graph.datasource)
-              })
-            })
-            datasources.forEach(dt => dt.timeDiff = timeDiff)
+      .then(timeStr => {
+        const timeDiff = ~~(Date.now() / 1000) - (+timeStr)
+        const datasources = []
+        this.charts.forEach(chart => {
+          chart.graphs.forEach(graph => {
+            datasources.push(graph.datasource)
           })
-      )
+        })
+        datasources.forEach(dt => dt.timeDiff = timeDiff)
+      })
   }
 
   /**
@@ -454,7 +451,7 @@ export default class ChartLayoutModel extends EventEmitter {
    * 设置不复权、前复权
    * @param {number} right 0: 不复权 1: 前复权
    */
-  public setRight (right: Right) {
+  public setRight (right: RightType) {
     // 批量设置数据源的解析度
     _.unique(this._charts.reduce((datasources, chart) =>
       datasources.concat(chart.graphs.map(graph => graph.datasource)

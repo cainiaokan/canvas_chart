@@ -13,53 +13,63 @@ const QU_CHAO_GU = 'http://www.quchaogu.com'
  * @param  {string}  resolution 解析度(分时、5分钟、日K、周K、月k等)
  * @param  {number}  from       开始时间戳（精确到秒）
  * @param  {number}  to         结束时间戳（精确到秒）
- * @return {Promise<IResponse>}   
+ * @return {Promise<any>}   
  */
 export function getStockBars (symbol: string, resolution: string, right: number,
-                              from: number, to: number): Promise<IResponse> {
+                              from: number, to: number): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/history?symbol=${symbol}&resolution=${resolution}`
                + `&fq=${right}&from=${from}&to=${to}`)
+    .then(response => response.json())
 }
 
-export function resolveSymbol (symbol: string): Promise<IResponse> {
+export function resolveSymbol (symbol: string): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/symbols?symbol=${symbol}`)
+    .then(response => response.json())
 }
 
-export function searchSymbols (keyword: string): Promise<IResponse> {
+export function searchSymbols (keyword: string): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/search?query=${keyword}&limit=15&type=&exchange=`)
+    .then(response => response.json())
 }
 
-export function getServerTime (): Promise<IResponse> {
+export function getServerTime (): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/time`)
+    .then(response => response.text())
 }
 
-export function getStockInfo (symbol: string): Promise<IResponse> {
+export function getStockInfo (symbol: string): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/stock/info?code=${symbol.toLowerCase()}&ticks_time=0`)
+    .then(response => response.json())
 }
 
-export function getCapitalFlow (symbol: string): Promise<IResponse> {
+export function getCapitalFlow (symbol: string): Promise<any> {
   return fetch(`${API}/stock/moneyflow?code=${symbol}`)
+    .then(response => response.json())
 }
 
-export function getIndexesInfo (): Promise<IResponse> {
+export function getIndexesInfo (): Promise<any> {
   return fetch(`${API}/chart/index/list`)
+    .then(response => response.json())
 }
 
-export function getRealtimeTools (): Promise<IResponse> {
+export function getRealtimeTools (): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/stock/realtimetool`)
+    .then(response => response.json())
 }
 
-export function getFinancingInfo (symbol: string): Promise<IResponse> {
+export function getFinancingInfo (symbol: string): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/stock/finance?code=${symbol}`)
+    .then(response => response.json())
 }
 
 /**
  * 根据股票代码获取相关板块列表
  * @param  {string}             symbol 股票代码
- * @return {Promise<IResponse>}        响应
+ * @return {Promise<any>}        响应
  */
-export function getPlatesBySymbol (symbol: string): Promise<IResponse> {
+export function getPlatesBySymbol (symbol: string): Promise<any> {
   return fetch(`${API}/chart/bankuai/bystock?code=${symbol}`)
+    .then(response => response.json())
 }
 
 /**
@@ -68,39 +78,44 @@ export function getPlatesBySymbol (symbol: string): Promise<IResponse> {
  * @param  {'asc'|'desc'}                   sort 排序方式
  * @param  {number}                         start 起始下标
  * @param  {number}                         count 获取总条数
- * @return {Promise<IResponse>}             响应
+ * @return {Promise<any>}             响应
  */
-export function getAllPlates (key: 'zdf' | 'big_amount' | 'big_rate', sort: 'asc' | 'desc', start: number, count: number): Promise<IResponse> {
+export function getAllPlates (key: 'zdf' | 'big_amount' | 'big_rate', sort: 'asc' | 'desc', start: number, count: number): Promise<any> {
   return fetch(`${API}/chart/bankuai/list?key=${key}&sort=${sort}&start=${start}&count=${count}`)
+    .then(response => response.json())
 }
 
 /**
  * 通过板块ID获取股票列表
  * @param  {string}             plateId 板块ID
- * @return {Promise<IResponse>}         响应
+ * @return {Promise<any>}         响应
  */
-export function getStockListByPlateId (plateId: string): Promise<IResponse> {
+export function getStockListByPlateId (plateId: string): Promise<any> {
   return fetch(`${API}/chart/bankuai/stocklist?bk_id=${plateId}`)
+    .then(response => response.json())
 }
 
 /**
  * 通过code批量获取股票信息
  * @param  {string[]}           codes code数组
- * @return {Promise<IResponse>}       响应
+ * @return {Promise<any>}       响应
  */
-export function getStockListByCodes (codes: string[], key: 'zdf' | 'price' | 'sz' | 'lt_sz' | 'hy', sort: 'desc' | 'asc'): Promise<IResponse> {
+export function getStockListByCodes (codes: string[], key: 'zdf' | 'price' | 'sz' | 'lt_sz' | 'hy', sort: 'desc' | 'asc'): Promise<any> {
   return fetch(`${API}/chart/stock/zixuan?code_list=${codes.join(',')}&key=${key}&sort=${sort}`)
+    .then(response => response.json())
 }
 
 /**
  * 获取指数下的股票列表
  * @param  {string}             indexId 指数ID
- * @return {Promise<IResponse>}         响应
+ * @return {Promise<any>}         响应
  */
-export function getStockListByIndexId (indexId: string): Promise<IResponse> {
+export function getStockListByIndexId (indexId: string): Promise<any> {
   return fetch(`${API}/chart/index/stocks?index_id=${indexId}`)
+    .then(response => response.json())
 }
 
-export function getNonrealtimeTools (): Promise<IResponse> {
+export function getNonrealtimeTools (): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/stock/nonrealtime`)
+    .then(response => response.json())
 }

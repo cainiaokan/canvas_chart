@@ -191,20 +191,17 @@ export default class RecentList extends React.Component<Prop, State> {
   private loadStocks (sortKey: SortKey, order: Order) {
     const codes = _.pluck(this._chartLayout.readFromLS('chart.recentlist') || [], 'symbol')
     getStockListByCodes(codes, sortKey, order)
-      .then(response =>
-        response.json()
-          .then(data => {
-            if (this._isMounted) {
-              const reflushinter = data.data.intver * 1000
-              this.setState({
-                sortKey,
-                order,
-                stocks: data.data.list,
-              })
-              this._pollStocksTimer = reflushinter ? setTimeout(() => this.loadStocks, reflushinter) : -1
-            }
+      .then(data => {
+        if (this._isMounted) {
+          const reflushinter = data.data.intver * 1000
+          this.setState({
+            sortKey,
+            order,
+            stocks: data.data.list,
           })
-      )
+          this._pollStocksTimer = reflushinter ? setTimeout(() => this.loadStocks, reflushinter) : -1
+        }
+      })
       .catch(ex => this._pollStocksTimer = setTimeout(() => this.loadStocks, RETRY_DELAY))
   }
 

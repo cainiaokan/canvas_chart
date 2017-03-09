@@ -21,8 +21,9 @@ type State = {
   hover?: boolean,
   cursor?: 'pointer' | 'crosshair' | 'default'
   showEditModeToolTip?: boolean
-  toolTipX?: number
-  toolTipY?: number
+  pointX?: number
+  pointY?: number
+  showContextMenu?: boolean
 }
 
 export default class Chart extends React.Component<Prop, State> {
@@ -42,6 +43,7 @@ export default class Chart extends React.Component<Prop, State> {
   private _pinchHorzStart: boolean
   private _pinchVertStart: boolean
   private _cancelClick: boolean
+  private _longTapCounter: number
   private _pinchOffset: number
   private _dragPosX: number
   private _dragPosY: number
@@ -57,8 +59,9 @@ export default class Chart extends React.Component<Prop, State> {
       hover: false,
       cursor: 'crosshair',
       showEditModeToolTip: false,
-      toolTipX: 0,
-      toolTipY: 0,
+      showContextMenu: false,
+      pointX: 0,
+      pointY: 0,
     }
     this.dragMoveHandler = this.dragMoveHandler.bind(this)
     this.gestureMoveHandler = this.gestureMoveHandler.bind(this)
@@ -69,6 +72,7 @@ export default class Chart extends React.Component<Prop, State> {
     this.touchEndHandler = this.touchEndHandler.bind(this)
     this.mouseUpPageHanlder = this.mouseUpPageHanlder.bind(this)
     this.touchEndPageHandler = this.touchEndPageHandler.bind(this)
+    this.contextMenuHanlder = this.contextMenuHanlder.bind(this)
 
     this.mouseOver = this.mouseOver.bind(this)
     this.mouseOut = this.mouseOut.bind(this)
@@ -174,6 +178,7 @@ export default class Chart extends React.Component<Prop, State> {
           ref='topCanvas'
           width={width}
           height={height}
+          onContextMenu={this.contextMenuHanlder}
           onMouseDown={this.mouseDownHandler}
           onTouchStart={this.touchStartHandler}
           onMouseMove={this.mouseMoveHandler}
@@ -186,8 +191,8 @@ export default class Chart extends React.Component<Prop, State> {
           this.state.showEditModeToolTip ?
           <div className='edit-mode-tooltip'
                style={ {
-                 right: this.state.toolTipX + 'px',
-                 bottom: this.state.toolTipY + 'px',
+                 right: this.state.pointX + 'px',
+                 bottom: this.state.pointY + 'px',
                } }>
             1.拖动十字线定义第一点.<br/>
             2.点击任意位置确定第一个停止位置
@@ -225,8 +230,8 @@ export default class Chart extends React.Component<Prop, State> {
       const height = ~~this.props.height
       this.setState({
         showEditModeToolTip: true,
-        toolTipX: width - point.x + 8,
-        toolTipY: height - point.y + 8,
+        pointX: width - point.x + 8,
+        pointY: height - point.y + 8,
       })
     } else {
       this.setState({ showEditModeToolTip: false })
@@ -361,7 +366,13 @@ export default class Chart extends React.Component<Prop, State> {
             chart.drawingToolEnd()
           }
           return
+        } else {
+          this._longTapCounter = setTimeout(() => {
+            this.contextMenuHanlder()
+          }, 500)
         }
+      } else {
+        // do nothing
       }
     } else if (isDoubleTouch) {// 双指缩放
       const offsetHorz = Math.abs(ev.touches[0].clientX - ev.touches[1].clientX)
@@ -410,6 +421,9 @@ export default class Chart extends React.Component<Prop, State> {
     const cursorPoint = chart.crosshair.point
 
     ev.preventDefault()
+
+    // 取消长按事件
+    clearTimeout(this._longTapCounter)
 
     if (chartLayout.isEditMode && isSingleTouch && !this._cancelClick) {
       if (chartLayout.selectedDrawingTool) {
@@ -502,15 +516,11 @@ export default class Chart extends React.Component<Prop, State> {
 
     this._cancelClick = true
 
+    // 取消长按事件
+    clearTimeout(this._longTapCounter)
+
     if (!chartLayout.isEditMode) {
       chartLayout.setCursorPoint(point)
-    }
-
-    if (!this._dragOffsetStart &&
-      !this._dragDrawingToolStart &&
-      !chart.creatingDrawingTool &&
-      !chart.editingDrawingTool) {
-      chart.hitTest()
     }
   }
 
@@ -594,5 +604,14 @@ export default class Chart extends React.Component<Prop, State> {
         axisY.margin = newMargin
       }
     }
+  }
+
+  private contextMenuHanlder (ev?) {
+    const pointX = ev ? ev.pageX : this._dragPosX
+    const pointY = ev ? ev.pageY : this._dragPosY
+    this.setState({
+      showContextMenu: true,
+      pointX, pointY,
+    })
   }
 }

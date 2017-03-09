@@ -1,12 +1,19 @@
 import '../../../style/btn.less'
+
 import * as React from 'react'
+import * as _ from 'underscore'
+
 import ChartLayoutModel from '../../../model/chartlayout'
-import { Right } from '../../../datasource'
+import { RightType } from '../../../constant'
+
+type Prop = {
+  onRightChange: (right: RightType) => void
+}
 
 const rightLabels = ['不复权', '前复权']
 const rightValues = [0, 1]
 
-export default class RightOption extends React.Component<any, any> {
+export default class RightOption extends React.Component<Prop, any> {
   public static contextTypes = {
     chartLayout: React.PropTypes.instanceOf(ChartLayoutModel),
   }
@@ -22,8 +29,8 @@ export default class RightOption extends React.Component<any, any> {
     this.rightSelectHandler = this.rightSelectHandler.bind(this)
   }
 
-  public shouldComponentUpdate () {
-    return false
+  public shouldComponentUpdate (nextProps: Prop) {
+    return !_.isEqual(this.props, nextProps)
   }
 
   public componentDidMount () {
@@ -56,11 +63,10 @@ export default class RightOption extends React.Component<any, any> {
   }
 
   private rightSelectHandler (ev) {
-    const right = +ev.target.value as Right
+    const right = +ev.target.value as RightType
     const chartLayout = this._chartLayout
     if (chartLayout.mainDatasource.right !== right) {
-      chartLayout.setRight(right)
-      this.forceUpdate()
+      this.props.onRightChange(right)
     }
   }
 }

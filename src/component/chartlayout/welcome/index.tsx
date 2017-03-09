@@ -81,7 +81,7 @@ export default class Welcome extends React.Component<Prop, State> {
           <h2>更智能，&nbsp;更高效，&nbsp;更及时，&nbsp;更全面</h2>
           <p>看盘软件在十几年间都没有发生过重要的变化，应该这样吗?</p>
           <p>我们走访了数百家专业机构，发现他们<em>看盘的方式</em>和<em>主流看盘工具提供的功能</em>有非常<em>巨大的信息鸿沟</em>。</p>
-          <p><em>几个IT男</em>，尝试了一些创新，帮您具备<em>专业机构的看盘视角和能力</em>。</p>
+          <p><em>几个IT工程师</em>，尝试做些创新， 试图帮您具备<em>专业的看盘视角和能力</em>。</p>
           <a href='javascript:;' className='proceed-btn' onClick={this.clickHandler}></a>
           <a href='javascript:;' className='close-btn'></a>
         </div>
@@ -93,7 +93,7 @@ export default class Welcome extends React.Component<Prop, State> {
       .enqueue(() => this.setState({ animateStep: 3 }))
       .delay(300)
       .enqueue(() => this.setState({ animateStep: 0 }))
-      .delay(120)
+      .delay(300)
       .enqueue(() => this.props.onClose())
   }
 }

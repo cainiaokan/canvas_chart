@@ -118,7 +118,7 @@ export const studyConfig: StudyConfig = {
           color: '#ff524f',
           colorDown: '#2bbe65',
           scale: 0.25,
-          opacity: .4,
+          opacity: .2,
         },
       },
     ],
