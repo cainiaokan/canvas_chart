@@ -45,6 +45,7 @@ export default class Briefing extends React.Component<Prop, any> {
           <span className='price'>停牌</span>
         </div>
       }
+      {/*
       <div className='pressure-support'>
         <span className='pressure'>
           <label>今日压力</label>&nbsp;
@@ -55,6 +56,7 @@ export default class Briefing extends React.Component<Prop, any> {
           <b>{stockInfo.support.toFixed(2)}</b>
         </span>
       </div>
+      */}
     </div>
   }
 }

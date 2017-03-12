@@ -11,14 +11,16 @@ import Market from './market'
 import Financing from './financing'
 import Plates from './plates'
 import Briefing from './briefing'
+import Analyze from './analyze'
 
-const STOCK_PANEL_HEIGHT = 76
+const STOCK_PANEL_HEIGHT = 44
 
 const tabsConfig = [
   '实时看盘',
   '大盘概况',
   '财务信息',
   '所属板块',
+  '分析功能',
 ]
 
 const tabsIcon = [
@@ -44,6 +46,13 @@ const tabsIcon = [
       <path d='M10.6,10.7H1c0,4.1,4.2,8.4,9,8.4c5,0,9-4,9-9c0-1.4-0.3-2.8-0.9-4L10.6,10.7z'/>
       <path d='M6.3,1.6c0.1,0.2,4.2,7.2,4.2,7.2l6.9-4C15,1.2,10.3-0.1,6.3,1.6z M15.3,4.5l-4.2,2.4c-0.9-1.5-1.9-3.3-2.6-4.5C9,2.3,9.5,2.3,10,2.3C12,2.3,13.9,3.1,15.3,4.5z'/>
       <path d='M5,2.4C2.6,4,1.2,6.6,1,9.3l8,0L5,2.4z M4.6,4.5l1.9,3.3l-3.9,0C3,6.6,3.7,5.5,4.6,4.5z'/>
+    </g>
+  </svg>,
+  <svg viewBox='0 0 18 17.88'>
+    <g>
+    <path d='M15.74,10.51A7.12,7.12,0,0,1,2.46,12.2a2.74,2.74,0,0,1-.75.12A2.75,2.75,0,0,1,.39,12a8.93,8.93,0,0,0,17.22-1.63,2.61,2.61,0,0,1-1.87.17Z'/>
+    <path d='M2,6.8A7.12,7.12,0,0,1,15,5.47a2.55,2.55,0,0,1,1.84-.36A8.93,8.93,0,0,0,0,7.37a2.75,2.75,0,0,1,1.71-.61Z'/>
+    <path d='M1.71,11.11a1.56,1.56,0,0,0,1.3-.7H5.84L7,13.73a.91.91,0,0,0,.81.6h0a.9.9,0,0,0,.82-.53l2.87-6.24.45.72a.88.88,0,0,0,.78.42h2.3a1.57,1.57,0,1,0,.1-1.81H13.3L12.23,5.18a.91.91,0,0,0-1.59.1L8,11,7.33,9.19a.91.91,0,0,0-.85-.6H2.95a1.56,1.56,0,1,0-1.24,2.51Z'/>
     </g>
   </svg>,
   /*<svg viewBox='0 0 20 20'>
@@ -91,7 +100,7 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.foldingBtnClickHandler = this.foldingBtnClickHandler.bind(this)
     this.showMoreOprHandler = this.showMoreOprHandler.bind(this)
     this.clickOprHandler = this.clickOprHandler.bind(this)
-    this.hideMoreResolutionHandler = this.hideMoreResolutionHandler.bind(this)
+    this.hideOprListHandler = this.hideOprListHandler.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop, nextState: State) {
@@ -106,8 +115,8 @@ export default class Sidebar extends React.Component<Prop, State> {
     this._pollManager = new PollManager(symbolInfo, this.props.activeIndex)
     this._pollManager.addListener('data', this.onDataHandler)
     chartLayout.addListener('symbol_change', this.symbolChangeHandler)
-    document.addEventListener('mousedown', this.hideMoreResolutionHandler)
-    document.addEventListener('touchstart', this.hideMoreResolutionHandler)
+    document.addEventListener('mousedown', this.hideOprListHandler)
+    document.addEventListener('touchstart', this.hideOprListHandler)
     this._pollManager.start()
   }
 
@@ -115,8 +124,8 @@ export default class Sidebar extends React.Component<Prop, State> {
     const chartLayout = this._chartLayout
     this._pollManager.removeListener('data', this.onDataHandler)
     chartLayout.removeListener('symbol_change', this.symbolChangeHandler)
-    document.removeEventListener('mousedown', this.hideMoreResolutionHandler)
-    document.removeEventListener('touchstart', this.hideMoreResolutionHandler)
+    document.removeEventListener('mousedown', this.hideOprListHandler)
+    document.removeEventListener('touchstart', this.hideOprListHandler)
     this._pollManager.stop()
     this._pollManager = null
   }
@@ -162,6 +171,8 @@ export default class Sidebar extends React.Component<Prop, State> {
                     height={height}
                     plates={plates} />
         break
+      case 4:
+        tabPage = <Analyze height={height} />
       default:
     }
 
@@ -239,7 +250,7 @@ export default class Sidebar extends React.Component<Prop, State> {
     this.setState({ popUpOprList: true, isSymbolAdded: _.findIndex(selfSelectList, { symbol: symbolInfo.symbol }) !== -1 })
   }
 
-  private hideMoreResolutionHandler (ev) {
+  private hideOprListHandler (ev) {
     if (this.state.popUpOprList) {
       if (!!ev.touches) {
         ev.preventDefault()

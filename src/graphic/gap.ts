@@ -122,5 +122,4 @@ export default class GapRenderer {
     this._firstBarTime = 0
     this._gapCache = null
   }
-
 }

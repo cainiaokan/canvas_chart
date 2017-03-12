@@ -1,0 +1,125 @@
+.chart-analyze {
+  font-size: 13px;
+
+  position: relative;
+
+  overflow: hidden;
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 15px;
+
+    height: 35px;
+    padding: 10px 0 9px 11px;
+
+    white-space: nowrap;
+
+    color: #5a5c62;
+    border-top: 1px solid #e0e0e0;
+    background: #f1f3f6;
+  }
+  .feature-group {
+    padding: 0 11px;
+  }
+  .description {
+    float: left;
+    > hr {
+      margin-left: 0;
+    }
+    > p {
+      max-width: 200px;
+    }
+    > .form-title {
+      line-height: 2;
+    }
+    > .position {
+      line-height: 2;
+
+      color: #999;
+    }
+  }
+  .toggle-btn {
+    float: right;
+  }
+  .ma {
+    margin: 9px 0;
+  }
+  .support-pressure {
+    .toggle-btn {
+      margin: 14px 0;
+    }
+  }
+  .pressure span:nth-child(2) {
+    color: #d32f2f;
+  }
+  .support span:nth-child(2) {
+    color: #00796b;
+  }
+  .form-analyze {
+    .toggle-btn {
+      margin-top: 32px;
+    }
+  }
+  .toggle-btn {
+    position: relative;
+
+    display: inline-block;
+
+    width: 32px;
+    height: 14px;
+
+    cursor: pointer;
+    &:after {
+      display: inline-block;
+
+      width: 24px;
+      height: 4px;
+      margin: 5px 0 0 4px;
+
+      content: '\0020';
+      vertical-align: top;
+
+      background-color: #e0e0e0;
+    }
+    &:before {
+      position: absolute;
+      top: 50%;
+      left: 0;
+
+      display: inline-block;
+
+      width: 14px;
+      height: 14px;
+
+      content: '\0020';
+      transition: transform .1s ease;
+      transform: translate3d(0, -50%, 0);
+
+      border-radius: 100%;
+      background-color: #616161;
+
+      will-change: transform;
+    }
+    &.on:before {
+      transform: translate3d(18px, -50%, 0);
+
+      background: #4caf50;
+    }
+  }
+  hr {
+    width: 200px;
+    height: 1px;
+    margin: 8px 0;
+    margin-left: 11px;
+
+    border-top: 1px dotted #e0e0e0;
+  }
+  h4 {
+    font-weight: 600;
+
+    margin: 9px 0;
+    padding: 9px 0 0 11px;
+
+    border-top: 1px solid #e0e0e0;
+  }
+}
