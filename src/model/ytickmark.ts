@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import AxisYMoel from './axisy'
 import { padRight } from '../util'
 
-const TICK_SPAN = 50
+const TICK_SPAN = 30
 const precision = 2
 
 type TickMark = {

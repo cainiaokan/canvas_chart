@@ -440,7 +440,7 @@ export default class AxisXModel extends EventEmitter {
             prevDate.setHours(prevCloseHour - (prevDateHour - curOpenHour))
             prevDate.setMinutes(prevCloseMinute - (prevDateMinute - curOpenMinute))
             break
-          // 向收盘截止时间对齐。例如9:30应当展示位了前一交易日的收盘时间15:00
+          // 向收盘截止时间对齐。例如9:30应当展示位于前一交易日的收盘时间15:00
           } else if ((prevDateHour === prevCloseHour && prevDateMinute === prevCloseMinute) ||
                    (prevDateHour === curOpenHour && prevDateMinute === curOpenMinute)) {
             prevDate.setHours(prevCloseHour)

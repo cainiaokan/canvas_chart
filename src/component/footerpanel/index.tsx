@@ -46,13 +46,10 @@ export default class FooterPanel extends React.Component<Prop, any> {
             href='javascript:;'
             className='toggle-btn'
             onClick={this.toggleHandler}>
-            <svg x='0px' y='0px' viewBox='0 0 63.4 63.4'>
-            <g>
+            <svg viewBox='0 0 10.35 16'>
               <g>
-                <polygon className='up' points='13.3,56.2 13.3,58.2 50.1,58.2 50.1,56.2 32.7,56.2 32.7,38.4 38.8,44.4 40.2,43 32.4,35.2 31,35.2 23.2,43 24.6,44.4 30.7,38.4 30.7,56.2'/>
-                <polygon className='down' points='23.2,20.4 31,28.2 32.4,28.2 40.2,20.4 38.8,19 32.7,25.1 32.7,7.3 50.1,7.3 50.1,5.3 13.3,5.3 13.3,7.3 30.7,7.3 30.7,25.1 24.6,19'/>
+                <path d='M0,14.42,1.57,16l3.6-3.6L8.78,16l1.58-1.58L5.18,9.25ZM10.35,1.58,8.78,0,5.18,3.6,1.58,0,0,1.58,5.18,6.75Z'/>
               </g>
-            </g>
             </svg>
           </a>
         </div>

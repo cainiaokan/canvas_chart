@@ -91,12 +91,14 @@ export default class AxisY extends React.Component<Prop, any> {
 
   private mouseMoveHandler (ev) {
     if (this._dragMarginStart) {
+      const pageY = ev.changedTouches ? ev.changedTouches[0].pageY : ev.pageY
+      const offset = pageY - this._dragPosY
       const axisY = this.props.axis
-      const pageY = ev.touches ? ev.touches[0].pageY : ev.pageY
       const margin = axisY.margin
-      const newMargin = margin -
-        (pageY - this._dragPosY)
-      axisY.margin = newMargin
+      const height = axisY.height
+      const graphHeight = height - 2 * margin
+      const scale = 2 * offset / height
+      axisY.margin = (height - graphHeight * (1 + scale)) / 2
       this._dragPosY = pageY
     }
   }

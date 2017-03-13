@@ -89,17 +89,15 @@ export default class AxisX extends React.Component<Prop, any> {
   private moveHandler (ev) {
     if (this._dragBarWidthStart) {
       const axisX = this._axisX
-      const pageX = ev.touches ? ev.touches[0].pageX : ev.pageX
+      const width = axisX.width
+      const pageX = ev.changedTouches ? ev.changedTouches[0].pageX : ev.pageX
       const curBarWidth = axisX.barWidth
-      const newBarWidth = curBarWidth - (pageX - this._dragPosX) / 100
-      if (newBarWidth < MIN_BAR_WIDTH) {
-        axisX.barWidth = MIN_BAR_WIDTH
-      } else if (newBarWidth > MAX_BAR_WIDTH) {
-        axisX.barWidth = MAX_BAR_WIDTH
-      } else {
-        axisX.barWidth = newBarWidth
-      }
-      axisX.offset *= axisX.barWidth / curBarWidth
+
+      let scale = (width - pageX) / (width - this._dragPosX)
+
+      axisX.barWidth = curBarWidth * scale
+      scale = axisX.barWidth / curBarWidth
+      axisX.offset *= scale
       this._dragPosX = pageX
     }
   }

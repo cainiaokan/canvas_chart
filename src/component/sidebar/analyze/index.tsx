@@ -47,6 +47,7 @@ export default class Analyze extends React.Component<Prop, State> {
       mouseWheel: true,
       scrollbars: true,
       fadeScrollbars: true,
+      click: true,
     })
   }
 

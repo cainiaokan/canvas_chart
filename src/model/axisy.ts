@@ -40,12 +40,12 @@ export default class AxisYModel extends EventEmitter {
   get margin (): number {
     const height = this.height
     const margin = height * MARGIN_RATIO + this._margin
-    return height - 2 * margin < 1 ? (height - 1) / 2 : margin
+    return margin
   }
 
   set margin (margin: number) {
     const height = this.height
-    this._margin = height - 2 * margin >= 1 ? margin - height * MARGIN_RATIO : (height - 1) / 2
+    this._margin = margin - height * MARGIN_RATIO
     this._isValid = false
     this._chart.chartLayout.emit('barmargin_change')
   }

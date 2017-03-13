@@ -510,14 +510,14 @@ export default class Chart extends React.Component<Prop, State> {
       y: ev.touches[0].pageY - offset.top,
     }
 
+    // 取消长按事件
+    clearTimeout(this._longTapCounter)
+
     if (this._pinchHorzStart || this._pinchVertStart) {
       return
     }
 
     this._cancelClick = true
-
-    // 取消长按事件
-    clearTimeout(this._longTapCounter)
 
     if (!chartLayout.isEditMode) {
       chartLayout.setCursorPoint(point)
@@ -592,16 +592,22 @@ export default class Chart extends React.Component<Prop, State> {
       if (this._pinchHorzStart) {
         const newOffset = Math.abs(ev.touches[1].pageX - ev.touches[0].pageX)
         const curBarWidth = axisX.barWidth
-        const newBarWidth = curBarWidth + (newOffset - this._pinchOffset) / 100
+        let scale = newOffset / this._pinchOffset
+
+        axisX.barWidth = curBarWidth * scale
+        scale = axisX.barWidth / curBarWidth
+        axisX.offset *= scale
         this._pinchOffset = newOffset
-        axisX.barWidth = newBarWidth
-        axisX.offset *= axisX.barWidth / curBarWidth
       // 双指垂直缩放
       } else if (this._pinchVertStart) {
         const newOffset = Math.abs(ev.touches[1].pageY - ev.touches[0].pageY)
-        const newMargin = axisY.margin + (this._pinchOffset - newOffset)
+        const offset = newOffset - this._pinchOffset
+        const height = axisY.height
+        const margin = axisY.margin
+        const graphHeight = height - 2 * margin
+        const scale = 2 * offset / height
+        axisY.margin = (height - graphHeight * (1 + scale)) / 2
         this._pinchOffset = newOffset
-        axisY.margin = newMargin
       }
     }
   }
