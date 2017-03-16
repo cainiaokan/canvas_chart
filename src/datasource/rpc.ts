@@ -119,3 +119,13 @@ export function getNonrealtimeTools (): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/stock/nonrealtime`)
     .then(response => response.json())
 }
+
+export function getPatterns (symbol: string): Promise<any> {
+  return fetch(`${API}/chart/common/shape?code=${symbol}`)
+    .then(response => response.json())
+}
+
+export function getPressureSupport (symbol: string, fromDate: string, toDate: string): Promise<any> {
+  return fetch(`${API}/chart/common/pressure?code=${symbol}&from_date=${fromDate}&to_date=${toDate}`)
+    .then(response => response.json())
+}

@@ -1,5 +1,6 @@
 export * from './base'
 export * from './stock'
+export * from './pressuresupport'
 export * from './studyconfig'
 export * from './studyhelper'
 export * from './rpc'

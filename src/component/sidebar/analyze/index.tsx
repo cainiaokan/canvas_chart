@@ -31,13 +31,14 @@ export default class Analyze extends React.Component<Prop, State> {
 
   constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
     super(props, context)
-    this._chartLayout = context.chartLayout
+    const chartLayout = context.chartLayout
+    this._chartLayout = chartLayout
     this.state = {
-      showMA: true,
-      showPressureSupport: true,
-      showGap: true,
-      showWaveForm: true,
-      showReverseRelay: true,
+      showMA: !!chartLayout.readFromLS('chart.forceMA'),
+      showPressureSupport: !!chartLayout.readFromLS('chart.showPressureSupport'),
+      showGap: !!chartLayout.readFromLS('chart.showGap'),
+      showWaveForm: !!chartLayout.readFromLS('chart.showWaveForm'),
+      showReverseRelay: !!chartLayout.readFromLS('chart.showReverseRelay'),
     }
     this.toggleHandler = this.toggleHandler.bind(this)
   }
@@ -75,7 +76,9 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showMA ? 'on' : ''}`}
               data-type='ma'
-              onClick={this.toggleHandler}></div>
+              onClick={this.toggleHandler}>
+              <div className='toggle-tips'>在左侧图中展示</div>
+            </div>
           </div>
           <h4>支撑与压力</h4>
           <div className='feature-group support-pressure clearfix'>
@@ -91,7 +94,9 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showPressureSupport ? 'on' : ''}`}
               data-type='pressure-support'
-              onClick={this.toggleHandler}></div>
+              onClick={this.toggleHandler}>
+              <div className='toggle-tips'>在左侧图中展示</div>
+            </div>
           </div>
           <h4>跳空与缺口</h4>
           <div className='feature-group gap clearfix'>
@@ -105,7 +110,9 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showGap ? 'on' : ''}`}
               data-type='gap'
-              onClick={this.toggleHandler}></div>
+              onClick={this.toggleHandler}>
+              <div className='toggle-tips'>在左侧图中展示</div>
+            </div>
           </div>
           <h4>形态技术分析</h4>
           <div className='feature-group form-analyze clearfix'>
@@ -116,7 +123,9 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showWaveForm ? 'on' : ''}`}
               data-type='wave-form'
-              onClick={this.toggleHandler}></div>
+              onClick={this.toggleHandler}>
+              <div className='toggle-tips'>在左侧图中展示</div>
+            </div>
           </div>
           <hr />
           <div className='feature-group form-analyze clearfix'>
@@ -128,7 +137,9 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showReverseRelay ? 'on' : ''}`}
               data-type='reverse-relay-form'
-              onClick={this.toggleHandler}></div>
+              onClick={this.toggleHandler}>
+              <div className='toggle-tips'>在左侧图中展示</div>
+            </div>
           </div>
         </div>
       </div>

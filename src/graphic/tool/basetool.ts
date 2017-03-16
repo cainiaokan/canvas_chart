@@ -1,3 +1,5 @@
+import * as _ from 'underscore'
+
 import ChartModel from '../../model/chart'
 import { HIT_TEST_TOLERANCE } from '../../constant'
 
@@ -83,11 +85,10 @@ export abstract class BaseToolRenderer {
     const visibleRange = this._chart.axisX.getVisibleTimeBars()
     const firstBar = visibleRange[0]
     const lastBar = visibleRange[visibleRange.length - 1]
-    const isVisible = this._vertexes.some(vertex =>
-      vertex.time >= firstBar.time &&
-      vertex.time <= lastBar.time
-    )
-    return isVisible
+
+    const times = _.pluck(this._vertexes, 'time')
+
+    return !(firstBar.time > _.max(times) || lastBar.time < _.min(times))
   }
 
   public getContext () {

@@ -93,7 +93,7 @@ export default class PlotModel {
   }
 
   public getVisibleBars (): any[] {
-    const visibleBars = this._graph.getVisibleBars()
+    const visibleBars = this._graph.isVisible ? this._graph.getVisibleBars() : []
     const results = []
     for (let i = 0, len = visibleBars.length, index = this._index, bar; i < len; i++) {
       bar = visibleBars[i][index]

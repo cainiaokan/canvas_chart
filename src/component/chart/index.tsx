@@ -157,26 +157,27 @@ export default class Chart extends React.Component<Prop, State> {
 
   public render () {
     const chart = this.props.chart
-    const width = ~~this.props.width - AXIS_Y_WIDTH
-    const height = ~~this.props.height
+    const width = this.props.width
+    const chartWidth = this.props.width - AXIS_Y_WIDTH
+    const height = this.props.height
 
-    return <div className={`chart-line ${chart.isMain ? 'main' : ''}`}>
+    return <div className={`chart-line ${chart.isMain ? 'main' : ''}`} style={{ width }}>
       <div className='chart-plot'
         style={
           {
             height: height + 'px',
-            width: width + 'px',
+            width: chartWidth + 'px',
             cursor: this.state.cursor,
           }
         }>
         <Legend chart={chart} />
         <canvas
           ref='canvas'
-          width={width}
+          width={chartWidth}
           height={height}></canvas>
         <canvas
           ref='topCanvas'
-          width={width}
+          width={chartWidth}
           height={height}
           onContextMenu={this.contextMenuHanlder}
           onMouseDown={this.mouseDownHandler}

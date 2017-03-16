@@ -303,10 +303,6 @@ abstract class GraphModel {
     return this._visibleBarCache = visibleBars
   }
 
-  public clearVisibleBarCache () {
-    this._visibleBarCache = null
-  }
-
   public clearCache () {
     this._visibleBarCache = null
     this._cache = {}

@@ -162,6 +162,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
     this.prepareMainChart()
 
+    // 将欢迎标记存入本地存储
+    chartLayout.saveToLS('chart.welcome', true)
+
     Promise.all([
       chartLayout.getServerTime(),
       chartLayout.mainDatasource.resolveSymbol(),
@@ -169,6 +172,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     .then(() => {
       this.setState({
         loaded: true,
+      }, function () {
+        chartLayout.addPatterns()
       })
       spinner.stop()
       this.initEvents()
@@ -183,9 +188,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public componentDidUpdate () {
-    if (this.state.loaded) {
-      this._chartLayout.fullUpdate()
-    }
+    this._chartLayout.fullUpdate()
   }
 
   public prepareMainChart () {
@@ -247,6 +250,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.addListener('drawingtool_setvertex', chartLayout.lightUpdate)
     chartLayout.addListener('drawingtool_remove', chartLayout.lightUpdate)
     chartLayout.addListener('editmode_change', chartLayout.lightUpdate)
+    chartLayout.addListener('patterns_add', chartLayout.lightUpdate)
+    chartLayout.addListener('patterns_remove', chartLayout.lightUpdate)
   }
 
   public render () {

@@ -33,7 +33,7 @@ export class StockDatasource extends Datasource {
 
   /**
    * 数据集
-   * @type {PlotList<T>}
+   * @type {PlotList}
    */
   private _plotList: PlotList<IStockBar>
 

@@ -105,7 +105,7 @@ export default class GapRenderer {
 
       ctx.save()
       ctx.fillStyle = '#636363'
-      ctx.font = '12 px Verdana, Arial, sans-serif'
+      ctx.font = '12px Verdana, Arial, sans-serif'
       ctx.fillRect(
         x2,
         y2 < y1 ? y2 : y1,
@@ -115,7 +115,6 @@ export default class GapRenderer {
       ctx.fillText(Number(gap.from).toFixed(2) + '-' + Number(gap.to).toFixed(2), x2, y1 < y2 ? y1 - 2 : y2 - 2)
       ctx.restore()
     }
-
   }
 
   public clearCache () {

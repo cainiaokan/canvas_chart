@@ -7,6 +7,7 @@ import AxisYModel, { YRange } from './axisy'
 import CrosshairModel from './crosshair'
 import GraphModel from './graph'
 import { BaseToolRenderer } from '../graphic/tool'
+import Pattern from './pattern'
 import GridRenderer from '../graphic/grid'
 import { clientOffset } from '../util'
 
@@ -25,6 +26,7 @@ export default class ChartModel extends EventEmitter {
   private _chartLayout: ChartLayout
   private _graphs: GraphModel[]
   private _tools: BaseToolRenderer[]
+  private _patterns: Pattern[]
   private _datasource: Datasource
   private _axisX: AxisXModel
   private _axisY: AxisYModel
@@ -57,6 +59,7 @@ export default class ChartModel extends EventEmitter {
     this._isMain = isMain
     this._grid = new GridRenderer(this)
     this._graphs = []
+    this._patterns = []
     this._tools = []
   }
 
@@ -94,6 +97,14 @@ export default class ChartModel extends EventEmitter {
 
   get visibleTools (): BaseToolRenderer[] {
     return this._tools.filter(tool => tool.isNowVisible())
+  }
+
+  get patterns (): Pattern[] {
+    return this._patterns.slice(0)
+  }
+
+  get visiblePatterns (): Pattern[] {
+    return this._patterns.filter(pattern => pattern.isNowVisible())
   }
 
   get datasource (): Datasource {
@@ -176,6 +187,10 @@ export default class ChartModel extends EventEmitter {
     this._chartLayout.emit('drawingtool_remove')
   }
 
+  public removeAllTools () {
+    this._tools.length = 0
+  }
+
   public drawingToolBegin () {
     const chartLayout = this._chartLayout
     this.creatingDrawingTool = chartLayout.selectedDrawingTool
@@ -202,6 +217,16 @@ export default class ChartModel extends EventEmitter {
 
     this.creatingDrawingTool.addVertex({ time, value })
     this._chartLayout.emit('drawingtool_setvertex')
+  }
+
+  public addPattern (pattern: Pattern) {
+    this._patterns.push(pattern)
+    this._isValid = false
+  }
+
+  public removeAllPatterns () {
+    this._patterns.length = 0
+    this._isValid = false
   }
 
   public calcRangeY () {
@@ -273,6 +298,11 @@ export default class ChartModel extends EventEmitter {
   public draw () {
     const visibleGraphs = this.visibleGraphs
     const ctx = this.ctx
+
+    if (!this.datasource.loaded()) {
+      return
+    }
+
     // 首先绘制背景色
     this.drawBg(ctx)
     // 绘制网格
@@ -283,6 +313,8 @@ export default class ChartModel extends EventEmitter {
     visibleGraphs.filter(graph => graph.hover).forEach(graph => graph.draw(ctx))
     // 绘制当前可见的画图工具
     this.visibleTools.forEach(tool => tool.draw())
+    // 绘制当前可见的形态图形
+    this.visiblePatterns.forEach(pattern => pattern.draw(ctx))
 
     this._isValid = true
   }
@@ -295,17 +327,11 @@ export default class ChartModel extends EventEmitter {
     ctx.clearRect(0, 0, width, height)
   }
 
-  public removeAllTools () {
-    this._tools.length = 0
-  }
-
   public clearCache () {
-    this.graphs.forEach(graph => graph.clearVisibleBarCache())
+    this.graphs.forEach(graph => graph.clearCache())
   }
 
   private drawBg (ctx: CanvasRenderingContext2D) {
-    ctx.save()
     ctx.clearRect(0, 0, this.width, this.height)
-    ctx.restore()
   }
 }

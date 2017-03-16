@@ -22,11 +22,11 @@ export default class CrosshairRenderer {
     const bar = chart.axisX.findTimeBarByX(point.x)
 
     ctx.save()
-    ctx.strokeStyle = isEditMode ? '#a000a0' : '#333333'
+    ctx.strokeStyle = isEditMode ? '#a000a0' : '#999999'
     ctx.translate(0.5, 0.5)
 
     if (ctx.setLineDash) {
-      ctx.setLineDash([3, 3])
+      ctx.setLineDash([6, 6])
     }
     ctx.lineWidth = 1
 

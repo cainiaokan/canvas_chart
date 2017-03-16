@@ -6,6 +6,7 @@ import ChartModel from './chart'
 import StockModel from './stock'
 import AxisXModel, { INITIAL_OFFSET } from './axisx'
 import StudyModel from './study'
+import Pattern from './pattern'
 import CrosshairModel from './crosshair'
 import AxisYModel from './axisy'
 import { ChartStyle } from '../graphic/diagram'
@@ -14,6 +15,7 @@ import {
   StockDatasource,
   studyConfig,
   getServerTime,
+  getPatterns,
   SymbolInfo,
 } from '../datasource'
 import { Point } from '../model/crosshair'
@@ -234,18 +236,22 @@ export default class ChartLayoutModel extends EventEmitter {
   public lightUpdate () {
     if (!this._lastAnimationFrame) {
       this._lastAnimationFrame = requestAnimationFrame(() => {
+        // 绘制x坐标轴
         this.axisx.draw(this.axisx.isValid ? true : false)
         this.charts.forEach(chart => {
           if (!chart.axisY.range) {
             chart.calcRangeY()
           }
-          if (!chart.isValid) {
-            chart.draw()
-          }
-          chart.axisY.draw(chart.axisY.isValid ? true : false)
 
           // 清空上层画布
           chart.clearTopCanvas()
+
+          if (!chart.isValid) {
+            chart.draw()
+          }
+
+          // 绘制y坐标轴，顺序不能错，必须放到chart.draw的后面
+          chart.axisY.draw(chart.axisY.isValid ? true : false)
           // 绘制创建中的工具图形
           if (chart.creatingDrawingTool) {
             chart.creatingDrawingTool.draw()
@@ -276,6 +282,43 @@ export default class ChartLayoutModel extends EventEmitter {
         })
         datasources.forEach(dt => dt.timeDiff = timeDiff)
       })
+  }
+
+  /**
+   * 获取形态技术分析数据
+   */
+  public addPatterns (): Promise<any> {
+    if (this.mainDatasource.resolution === 'D') {
+      return getPatterns(this.mainDatasource.symbol)
+        .then(json => {
+          json.data.shape_list.forEach(shape => {
+            if (shape.shape_type === 'wave') {
+              const bwPoints = shape.shape_detail.f.map(p => ({
+                time: ~~(moment(p.d).toDate().getTime() / 1000),
+                value: p.v,
+              }))
+              const swPoints = shape.shape_detail.s.map(p => ({
+                time: ~~(moment(p.d).toDate().getTime() / 1000),
+                value: p.v,
+              }))
+              this.mainChart.addPattern(new Pattern(this.mainChart, shape.shape_type, { bwPoints, swPoints }))
+            } else {
+              const points = shape.shape_detail.st.map(p => ({
+                time: ~~(moment(p.d).toDate().getTime() / 1000),
+                value: p.v,
+              }))
+              const trendLines = [shape.shape_detail.l1, shape.shape_detail.l2].filter(line => !!line).map(line => [
+                { time: ~~(moment(line.p1.d).toDate().getTime() / 1000), value: line.p1.v },
+                { time: ~~(moment(line.p2.d).toDate().getTime() / 1000), value: line.p2.v },
+              ])
+              this.mainChart.addPattern(new Pattern(this.mainChart, shape.shape_type, { points, trendLines }))
+            }
+          })
+          this.emit('patterns_add')
+        })
+    } else {
+      return Promise.resolve()
+    }
   }
 
   /**
@@ -313,6 +356,7 @@ export default class ChartLayoutModel extends EventEmitter {
      * 例如：主数据源有停牌的情况发生
      */
     return new Promise((resolve, reject) => {
+      const formerTime = mainDatasource.first() ? mainDatasource.first().time : null
       mainDatasource
         .loadHistory(requiredNum)
         .then(() =>
@@ -324,7 +368,7 @@ export default class ChartLayoutModel extends EventEmitter {
                 promises.push(
                   datasource.loadTimeRange(
                     mainDatasource.first().time,
-                    mainDatasource.last().time + 24 * 3600
+                    formerTime ? formerTime : mainDatasource.last().time
                   )
                 )
                 return promises
@@ -418,6 +462,11 @@ export default class ChartLayoutModel extends EventEmitter {
     this.clearCache()
     this.switchStudies(oldResolution)
     this.removeAllTools()
+    if (resolution !== 'D') {
+      this.removeAllPatterns()
+    } else {
+      this.addPatterns()
+    }
     this.restartPulseUpdate()
     this._axisx.resetOffset()
     this.emit('resolution_change', resolution)
@@ -428,16 +477,24 @@ export default class ChartLayoutModel extends EventEmitter {
    * @param {string} symbol [description]
    */
   public setSymbol (symbol: string) {
-    const datasource = this._mainDatasource
-    datasource.symbol = symbol
-    datasource
+    const mainDatasource = this._mainDatasource
+    mainDatasource.symbol = symbol
+    mainDatasource
       .resolveSymbol()
       .then(() => {
-        const symbolInfo = datasource.symbolInfo
+        const symbolInfo = mainDatasource.symbolInfo
         const recentList = this.readFromLS('chart.recentlist') || []
+        // 批量设置数据源的symbol
+        _.unique(
+          this._charts.reduce((datasources, chart) =>
+            datasources.concat(chart.graphs.map(graph => graph.datasource)
+          ), [])
+        ).forEach(datasource => datasource.symbol = symbol)
         this.clearCache()
         this.switchStudies()
         this.removeAllTools()
+        this.removeAllPatterns()
+        this.addPatterns()
         this.restartPulseUpdate()
         this._axisx.resetOffset()
         if (_.findIndex(recentList, { symbol: symbolInfo.symbol}) === -1) {
@@ -518,6 +575,8 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   public resetStudies () {
+    this.removeAllStudies()
+
     const mainChart = this._mainChart
     const datasource = mainChart.datasource
     const maProps = this.maProps || DEFAULT_MA_PROPS
@@ -552,6 +611,14 @@ export default class ChartLayoutModel extends EventEmitter {
         mainChart.addGraph(ma)
       })
     }
+    if (datasource.resolution <= 'D') {
+      mainChart.addGraph(
+        new StudyModel(
+          mainChart,
+          '压力支撑'
+        )
+      )
+    }
     mainChart.addGraph(
       new StudyModel(
         mainChart,
@@ -570,9 +637,26 @@ export default class ChartLayoutModel extends EventEmitter {
 
     // 分时和K线之间切换时，清空所有指标
     if (reset) {
-      this.removeAllStudies()
-    } else {
-      this.removeAllMAStudies()
+      return this.resetStudies()
+    }
+
+    // 移除所有均线类指标
+    this.maStudies.forEach(ma => this.removeStudy(mainChart, ma.id))
+
+    if (fromResolution > 'D' && resolution <= 'D') {
+      mainChart.addGraph(
+        new StudyModel(
+          mainChart,
+          '压力支撑'
+        )
+      )
+    }
+
+    if (fromResolution <= 'D' && resolution > 'D') {
+      // 移除压力支撑指标
+      mainChart.graphs
+        .filter(grapth => grapth instanceof StudyModel && grapth.studyType === '压力支撑')
+        .forEach(graph => mainChart.removeGraph(graph))
     }
 
     if (resolution === '1') {
@@ -603,14 +687,6 @@ export default class ChartLayoutModel extends EventEmitter {
         mainChart.addGraph(ma)
       })
     }
-
-    if (reset) {
-      mainChart.addGraph(
-        new StudyModel(
-          mainChart,
-          'VOLUME'
-        ))
-    }
   }
 
   /**
@@ -619,6 +695,7 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public addStudy (study: StudyType) {
     const config = studyConfig[study]
+
     if (config.isPrice) {
       const studyModel = new StudyModel(
         this._mainChart,
@@ -863,9 +940,6 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   public toggleGoToDate (showGoToDate: boolean) {
-    if (showGoToDate) {
-      this.saveToLS('chart.welcome', true)
-    }
     this._component.setState({ showGoToDate })
   }
 
@@ -898,20 +972,17 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
-   * 移除均线类指标 MA以及均价指标
-   */
-  private removeAllMAStudies () {
-    const mainChart = this._mainChart
-    this._maStudies.forEach(ma => this.removeStudy(mainChart, ma.id))
-  }
-
-  /**
    * 移除所有画线工具
    */
   private removeAllTools () {
     this._charts.forEach(chart => {
       chart.removeAllTools()
     })
+  }
+
+  private removeAllPatterns () {
+    this.mainChart.removeAllPatterns()
+    this.emit('patterns_remove')
   }
 
   /**

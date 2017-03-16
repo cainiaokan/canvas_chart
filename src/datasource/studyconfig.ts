@@ -1,6 +1,6 @@
 import { ChartStyle } from '../graphic/diagram'
-import { ShapeType } from '../constant'
-import { IStockBar, DataAdapter } from '../datasource'
+import { ShapeType, ResolutionType } from '../constant'
+import { IStockBar, DataAdapter, IPSBar } from '../datasource'
 import {
   getContext,
   H,
@@ -27,12 +27,16 @@ export type DataConverter = {
   ): any[][]
 }
 
+const SUPPORT_ALL_RESOLUTION: ResolutionType[] = ['1', '5', '15', '30', '60', 'D', 'W', 'M']
+
 type StudyConfig = {
   [propName: string]: {
-    stockAdapter: DataAdapter
+    adapter: DataAdapter
     input?: any[]
+    supportResolutions: ResolutionType[]
     inputLabels?: string[]
     isPrice: boolean
+    isFixed: boolean
     noLegend: boolean
     output: DataConverter
     plots: Array<{
@@ -43,12 +47,41 @@ type StudyConfig = {
 }
 
 export const studyConfig: StudyConfig = {
+  '压力支撑': {
+    adapter (bar: IPSBar) {
+      return [0, bar.time, bar.pressure, bar.support]
+    },
+    output (data: any[], index: number, input: any[]): any[][] {
+      const time = data[1]
+      return [
+        [0, time, data[2]],
+        [0, time, data[3]],
+      ]
+    },
+    supportResolutions: ['1', '5', '15', '30', '60', 'D'],
+    isPrice: true,
+    isFixed: true,
+    noLegend: false,
+    plots: [
+      {
+        shape: 'line',
+        style: {
+          color: '#ff9c00',
+          lineWidth: 1,
+        },
+      }, {
+        shape: 'line',
+        style: {
+          color: '#2b89cc',
+          lineWidth: 1,
+        },
+      },
+    ],
+  },
   '均价': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.amount, bar.volume]
     },
-    isPrice: true,
-    noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const ma = $MA(index)
       return ma !== null ? [
@@ -59,6 +92,10 @@ export const studyConfig: StudyConfig = {
         ],
       ] : null
     },
+    supportResolutions: ['1'],
+    isPrice: true,
+    isFixed: true,
+    noLegend: false,
     plots: [
       {
         shape: 'line',
@@ -70,12 +107,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'MA': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.close]
     },
     input: [5],
     inputLabels: ['长度'],
+    supportResolutions: ['5', '15', '30', '60', 'D', 'W', 'M'],
     isPrice: true,
+    isFixed: true,
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const n = input[0]
@@ -99,12 +138,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'VOLUME': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.volume, bar.close < bar.open]
     },
     input: [],
     inputLabels: [],
+    supportResolutions: SUPPORT_ALL_RESOLUTION,
     isPrice: false,
+    isFixed: true,
     noLegend: true,
     output: (data: any[]): any[][] => {
       return [
@@ -124,12 +165,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'BOLL': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.close]
     },
     input: [20, 2],
     inputLabels: [],
+    supportResolutions: SUPPORT_ALL_RESOLUTION,
     isPrice: true,
+    isFixed: false,
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
@@ -199,12 +242,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'MACD': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.close]
     },
     input: [12, 26, 9],
     inputLabels: [],
+    supportResolutions: SUPPORT_ALL_RESOLUTION,
     isPrice: false,
+    isFixed: false,
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
@@ -249,12 +294,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'KDJ': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.close, bar.high, bar.low]
     },
     input: [9, 3, 3],
     inputLabels: [],
+    supportResolutions: SUPPORT_ALL_RESOLUTION,
     isPrice: false,
+    isFixed: false,
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const signal = input[0]
@@ -303,12 +350,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'RSI': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.close]
     },
     input: [6, 12, 24],
     inputLabels: [],
+    supportResolutions: SUPPORT_ALL_RESOLUTION,
     isPrice: false,
+    isFixed: false,
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       if (index - Math.max.apply(Math, input) < 0) {
@@ -351,12 +400,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'CCI': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.close, bar.high, bar.low]
     },
     input: [14],
     inputLabels: [],
+    supportResolutions: SUPPORT_ALL_RESOLUTION,
     isPrice: false,
+    isFixed: false,
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const len = input[0]
@@ -386,12 +437,14 @@ export const studyConfig: StudyConfig = {
     ],
   },
   'CR': {
-    stockAdapter (bar: IStockBar) {
+    adapter (bar: IStockBar) {
       return [0, bar.time, bar.close, bar.high, bar.low]
     },
     input: [26, 5, 10, 20],
     inputLabels: [],
+    supportResolutions: SUPPORT_ALL_RESOLUTION,
     isPrice: false,
+    isFixed: false,
     noLegend: false,
     output: (data: any[], index: number, input: any[]): any[][] => {
       const n: number = input[0]

@@ -251,14 +251,17 @@ export default class Legend extends React.Component<Prop, State> {
                     </div> : null
                   )
                 }
-                <a className='chart-legend-btn'
-                   href='javascript:;'
-                   data-id={study.id}
-                   onClick={this.removeStudyHandler}>
-                  <svg xmlns='http://www.w3.org/2000/svg' viewBox='-2.4 120.9 14 14' width='14' height='14'>
-                    <path d='M-2.4 120.9v14h14v-14zm3.34 2.123l3.66 3.66 3.66-3.66 1.217 1.22-3.66 3.658 3.66 3.66-1.22 1.22-3.658-3.66-3.66 3.66-1.22-1.22 3.66-3.66-3.66-3.66z'></path>
-                  </svg>
-                </a>
+                {
+                  !study.isFixed ?
+                  <a className='chart-legend-btn'
+                    href='javascript:;'
+                    data-id={study.id}
+                    onClick={this.removeStudyHandler}>
+                    <svg xmlns='http://www.w3.org/2000/svg' viewBox='-2.4 120.9 14 14' width='14' height='14'>
+                      <path d='M-2.4 120.9v14h14v-14zm3.34 2.123l3.66 3.66 3.66-3.66 1.217 1.22-3.66 3.658 3.66 3.66-1.22 1.22-3.658-3.66-3.66 3.66-1.22-1.22 3.66-3.66-3.66-3.66z'></path>
+                    </svg>
+                  </a> : null
+                }
               </div>
             }
           })

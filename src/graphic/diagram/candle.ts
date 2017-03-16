@@ -90,39 +90,39 @@ export class CandleChartRenderer extends BaseChartRenderer {
     const candleWidth = ~~(axisX.barWidth * 0.6 + 0.5) % 2 === 0 ?
       ~~(axisX.barWidth * 0.6 + 0.5) - 1 : ~~(axisX.barWidth * 0.6 + 0.5)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-    ctx.translate(0.5, 0)
+    ctx.translate(0.5, 0.5)
     ctx.lineWidth = 1
 
     for (let i = 0, bar, len = bars.length, isUp, color; i < len; i++) {
       bar = bars[i]
       isUp = bar[PLOT_DATA.CLOSE] >= bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
-      ctx.strokeStyle = '#000000'
+      ctx.strokeStyle = '#333333'
       ctx.beginPath()
       ctx.moveTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.HIGH], rangeY))
       ctx.lineTo(~~bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.LOW], rangeY))
       ctx.stroke()
     }
-    // 避免绘制的蜡烛方块出现模糊，因此对齐坐标系避免出现像素扩展的情况发生
-    ctx.translate(-0.5, 0)
+
     for (let i = 0, bar, len = bars.length, x, y, isUp, color; i < len; i++) {
       bar = bars[i]
       isUp = bar[PLOT_DATA.CLOSE] >= bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
-      ctx.strokeStyle = '#000000'
+      ctx.strokeStyle = '#333333'
       ctx.lineWidth = 1
       ctx.fillStyle = color
-      x = ~~bar[PLOT_DATA.X] - ~~(candleWidth / 2)
+      x = ~~bar[PLOT_DATA.X] - (candleWidth - 1) / 2
       y = ~~axisY.getYByValue(isUp ? bar[PLOT_DATA.CLOSE] : bar[PLOT_DATA.OPEN], rangeY)
       ctx.beginPath()
       ctx.moveTo(x, y)
-      ctx.lineTo(x + candleWidth, y)
+      ctx.lineTo(x + candleWidth - 1, y)
       y = ~~Math.ceil(
         axisY.getYByValue(isUp ? bar[PLOT_DATA.OPEN] : bar[PLOT_DATA.CLOSE], rangeY)
       )
-      ctx.lineTo(x + candleWidth, y)
+      ctx.lineTo(x + candleWidth - 1, y)
       ctx.lineTo(x, y)
       ctx.closePath()
+      // 避免绘制的蜡烛方块出现模糊，因此对齐坐标系避免出现像素扩展的情况发生
       ctx.fill()
       ctx.stroke()
     }

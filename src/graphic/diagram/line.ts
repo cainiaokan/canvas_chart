@@ -92,7 +92,6 @@ export class LineChartRenderer extends BaseChartRenderer {
 
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
-    ctx.translate(0.5, 0.5)
     ctx.beginPath()
 
     const len = bars.length

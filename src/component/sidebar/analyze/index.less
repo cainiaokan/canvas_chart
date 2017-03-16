@@ -105,6 +105,42 @@
 
       background: #4caf50;
     }
+    .toggle-tips {
+      line-height: 2;
+
+      position: absolute;
+      top: 20px;
+      right: 0;
+
+      display: block;
+      visibility: visible;
+
+      padding: 0 8px;
+
+      white-space: nowrap;
+      pointer-events: none;
+
+      opacity: 0;
+      color: #fff;
+      background-color: #000;
+      &:before {
+        position: absolute;
+        top: -8px;
+        right: 7px;
+
+        content: '\0020';
+
+        border: 4px solid transparent;
+        border-bottom: 4px solid #000;
+      }
+    }
+    &.on .toggle-tips {
+      visibility: hidden;
+
+      transition: visibility 0s 3s;
+
+      opacity: 1;
+    }
   }
   hr {
     width: 200px;

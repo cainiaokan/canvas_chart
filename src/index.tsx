@@ -15,7 +15,7 @@ function renderChart () {
   render(
     <Provider chartLayout={chartLayoutModel}>
       <ChartLayout
-        symbol={'SH000001'}
+        symbol={'sh000001'}
         height={document.documentElement.clientHeight}
         width={document.documentElement.clientWidth}
         shape={'candle'}
