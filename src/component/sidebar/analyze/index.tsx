@@ -206,10 +206,14 @@ export default class Analyze extends React.Component<Prop, State> {
         chartLayout.saveToLS('chart.forceMA', isOpen)
 
         if (isOpen) {
-          chartLayout.maProps.forEach((prop, i) => chartLayout.modifyGraph(chartLayout.maStudies[i], { isVisible: prop.isVisible }))
+          if (chartLayout.mainDatasource.resolution === 'D') {
+            chartLayout.maProps.forEach((prop, i) => chartLayout.modifyGraph(chartLayout.maStudies[i], { isVisible: prop.isVisible }))
+          }
         } else {
           if (this.state.showWaveForm || this.state.showReverseRelay) {
-            chartLayout.maStudies.forEach(ma => chartLayout.modifyGraph(ma, { isVisible: false }))
+            if (chartLayout.mainDatasource.resolution === 'D') {
+              chartLayout.maStudies.forEach(ma => chartLayout.modifyGraph(ma, { isVisible: false }))
+            }
           }
         }
         this.setState({ showMA: isOpen })

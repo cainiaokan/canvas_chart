@@ -137,7 +137,7 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   get maProps (): MA_PROP[] {
-    return this.readFromLS(`qchart.studies.props.ma[${this.mainDatasource.resolution}]`)
+    return this.readFromLS(`qchart.studies.props.ma[${this.mainDatasource.resolution}]`) || DEFAULT_MA_PROPS
   }
 
   set maProps (prop: MA_PROP[]) {
@@ -581,6 +581,7 @@ export default class ChartLayoutModel extends EventEmitter {
     const datasource = mainChart.datasource
     const maProps = this.maProps || DEFAULT_MA_PROPS
     const maStudies = this._maStudies
+    const forceShowMA = !!this.readFromLS('chart.forceMA')
     const showPattern = !!this.readFromLS('chart.showPressureSupport') || !!this.readFromLS('chart.showReverseRelay')
     const showPressureSupport = !!this.readFromLS('chart.showPressureSupport')
 
@@ -601,7 +602,7 @@ export default class ChartLayoutModel extends EventEmitter {
         const ma = new StudyModel(
           mainChart,
           'MA',
-          showPattern && datasource.resolution === 'D' ?  false : defaultMAProps.isVisible,
+          showPattern && !forceShowMA && datasource.resolution === 'D' ?  false : defaultMAProps.isVisible,
           [defaultMAProps.length],
           [{
             color: defaultMAProps.color,
@@ -638,6 +639,7 @@ export default class ChartLayoutModel extends EventEmitter {
     const maProps = this.maProps || DEFAULT_MA_PROPS
     const reset = +(fromResolution === '1') ^ +(resolution === '1')
     const showPressureSupport = this.readFromLS('chart.showPressureSupport')
+    const forceShowMA = !!this.readFromLS('chart.forceMA')
     const showPattern = !!this.readFromLS('chart.showPressureSupport') || !!this.readFromLS('chart.showReverseRelay')
 
     // 分时和K线之间切换时，清空所有指标
@@ -683,7 +685,7 @@ export default class ChartLayoutModel extends EventEmitter {
         const ma = new StudyModel(
           mainChart,
           'MA',
-          showPattern && datasource.resolution === 'D' ? false : defaultMAProps.isVisible,
+          showPattern && !forceShowMA && datasource.resolution === 'D' ? false : defaultMAProps.isVisible,
           [defaultMAProps.length],
           [{
             color: defaultMAProps.color,
@@ -789,6 +791,14 @@ export default class ChartLayoutModel extends EventEmitter {
     graph.clearCache()
     Object.keys(config).forEach(key => graph[key] = config[key])
     this.emit('graph_modify')
+  }
+
+  public hideMA () {
+    this._maStudies.forEach(ma => this.modifyGraph(ma, { isVisible: false }))
+  }
+
+  public showMA () {
+    this.maProps.forEach((maProp, i) => this.modifyGraph(this._maStudies[i], { isVisible: maProp.isVisible }))
   }
 
   /**
@@ -990,23 +1000,45 @@ export default class ChartLayoutModel extends EventEmitter {
 
   public setWaveVisibility (visible: boolean) {
     const patterns = this.mainChart.patterns
+    const forceShowMA = this.readFromLS('chart.forceMA')
+    const showReverseRelay = this.readFromLS('chart.showReverseRelay')
     this.saveToLS('chart.showWaveForm', visible)
-    if (patterns.length) {
-      this.mainChart.setPatternVisibility(true, visible)
-      this.emit('pattern_modify', visible)
+    this.mainChart.setPatternVisibility(true, visible)
+    if (visible) {
+      if (patterns.length) {
+        this.emit('pattern_modify', visible)
+      } else {
+        this.addPatterns()
+      }
+      if (!forceShowMA && this.mainDatasource.resolution === 'D') {
+        this.hideMA()
+      }
     } else {
-      this.addPatterns()
+      if (!showReverseRelay) {
+        this.showMA()
+      }
     }
   }
 
   public setReverseRelayVisibility (visible: boolean) {
     const patterns = this.mainChart.patterns
+    const forceShowMA = this.readFromLS('chart.forceMA')
+    const showWaveForm = this.readFromLS('chart.showWaveForm')
     this.saveToLS('chart.showReverseRelay', visible)
-    if (patterns.length) {
-      this.mainChart.setPatternVisibility(false, visible)
-      this.emit('pattern_modify')
+    this.mainChart.setPatternVisibility(false, visible)
+    if (visible) {
+      if (patterns.length) {
+        this.emit('pattern_modify')
+      } else {
+        this.addPatterns()
+      }
+      if (!forceShowMA && this.mainDatasource.resolution === 'D') {
+        this.hideMA()
+      }
     } else {
-      this.addPatterns()
+      if (!showWaveForm) {
+        this.showMA()
+      }
     }
   }
 
