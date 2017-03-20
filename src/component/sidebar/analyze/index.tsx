@@ -5,9 +5,12 @@ import * as _ from 'underscore'
 import IScroll = require('iscroll')
 
 import ChartLayoutModel from '../../../model/chartlayout'
+import { AnalysisData, StockInfo } from '../pollmanager'
 
 type Prop = {
   height: number
+  analysisData: AnalysisData
+  stockInfo: StockInfo
 }
 type State = {
   showMA?: boolean
@@ -58,10 +61,47 @@ export default class Analyze extends React.Component<Prop, State> {
   }
 
   public render () {
+    const { stockInfo, analysisData } = this.props
+    const pressureInfo = analysisData ? analysisData.pressureInfo : null
+    let gapInfo = analysisData ? analysisData.gapInfo : null
+
     const {
       showMA, showGap, showPressureSupport,
       showWaveForm, showReverseRelay,
     } = this.state
+
+    let gapLow
+    let gapHigh
+    let price
+
+    if (gapInfo && stockInfo) {
+      price = +stockInfo.price
+      gapLow = gapInfo.l1 > gapInfo.l2 ? gapInfo.l2 : gapInfo.l1
+      gapHigh = gapInfo.l1 > gapInfo.l2 ? gapInfo.l1 : gapInfo.l2
+      if (!('up' in gapInfo)) {
+        gapInfo.up = price > gapLow
+      }
+      if (gapInfo.up) {
+        if (price <= gapLow) {
+          analysisData.gapInfo = null
+          gapInfo = null
+        } else if (price < gapHigh) {
+          gapHigh = price
+        }
+      } else {
+        if (price >= gapHigh) {
+          analysisData.gapInfo = null
+          gapInfo = null
+        } else if (price > gapLow) {
+          gapLow = price
+        }
+      }
+      if (gapInfo) {
+        gapInfo.l1 = gapLow
+        gapInfo.l2 = gapHigh
+      }
+    }
+
     return (
       <div
         className='chart-analyze'
@@ -84,11 +124,11 @@ export default class Analyze extends React.Component<Prop, State> {
           <div className='feature-group support-pressure clearfix'>
             <div className='description'>
               <div className='pressure'>
-                <span>压力：</span><span>14.15(+2.31%)</span>
+                <span>压力：</span><span>{pressureInfo ? (+pressureInfo.upper_price).toFixed(2) : '--'}</span>
               </div>
               <hr />
               <div className='support'>
-                <span>支撑：</span><span>13.20(-1.88%)</span>
+                <span>支撑：</span><span>{pressureInfo ? (+pressureInfo.lower_price).toFixed(2) : '--'}</span>
               </div>
             </div>
             <div
@@ -101,11 +141,19 @@ export default class Analyze extends React.Component<Prop, State> {
           <h4>跳空与缺口</h4>
           <div className='feature-group gap clearfix'>
             <div className='description'>
-              <p>
-                2013.2.13&nbsp;&nbsp;
-                <span className='negative'>12.31-12.58</span>
-              </p>
-              <p className='position'>当前价格位于缺口下方</p>
+              {
+                gapInfo && stockInfo ?
+                <p>
+                  {gapInfo.dt}&nbsp;&nbsp;
+                  <span className={gapInfo.up ? 'positive' : 'negative'}>
+                  {gapLow}-{gapHigh}
+                  </span>
+                </p> : null
+              }
+              {
+                gapInfo && stockInfo ?
+                <p className='position'>当前价格位于缺口{gapInfo.up ? '上方' : '下方'}</p> : null
+              }
             </div>
             <div
               className={`toggle-btn ${showGap ? 'on' : ''}`}
@@ -132,7 +180,7 @@ export default class Analyze extends React.Component<Prop, State> {
             <div className='description'>
               <p className='form-title'>反转、中继形态</p>
               <p>自动构建常见的形态，如头肩顶，W底，上升三角形等</p>
-              <p className='position'>当前大概率处于：W底</p>
+              {/*<p className='position'>当前大概率处于：W底</p>*/}
             </div>
             <div
               className={`toggle-btn ${showReverseRelay ? 'on' : ''}`}
@@ -146,22 +194,51 @@ export default class Analyze extends React.Component<Prop, State> {
     )
   }
   private toggleHandler (ev) {
+    const chartLayout = this._chartLayout
     const type = ev.currentTarget.dataset.type
+
+    let isOpen = false
+    let study = null
+
     switch (type) {
       case 'ma':
-        this.setState({ showMA: !this.state.showMA })
+        isOpen = !this.state.showMA
+        chartLayout.saveToLS('chart.forceMA', isOpen)
+
+        if (isOpen) {
+          chartLayout.maProps.forEach((prop, i) => chartLayout.modifyGraph(chartLayout.maStudies[i], { isVisible: prop.isVisible }))
+        } else {
+          if (this.state.showWaveForm || this.state.showReverseRelay) {
+            chartLayout.maStudies.forEach(ma => chartLayout.modifyGraph(ma, { isVisible: false }))
+          }
+        }
+        this.setState({ showMA: isOpen })
         break
       case 'pressure-support':
-        this.setState({ showPressureSupport: !this.state.showPressureSupport })
+        isOpen = !this.state.showPressureSupport
+        chartLayout.saveToLS('chart.showPressureSupport', isOpen)
+        study = chartLayout.mainChart.studies.filter(s => s.studyType === '压力支撑')[0]
+        if (!!study) {
+          chartLayout.removeStudy(chartLayout.mainChart, study.id)
+        } else {
+          chartLayout.addStudy('压力支撑')
+        }
+        this.setState({ showPressureSupport: isOpen })
         break
       case 'gap':
-        this.setState({ showGap: !this.state.showGap })
+        isOpen = !this.state.showGap
+        chartLayout.setGapVisibility(isOpen)
+        this.setState({ showGap: isOpen })
         break
       case 'wave-form':
-        this.setState({ showWaveForm: !this.state.showWaveForm })
+        isOpen = !this.state.showWaveForm
+        chartLayout.setWaveVisibility(isOpen)
+        this.setState({ showWaveForm: isOpen })
         break
       case 'reverse-relay-form':
-        this.setState({ showReverseRelay: !this.state.showReverseRelay })
+        isOpen = !this.state.showReverseRelay
+        chartLayout.setReverseRelayVisibility(isOpen)
+        this.setState({ showReverseRelay: isOpen })
         break
       default:
         break

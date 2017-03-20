@@ -580,27 +580,28 @@ export default class ChartLayoutModel extends EventEmitter {
     const mainChart = this._mainChart
     const datasource = mainChart.datasource
     const maProps = this.maProps || DEFAULT_MA_PROPS
+    const maStudies = this._maStudies
+    const showPattern = !!this.readFromLS('chart.showPressureSupport') || !!this.readFromLS('chart.showReverseRelay')
+    const showPressureSupport = !!this.readFromLS('chart.showPressureSupport')
+
+    maStudies.length = 0
 
     if (datasource.resolution === '1') {
       if (datasource instanceof StockDatasource &&
           datasource.symbolInfo &&
           datasource.symbolInfo.type === 'stock') {
-        this._maStudies.length = 0
-        this._maStudies.push(
-          new StudyModel(
-            mainChart,
-            '均价',
-          )
+        maStudies[0] = new StudyModel(
+          mainChart,
+          '均价',
         )
-        mainChart.addGraph(this._maStudies[0])
+        mainChart.addGraph(maStudies[0])
       }
     } else {
-      this._maStudies.length = 0
       maProps.forEach((defaultMAProps, i) => {
         const ma = new StudyModel(
           mainChart,
           'MA',
-          defaultMAProps.isVisible,
+          showPattern && datasource.resolution === 'D' ?  false : defaultMAProps.isVisible,
           [defaultMAProps.length],
           [{
             color: defaultMAProps.color,
@@ -611,7 +612,8 @@ export default class ChartLayoutModel extends EventEmitter {
         mainChart.addGraph(ma)
       })
     }
-    if (datasource.resolution <= 'D') {
+
+    if (datasource.resolution <= 'D' && showPressureSupport) {
       mainChart.addGraph(
         new StudyModel(
           mainChart,
@@ -619,6 +621,7 @@ export default class ChartLayoutModel extends EventEmitter {
         )
       )
     }
+
     mainChart.addGraph(
       new StudyModel(
         mainChart,
@@ -634,6 +637,8 @@ export default class ChartLayoutModel extends EventEmitter {
     const maStudies = this._maStudies
     const maProps = this.maProps || DEFAULT_MA_PROPS
     const reset = +(fromResolution === '1') ^ +(resolution === '1')
+    const showPressureSupport = this.readFromLS('chart.showPressureSupport')
+    const showPattern = !!this.readFromLS('chart.showPressureSupport') || !!this.readFromLS('chart.showReverseRelay')
 
     // 分时和K线之间切换时，清空所有指标
     if (reset) {
@@ -643,20 +648,22 @@ export default class ChartLayoutModel extends EventEmitter {
     // 移除所有均线类指标
     this.maStudies.forEach(ma => this.removeStudy(mainChart, ma.id))
 
-    if (fromResolution > 'D' && resolution <= 'D') {
-      mainChart.addGraph(
-        new StudyModel(
-          mainChart,
-          '压力支撑'
+    if (showPressureSupport) {
+      if (fromResolution > 'D' && resolution <= 'D') {
+        mainChart.addGraph(
+          new StudyModel(
+            mainChart,
+            '压力支撑'
+          )
         )
-      )
-    }
-
-    if (fromResolution <= 'D' && resolution > 'D') {
-      // 移除压力支撑指标
-      mainChart.graphs
-        .filter(grapth => grapth instanceof StudyModel && grapth.studyType === '压力支撑')
-        .forEach(graph => mainChart.removeGraph(graph))
+      } else if (fromResolution <= 'D' && resolution > 'D') {
+        // 移除压力支撑指标
+        mainChart.graphs
+          .filter(grapth => grapth instanceof StudyModel && grapth.studyType === '压力支撑')
+          .forEach(graph => mainChart.removeGraph(graph))
+      } else {
+        // do nothing
+      }
     }
 
     if (resolution === '1') {
@@ -676,7 +683,7 @@ export default class ChartLayoutModel extends EventEmitter {
         const ma = new StudyModel(
           mainChart,
           'MA',
-          defaultMAProps.isVisible,
+          showPattern && datasource.resolution === 'D' ? false : defaultMAProps.isVisible,
           [defaultMAProps.length],
           [{
             color: defaultMAProps.color,
@@ -693,18 +700,30 @@ export default class ChartLayoutModel extends EventEmitter {
    * 增加指标
    * @param {StudyType} study
    */
-  public addStudy (study: StudyType) {
-    const config = studyConfig[study]
+  public addStudy (studyType: StudyType) {
+    const config = studyConfig[studyType]
+    const mainChart = this._mainChart
+    const mainDatasource = this.mainDatasource
 
     if (config.isPrice) {
-      const studyModel = new StudyModel(
-        this._mainChart,
-        study,
+      const study = new StudyModel(
+        mainChart,
+        studyType,
       )
-      this._mainChart.addGraph(studyModel)
-      this.emit('graph_add', studyModel)
+      if (study.datasourceType === 'local') {
+        this._mainChart.addGraph(study)
+        this.emit('graph_add', study)
+      } else {
+        if (!!mainDatasource.first()) {
+          study.datasource
+            .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time)
+            .then(() => {
+              this._mainChart.addGraph(study)
+              this.emit('graph_add', study)
+            })
+        }
+      }
     } else {
-      const mainDatasource = this._mainDatasource
       const crosshair = new CrosshairModel(this)
       const axisX = this.axisx
       const axisY = new AxisYModel(mainDatasource, crosshair)
@@ -715,16 +734,28 @@ export default class ChartLayoutModel extends EventEmitter {
         crosshair,
         config.isPrice
       )
-      const studyModel = new StudyModel(
+      const study = new StudyModel(
         chart,
-        study
+        studyType
       )
 
       axisY.chart = chart
       crosshair.chart = chart
 
-      chart.addGraph(studyModel)
-      this.addChart(chart)
+      if (study.datasourceType === 'local') {
+        this._mainChart.addGraph(study)
+        this.emit('graph_add', study)
+      } else {
+        if (!!mainDatasource.first()) {
+          study.datasource
+            .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time)
+            .then(() => {
+              this._mainChart.addGraph(study)
+              chart.addGraph(study)
+              this.addChart(chart)
+            })
+        }
+      }
     }
   }
 
@@ -939,12 +970,44 @@ export default class ChartLayoutModel extends EventEmitter {
     this._component.setState({ showAbout })
   }
 
+  public showAnalysisSidebarTab () {
+    this._component.setState({ sidebarFolded: false, sidebarActiveIndex: 4 })
+  }
+
   public toggleGoToDate (showGoToDate: boolean) {
     this._component.setState({ showGoToDate })
   }
 
   public setContextMenu (contextMenuConfig) {
     this._component.setState({ contextMenuConfig })
+  }
+
+  public setGapVisibility (visible: boolean) {
+    this.saveToLS('chart.showGap', visible)
+    this.mainChart.mainGraph.showGap = visible
+    this.emit('gap_visibility_change', visible)
+  }
+
+  public setWaveVisibility (visible: boolean) {
+    const patterns = this.mainChart.patterns
+    this.saveToLS('chart.showWaveForm', visible)
+    if (patterns.length) {
+      this.mainChart.setPatternVisibility(true, visible)
+      this.emit('pattern_modify', visible)
+    } else {
+      this.addPatterns()
+    }
+  }
+
+  public setReverseRelayVisibility (visible: boolean) {
+    const patterns = this.mainChart.patterns
+    this.saveToLS('chart.showReverseRelay', visible)
+    if (patterns.length) {
+      this.mainChart.setPatternVisibility(false, visible)
+      this.emit('pattern_modify')
+    } else {
+      this.addPatterns()
+    }
   }
 
   /**

@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { StudyType } from '../constant'
 import { ChartStyle } from '../graphic/diagram'
 import ChartModel from './chart'
-import { studyConfig, PressureSupportDatasource } from '../datasource'
+import { studyConfig, Datasource, PressureSupportDatasource } from '../datasource'
 import PlotModel from './plot'
 import Graph from './graph'
 
@@ -11,7 +11,7 @@ export default class StudyModel extends Graph {
   private _studyType: StudyType
   private _inputLabels: string[]
   private _noLegend: boolean
-  private _isFixed: boolean
+  private _datasourceType: 'remote' | 'local'
 
   constructor (
     chart: ChartModel,
@@ -24,7 +24,7 @@ export default class StudyModel extends Graph {
     const symbol = mainDatasource.symbol
     const resolution = mainDatasource.resolution
     const timeDif = mainDatasource.timeDiff
-    let datasource = null
+    let datasource: Datasource = null
     switch (study) {
       case '压力支撑':
         datasource = new PressureSupportDatasource(symbol, resolution, timeDif)
@@ -35,9 +35,9 @@ export default class StudyModel extends Graph {
     }
     styles = styles || _.pluck(config.plots, 'style')
 
-    super(datasource, chart, config.isPrice, false, false, visible, styles, config.adapter, config.output, input || config.input)
-    this._isFixed = config.isFixed
+    super(datasource, chart, config.priority, config.isPrice, config.isRemovable, false, false, visible, styles, config.adapter, config.output, input || config.input)
     this._studyType = study
+    this._datasourceType = config.datasourceType
     this._inputLabels = config.inputLabels || []
     this._noLegend = !!config.noLegend
     config.plots.forEach((plotConfig, index) => {
@@ -52,16 +52,16 @@ export default class StudyModel extends Graph {
     })
   }
 
-  get isFixed (): boolean {
-    return this._isFixed
-  }
-
   get noLegend (): boolean {
     return this._noLegend
   }
 
   get studyType (): StudyType {
     return this._studyType
+  }
+
+  get datasourceType (): 'local' | 'remote' {
+    return this._datasourceType
   }
 
   get inputLabels (): string[] {

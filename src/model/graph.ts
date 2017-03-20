@@ -15,22 +15,26 @@ abstract class GraphModel {
   protected _calc: DataConverter
   protected _input: any[]
   protected _isPrice: boolean
+  protected _isRemovable: boolean
+  protected _priority: number
   protected _isMain: boolean
   protected _isComparison: boolean
   protected _isVisible: boolean
   protected _styles: ChartStyle[]
   protected _id: number
+  protected _isValid: boolean = true
 
   private _hover: boolean = false
   private _selected: boolean = false
-  private _isValid: boolean = true
   private _visibleBarCache: any[][]
   private _cache: { [propName: number]: any[] }
 
   constructor (
     datasource: Datasource,
     chart: ChartModel,
+    priority: number,
     isPrice: boolean,
+    isRemovable: boolean,
     isMain: boolean,
     isComparison: boolean,
     isVisible: boolean,
@@ -40,7 +44,9 @@ abstract class GraphModel {
     input: any = null) {
     this._datasource = datasource
     this._chart = chart
+    this._priority = priority
     this._isPrice = isPrice
+    this._isRemovable = isRemovable
     this._isMain = isMain
     this._isComparison = isComparison
     this._isVisible = isVisible
@@ -76,8 +82,16 @@ abstract class GraphModel {
     return this._id
   }
 
+  get priority (): number {
+    return this._priority
+  }
+
   get isPrice (): boolean {
     return this._isPrice
+  }
+
+  get isRemovable (): boolean {
+    return this._isRemovable
   }
 
   get isMain (): boolean {

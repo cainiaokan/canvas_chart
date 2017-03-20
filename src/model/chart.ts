@@ -6,6 +6,7 @@ import StudyModel from './study'
 import AxisYModel, { YRange } from './axisy'
 import CrosshairModel from './crosshair'
 import GraphModel from './graph'
+import StockModel from './stock'
 import { BaseToolRenderer } from '../graphic/tool'
 import Pattern from './pattern'
 import GridRenderer from '../graphic/grid'
@@ -76,19 +77,19 @@ export default class ChartModel extends EventEmitter {
   }
 
   get visibleGraphs (): GraphModel[] {
-    return this._graphs.filter(graph => graph.isVisible)
+    return this._graphs.filter(graph => graph.isVisible).sort((a, b) => b.priority - a.priority)
   }
 
   get studies (): StudyModel[] {
-    return this.graphs.filter(graph => graph instanceof StudyModel) as StudyModel[]
+    return this.graphs.filter(graph => graph instanceof StudyModel).sort((a, b) => b.priority - a.priority) as StudyModel[]
   }
 
   get compares (): GraphModel[] {
     return this.graphs.filter(graph => graph.isComparison)
   }
 
-  get mainGraph (): GraphModel {
-    return this.graphs.filter(graph => graph.isMain)[0]
+  get mainGraph (): StockModel {
+    return this.graphs.filter(graph => graph.isMain)[0] as StockModel
   }
 
   get tools (): BaseToolRenderer[] {
@@ -104,7 +105,7 @@ export default class ChartModel extends EventEmitter {
   }
 
   get visiblePatterns (): Pattern[] {
-    return this._patterns.filter(pattern => pattern.isNowVisible())
+    return this._patterns.filter(pattern => pattern.isVisible && pattern.isNowVisible())
   }
 
   get datasource (): Datasource {
@@ -156,8 +157,9 @@ export default class ChartModel extends EventEmitter {
 
   get isValid (): boolean {
     return this._isValid &&
-           this._graphs.every(graph => graph.isValid) &&
-           this._tools.every(tool => tool.isValid) &&
+           this.graphs.every(graph => graph.isValid) &&
+           this.tools.every(tool => tool.isValid) &&
+           this.patterns.every(pattern => pattern.isValid) &&
            this.axisY.isValid
   }
 
@@ -173,6 +175,13 @@ export default class ChartModel extends EventEmitter {
 
   public addDrawingTool (tool: BaseToolRenderer) {
     this._tools.push(tool)
+    this._isValid = false
+  }
+
+  public setPatternVisibility (isWave: boolean, visible: boolean) {
+    this._patterns
+      .filter(pattern => isWave ? pattern.type === 'wave' : pattern.type !== 'wave')
+      .forEach(pattern => pattern.isVisible = visible)
     this._isValid = false
   }
 

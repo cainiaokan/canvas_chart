@@ -141,6 +141,7 @@ export default class Sidebar extends React.Component<Prop, State> {
       financingInfo,
       plates,
       nonRealtimeTools,
+      analysisData,
     } = this._data
 
     let tabPage = null
@@ -172,7 +173,10 @@ export default class Sidebar extends React.Component<Prop, State> {
                     plates={plates} />
         break
       case 4:
-        tabPage = <Analyze height={height} />
+        tabPage = <Analyze
+                    height={height}
+                    stockInfo={stockInfo}
+                    analysisData={analysisData} />
       default:
     }
 

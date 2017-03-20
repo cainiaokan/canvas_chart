@@ -120,12 +120,33 @@ export function getNonrealtimeTools (): Promise<any> {
     .then(response => response.json())
 }
 
+/**
+ * 获取形态技术分析数据
+ * @param  {string}       symbol 股票代码
+ * @return {Promise<any>}        异步响应
+ */
 export function getPatterns (symbol: string): Promise<any> {
-  return fetch(`${API}/chart/common/shape?code=${symbol}`)
+  return fetch(`${API}/chart/common/shape?code=${symbol}&type=wave,mhead,whead,hsp,hsb,triangle`)
     .then(response => response.json())
 }
 
+/**
+ * 获取压力支撑数据
+ * @param  {string}       symbol   股票代码
+ * @param  {string}       fromDate 开始日期
+ * @param  {string}       toDate   结束日期
+ * @return {Promise<any>}          异步响应
+ */
 export function getPressureSupport (symbol: string, fromDate: string, toDate: string): Promise<any> {
   return fetch(`${API}/chart/common/pressure?code=${symbol}&from_date=${fromDate}&to_date=${toDate}`)
+    .then(response => response.json())
+}
+
+/**
+ * 获取分析功能页面所需的数据
+ * @param {string} symbol 股票代码
+ */
+export function getAnalysisData (symbol: string): Promise<any> {
+  return fetch(`${API}/chart/common/analytics?code=${symbol}`)
     .then(response => response.json())
 }

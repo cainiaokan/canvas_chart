@@ -34,9 +34,11 @@ type StudyConfig = {
     adapter: DataAdapter
     input?: any[]
     supportResolutions: ResolutionType[]
+    priority: number
     inputLabels?: string[]
     isPrice: boolean
-    isFixed: boolean
+    isRemovable: boolean
+    datasourceType: 'remote' | 'local'
     noLegend: boolean
     output: DataConverter
     plots: Array<{
@@ -59,9 +61,11 @@ export const studyConfig: StudyConfig = {
       ]
     },
     supportResolutions: ['1', '5', '15', '30', '60', 'D'],
+    priority: 998,
     isPrice: true,
-    isFixed: true,
+    isRemovable: false,
     noLegend: false,
+    datasourceType: 'remote',
     plots: [
       {
         shape: 'line',
@@ -93,9 +97,11 @@ export const studyConfig: StudyConfig = {
       ] : null
     },
     supportResolutions: ['1'],
+    priority: 999,
     isPrice: true,
-    isFixed: true,
+    isRemovable: false,
     noLegend: false,
+    datasourceType: 'local',
     plots: [
       {
         shape: 'line',
@@ -113,9 +119,11 @@ export const studyConfig: StudyConfig = {
     input: [5],
     inputLabels: ['长度'],
     supportResolutions: ['5', '15', '30', '60', 'D', 'W', 'M'],
+    priority: 999,
     isPrice: true,
-    isFixed: true,
+    isRemovable: false,
     noLegend: false,
+    datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       const n = input[0]
       const ma = MA(index, n, C)
@@ -144,9 +152,11 @@ export const studyConfig: StudyConfig = {
     input: [],
     inputLabels: [],
     supportResolutions: SUPPORT_ALL_RESOLUTION,
+    priority: 999,
     isPrice: false,
-    isFixed: true,
+    isRemovable: false,
     noLegend: true,
+    datasourceType: 'local',
     output: (data: any[]): any[][] => {
       return [
         data,
@@ -171,9 +181,11 @@ export const studyConfig: StudyConfig = {
     input: [20, 2],
     inputLabels: [],
     supportResolutions: SUPPORT_ALL_RESOLUTION,
+    priority: 1,
     isPrice: true,
-    isFixed: false,
+    isRemovable: true,
     noLegend: false,
+    datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
       if (index - input[0] < 0) {
@@ -248,9 +260,11 @@ export const studyConfig: StudyConfig = {
     input: [12, 26, 9],
     inputLabels: [],
     supportResolutions: SUPPORT_ALL_RESOLUTION,
+    priority: 1,
     isPrice: false,
-    isFixed: false,
+    isRemovable: true,
     noLegend: false,
+    datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
       const fast = input[0]
@@ -300,9 +314,11 @@ export const studyConfig: StudyConfig = {
     input: [9, 3, 3],
     inputLabels: [],
     supportResolutions: SUPPORT_ALL_RESOLUTION,
+    priority: 1,
     isPrice: false,
-    isFixed: false,
+    isRemovable: true,
     noLegend: false,
+    datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       const signal = input[0]
       const m1 = input[1]
@@ -356,9 +372,11 @@ export const studyConfig: StudyConfig = {
     input: [6, 12, 24],
     inputLabels: [],
     supportResolutions: SUPPORT_ALL_RESOLUTION,
+    priority: 1,
     isPrice: false,
-    isFixed: false,
+    isRemovable: true,
     noLegend: false,
+    datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       if (index - Math.max.apply(Math, input) < 0) {
         return null
@@ -406,9 +424,11 @@ export const studyConfig: StudyConfig = {
     input: [14],
     inputLabels: [],
     supportResolutions: SUPPORT_ALL_RESOLUTION,
+    priority: 1,
     isPrice: false,
-    isFixed: false,
+    isRemovable: true,
     noLegend: false,
+    datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       const len = input[0]
       if (index - len < 0) {
@@ -443,9 +463,11 @@ export const studyConfig: StudyConfig = {
     input: [26, 5, 10, 20],
     inputLabels: [],
     supportResolutions: SUPPORT_ALL_RESOLUTION,
+    priority: 1,
     isPrice: false,
-    isFixed: false,
+    isRemovable: true,
     noLegend: false,
+    datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       const n: number = input[0]
       const ma1: number = input[1]

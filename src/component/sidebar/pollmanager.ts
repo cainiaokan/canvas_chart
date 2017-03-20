@@ -8,6 +8,7 @@ import {
   getFinancingInfo,
   getPlatesBySymbol,
   getNonrealtimeTools,
+  getAnalysisData,
 } from '../../datasource'
 
 const RETRY_DELAY = 10000
@@ -152,6 +153,11 @@ export type NonRealtimeTools = {
   newInvester: string
 }
 
+export type AnalysisData = {
+  pressureInfo: { lower_price: string, upper_price: string, date: string }
+  gapInfo: { l1: number, l2: number, dt: string, up?: boolean }
+}
+
 export type Plate = {
   n: string, bk_id: string
 }
@@ -164,6 +170,7 @@ export type PollData = {
   financingInfo?: FinancingInfo
   plates?: Plate[]
   nonRealtimeTools?: NonRealtimeTools
+  analysisData?: AnalysisData
 }
 
 export default class PollManager extends EventEmitter {
@@ -179,6 +186,7 @@ export default class PollManager extends EventEmitter {
     plates?: number
     financingInfo?: number
     nonrealtimeTools?: number
+    analysis?: number
   } = {}
 
   private _data: PollData = {}
@@ -192,6 +200,7 @@ export default class PollManager extends EventEmitter {
     this.pollIndexesInfo = this.pollIndexesInfo.bind(this)
     this.pollRealtimeTools = this.pollRealtimeTools.bind(this)
     this.getNonRealtimeTools = this.getNonRealtimeTools.bind(this)
+    this.getAnalysisData = this.getAnalysisData.bind(this)
   }
 
   set symbolInfo (symbolInfo: SymbolInfo) {
@@ -221,6 +230,9 @@ export default class PollManager extends EventEmitter {
         break
       case 3:
         clearTimeout(this._timers.plates)
+        break
+      case 4:
+        clearTimeout(this._timers.analysis)
         break
       default:
     }
@@ -254,6 +266,11 @@ export default class PollManager extends EventEmitter {
           this.getPlates()
         }
         break
+      case 4:
+        if (!this._timers.analysis) {
+          this.getAnalysisData()
+        }
+        break
       default:
     }
   }
@@ -278,7 +295,7 @@ export default class PollManager extends EventEmitter {
         this.getPlates()
         break
       case 4:
-        this.getNonRealtimeTools()
+        this.getAnalysisData()
         break
       default:
         break
@@ -338,9 +355,7 @@ export default class PollManager extends EventEmitter {
         this._timers.stockInfo = data.data.reflush_time ? setTimeout(this.pollStockInfo, data.data.reflush_time * 1000) : -1
         this.emit('data', this._data)
       })
-      .catch(() => {
-        this._timers.stockInfo = setTimeout(this.pollStockInfo, RETRY_DELAY)
-      })
+      .catch(() => this._timers.stockInfo = setTimeout(this.pollStockInfo, RETRY_DELAY))
   }
 
   private pollCapitalFlow () {
@@ -475,5 +490,22 @@ export default class PollManager extends EventEmitter {
       .catch(() => {
         this._timers.nonrealtimeTools = setTimeout(this.getNonRealtimeTools, RETRY_DELAY)
       })
+  }
+
+  private getAnalysisData () {
+    if (this._tabIndex !== 4) {
+      this._timers.analysis = null
+      return
+    }
+    getAnalysisData(this._symbolInfo.symbol)
+      .then(data => {
+        data = data.data
+        this._data.analysisData = {
+          pressureInfo: data.pressure_info,
+          gapInfo: data.gap_info,
+        }
+        this.emit('data', this._data)
+      })
+      .catch(() => this._timers.analysis = setTimeout(this.getAnalysisData, RETRY_DELAY))
   }
 }

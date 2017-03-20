@@ -85,15 +85,11 @@ export default class Legend extends React.Component<Prop, State> {
     const studies = chart.studies
     // 过滤出所有均线指标图
     const maStudies = studies.filter(graph =>
-      (graph.studyType === 'MA' ||
-       graph.studyType === '均价') &&
-      graph.isVisible
+      graph.studyType === 'MA' && graph.isVisible
     ) as Array<StudyModel>
     // 过滤出所有非均线指标
     const nonMAStudies = studies.filter(graph =>
-      graph.studyType !== 'MA' &&
-      graph.studyType !== '均价' &&
-      graph.isVisible
+      graph.studyType !== 'MA' && graph.isVisible
     ) as Array<StudyModel>
 
     // const studyInSetting = this._studyInSetting
@@ -180,7 +176,7 @@ export default class Legend extends React.Component<Prop, State> {
                 </div> : null
               }
               <div className='chart-legend-item'>
-                量&nbsp;{!!cur ? formatNumber(cur.volume) + '手' : 'N/A'}
+                量&nbsp;{!!cur ? formatNumber(cur.volume, 2) + '手' : 'N/A'}
               </div>
               <div className='chart-legend-item'>
                 额&nbsp;{!!cur ? formatNumber(cur.amount, 2) : 'N/A'}
@@ -252,7 +248,7 @@ export default class Legend extends React.Component<Prop, State> {
                   )
                 }
                 {
-                  !study.isFixed ?
+                  study.isRemovable ?
                   <a className='chart-legend-btn'
                     href='javascript:;'
                     data-id={study.id}

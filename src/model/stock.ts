@@ -28,6 +28,7 @@ const adaptorFuncs = {
 
 export default class StockModel extends GraphModel {
   private _gapRenderer: GapRenderer
+  private _showGap: boolean
   constructor (
     datasource: Datasource,
     chart: ChartModel,
@@ -36,7 +37,7 @@ export default class StockModel extends GraphModel {
     isComparison: boolean,
     shape: ShapeType,
     styles?: ChartStyle) {
-    super(datasource, chart, isPrice, isMain, isComparison, true, !!styles ? [styles] : null, adaptorFuncs[shape], bar => [bar])
+    super(datasource, chart, isMain ? 99999 : 1, isPrice, isComparison ? true : false, isMain, isComparison, true, !!styles ? [styles] : null, adaptorFuncs[shape], bar => [bar])
     this._plots.push(
       new PlotModel(
         this,
@@ -46,7 +47,19 @@ export default class StockModel extends GraphModel {
       )
     )
     if (isMain) {
+      this._showGap = !!chart.chartLayout.readFromLS('chart.showGap')
       this._gapRenderer = new GapRenderer(this)
+    }
+  }
+
+  get showGap (): boolean {
+    return this._showGap
+  }
+
+  set showGap (show: boolean) {
+    if (this._showGap !== show) {
+      this._showGap = show
+      this._isValid = false
     }
   }
 
@@ -57,7 +70,7 @@ export default class StockModel extends GraphModel {
   public draw () {
     const ctx = this._chart.ctx
     super.draw(ctx)
-    if (this._isMain && this._datasource.resolution > '1') {
+    if (this._isMain && this._showGap && this._datasource.resolution > '1') {
       this._gapRenderer.draw(ctx)
     }
   }

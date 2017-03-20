@@ -42,6 +42,7 @@ export default class Navbar extends React.Component<Prop, any> {
     this._chartLayout = context.chartLayout
     this.updateView = this.updateView.bind(this)
     this.onShowAbout = this.onShowAbout.bind(this)
+    this.onShowNewest = this.onShowNewest.bind(this)
   }
 
   public shouldComponentUpdate (nextProps: Prop) {
@@ -92,12 +93,17 @@ export default class Navbar extends React.Component<Prop, any> {
           <RightOption onRightChange={this.props.onRightChange} /> : null
         }
         <button className='about btn' onClick={this.onShowAbout}>关于</button>
+        <button className='newest btn' onClick={this.onShowNewest}>最新功能</button>
       </div>
     )
   }
 
   private onShowAbout () {
     this._chartLayout.toggleAbout(true)
+  }
+
+  private onShowNewest () {
+    this._chartLayout.showAnalysisSidebarTab()
   }
 
   private updateView () {

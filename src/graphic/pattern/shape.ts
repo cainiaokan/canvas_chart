@@ -53,6 +53,11 @@ export class ShapePatternRenderer extends BasePatternRenderer {
       ctx.lineTo(x, y)
     }
 
+    ctx.stroke()
+    ctx.beginPath()
+
+    ctx.lineWidth = 1
+    ctx.strokeStyle = '#666666'
     len = trendLines.length
 
     for (let i = 0, distance, slope; i < len; i++) {
@@ -64,10 +69,12 @@ export class ShapePatternRenderer extends BasePatternRenderer {
 
       ctx.moveTo(x, y)
 
-      if (lastVisibleBar.time <= line[1].time) {
-        x = ~~axisX.getXByTime(line[1].time)
-        y = ~~axisY.getYByValue(line[1].value)
-      } else {
+      x = ~~axisX.getXByTime(line[1].time)
+      y = ~~axisY.getYByValue(line[1].value)
+
+      ctx.lineTo(x, y)
+
+      if (lastVisibleBar.time > line[1].time) {
         if (lastVisibleBar.time > lastBar.time) {
           distance = visibleRange.length - 1 - axisX.search(lastBar.time) + datasource.search(lastBar.time) - datasource.search(line[1].time)
         } else {
@@ -75,12 +82,12 @@ export class ShapePatternRenderer extends BasePatternRenderer {
         }
         x = lastVisibleBar.x
         y = ~~axisY.getYByValue(line[1].value + distance * slope)
+        ctx.lineTo(x, y)
       }
-
-      ctx.lineTo(x, y)
     }
 
     ctx.stroke()
+
     ctx.restore()
   }
 

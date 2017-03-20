@@ -252,6 +252,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     chartLayout.addListener('editmode_change', chartLayout.lightUpdate)
     chartLayout.addListener('patterns_add', chartLayout.lightUpdate)
     chartLayout.addListener('patterns_remove', chartLayout.lightUpdate)
+    chartLayout.addListener('pattern_modify', chartLayout.lightUpdate)
+    chartLayout.addListener('gap_visibility_change', chartLayout.lightUpdate)
   }
 
   public render () {
