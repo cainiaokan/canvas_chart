@@ -130,6 +130,19 @@ export default class Sidebar extends React.Component<Prop, State> {
     this._pollManager = null
   }
 
+  public componentWillReceiveProps (nextProps: Prop) {
+    const chartLayout = this._chartLayout
+    const newIndex = nextProps.activeIndex
+    if (!nextProps.folded && this.props.activeIndex !== newIndex) {
+      this._pollManager.tabIndex = newIndex
+    }
+    // 如果侧边栏已经收起状态，则先展开侧边栏
+    if (nextProps.folded) {
+      chartLayout.saveToLS('qchart.sidebar.folded', false)
+    }
+    chartLayout.saveToLS('qchart.sidebar.activeIndex', newIndex)
+  }
+
   public render () {
     const chartLayout = this._chartLayout
     const height = this.props.height - STOCK_PANEL_HEIGHT
@@ -276,7 +289,6 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   private switchTabPage (ev) {
-    const chartLayout = this._chartLayout
     const newIndex = +ev.currentTarget.dataset.index
     const folded = this.props.folded
 
@@ -285,15 +297,6 @@ export default class Sidebar extends React.Component<Prop, State> {
       this.foldingBtnClickHandler()
       return
     }
-
-    // 如果侧边栏已经收起状态，则先展开侧边栏
-    if (folded) {
-      chartLayout.saveToLS('qchart.sidebar.folded', false)
-    }
-
-    chartLayout.saveToLS('qchart.sidebar.activeIndex', newIndex)
-
-    this._pollManager.tabIndex = newIndex
 
     if (this.props.onChange) {
       this.props.onChange(false, newIndex)
