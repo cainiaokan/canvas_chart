@@ -61,7 +61,6 @@ export class BandRenderer extends BaseChartRenderer {
 
     ctx.closePath()
     ctx.fill()
-    ctx.globalAlpha = 1
   }
 
   public calcRangeY (): YRange {

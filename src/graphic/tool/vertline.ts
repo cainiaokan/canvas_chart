@@ -1,6 +1,5 @@
 import { BaseToolRenderer, Vertex } from './basetool'
 import { HIT_TEST_TOLERANCE } from '../../constant'
-import { pointToSegDist } from '../../util'
 
 export class VertLineRenderer extends BaseToolRenderer {
   get vertexes (): Vertex[] {
@@ -28,20 +27,11 @@ export class VertLineRenderer extends BaseToolRenderer {
   }
 
   public hitTestTool (): boolean {
-    const chart = this._chart
-    const axisX = chart.axisX
-
+    const axisX = this._chart.axisX
     const point = this.getCursor()
     const vertex = this._vertexes[0]
-    const x0 = point.x
-    const y0 = point.y
-    const x = ~~axisX.getXByTime(vertex.time)
-    const y1 = 0
-    const y2 = chart.height
 
-    let distance = pointToSegDist(x0, y0, x, y1, x, y2)
-
-    return distance < HIT_TEST_TOLERANCE
+    return Math.abs(point.x - ~~axisX.getXByTime(vertex.time)) < HIT_TEST_TOLERANCE
   }
 
   public isFinished (): boolean {

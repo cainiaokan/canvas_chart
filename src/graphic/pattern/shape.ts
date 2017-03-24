@@ -16,14 +16,16 @@ export class ShapePatternRenderer extends BasePatternRenderer {
   }
 
   public draw (ctx: CanvasRenderingContext2D) {
-    const points = this._points
-    const trendLines = this._trendLines
+    const points = this._points || []
+    const trendLines = this._trendLines || []
     const chart = this._chart
     const datasource = chart.datasource
     const axisX = chart.axisX
     const axisY = chart.axisY
     const visibleRange = axisX.getVisibleTimeBars()
+    const firstVisibleBar = visibleRange[0]
     const lastVisibleBar = visibleRange[visibleRange.length - 1]
+    const firstBar = datasource.first()
     const lastBar = datasource.last()
 
     let len = points.length
@@ -54,20 +56,33 @@ export class ShapePatternRenderer extends BasePatternRenderer {
     }
 
     ctx.stroke()
-    ctx.beginPath()
 
     ctx.lineWidth = 1
     ctx.strokeStyle = '#666666'
     len = trendLines.length
 
     for (let i = 0, distance, slope; i < len; i++) {
+
+      ctx.beginPath()
       line = trendLines[i]
       distance = datasource.search(line[1].time) - datasource.search(line[0].time)
       slope = (line[1].value - line[0].value) / distance
+
+      if (firstVisibleBar.time < line[0].time) {
+        if (firstVisibleBar.time < firstBar.time) {
+          distance = axisX.search(firstBar.time) + datasource.search(line[0].time)
+        } else {
+          distance = datasource.search(line[0].time) - datasource.search(firstVisibleBar.time)
+        }
+        x = firstVisibleBar.x
+        y = ~~axisY.getYByValue(line[0].value - distance * slope)
+        ctx.moveTo(x, y)
+      }
+
       x = ~~axisX.getXByTime(line[0].time)
       y = ~~axisY.getYByValue(line[0].value)
 
-      ctx.moveTo(x, y)
+      ctx.lineTo(x, y)
 
       x = ~~axisX.getXByTime(line[1].time)
       y = ~~axisY.getYByValue(line[1].value)
@@ -84,10 +99,8 @@ export class ShapePatternRenderer extends BasePatternRenderer {
         y = ~~axisY.getYByValue(line[1].value + distance * slope)
         ctx.lineTo(x, y)
       }
+      ctx.stroke()
     }
-
-    ctx.stroke()
-
     ctx.restore()
   }
 
@@ -99,8 +112,15 @@ export class ShapePatternRenderer extends BasePatternRenderer {
     const visibleRange = this._chart.axisX.getVisibleTimeBars()
     const firstBar = visibleRange[0]
     const lastBar = visibleRange[visibleRange.length - 1]
+    const points = this._points || []
+    const lines = this._trendLines || []
 
-    const times = _.pluck(this._points, 'time')
+    const times = _.pluck(
+      lines.reduce((acc, line) => {
+        acc.push(line[0])
+        acc.push(line[1])
+        return acc
+       }, []).concat(points), 'time')
 
     return !(firstBar.time > _.max(times) || lastBar.time < _.min(times))
   }

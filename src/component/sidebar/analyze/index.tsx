@@ -124,11 +124,11 @@ export default class Analyze extends React.Component<Prop, State> {
           <div className='feature-group support-pressure clearfix'>
             <div className='description'>
               <div className='pressure'>
-                <label>压力：</label><span>{pressureInfo ? (+pressureInfo.upper_price).toFixed(2) : '--'}</span>
+                <label>压力：</label><span>{pressureInfo && pressureInfo.upper_price ? (+pressureInfo.upper_price).toFixed(2) : '--'}</span>
               </div>
               <hr />
               <div className='support'>
-                <label>支撑：</label><span>{pressureInfo ? (+pressureInfo.lower_price).toFixed(2) : '--'}</span>
+                <label>支撑：</label><span>{pressureInfo && pressureInfo.upper_price ? (+pressureInfo.lower_price).toFixed(2) : '--'}</span>
               </div>
             </div>
             <div
@@ -148,7 +148,7 @@ export default class Analyze extends React.Component<Prop, State> {
                   <span className={gapInfo.up ? 'positive' : 'negative'}>
                   {gapLow}-{gapHigh}
                   </span>
-                </p> : null
+                </p> : <p>--</p>
               }
               {
                 gapInfo && stockInfo ?

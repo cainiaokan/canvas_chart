@@ -303,14 +303,23 @@ export default class ChartLayoutModel extends EventEmitter {
               }))
               this.mainChart.addPattern(new Pattern(this.mainChart, shape.shape_type, { bwPoints, swPoints }))
             } else {
-              const points = shape.shape_detail.st.map(p => ({
-                time: ~~(moment(p.d).toDate().getTime() / 1000),
-                value: p.v,
-              }))
-              const trendLines = [shape.shape_detail.l1, shape.shape_detail.l2].filter(line => !!line).map(line => [
-                { time: ~~(moment(line.p1.d).toDate().getTime() / 1000), value: line.p1.v },
-                { time: ~~(moment(line.p2.d).toDate().getTime() / 1000), value: line.p2.v },
-              ])
+              let points = null
+              let trendLines = null
+              if (shape.shape_detail.dtd) {
+                trendLines = [shape.shape_detail.dtd.l1, shape.shape_detail.dtd.l2].filter(line => !!line).map(line => [
+                  { time: ~~(moment(line.p1.d).toDate().getTime() / 1000), value: line.p1.v },
+                  { time: ~~(moment(line.p2.d).toDate().getTime() / 1000), value: line.p2.v },
+                ])
+              } else {
+                points = shape.shape_detail.st.map(p => ({
+                  time: ~~(moment(p.d).toDate().getTime() / 1000),
+                  value: p.v,
+                }))
+                trendLines = [shape.shape_detail.l1, shape.shape_detail.l2].filter(line => !!line).map(line => [
+                  { time: ~~(moment(line.p1.d).toDate().getTime() / 1000), value: line.p1.v },
+                  { time: ~~(moment(line.p2.d).toDate().getTime() / 1000), value: line.p2.v },
+                ])
+              }
               this.mainChart.addPattern(new Pattern(this.mainChart, shape.shape_type, { points, trendLines }))
             }
           })
@@ -745,14 +754,14 @@ export default class ChartLayoutModel extends EventEmitter {
       crosshair.chart = chart
 
       if (study.datasourceType === 'local') {
-        this._mainChart.addGraph(study)
+        chart.addGraph(study)
+        this.addChart(chart)
         this.emit('graph_add', study)
       } else {
         if (!!mainDatasource.first()) {
           study.datasource
             .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time)
             .then(() => {
-              this._mainChart.addGraph(study)
               chart.addGraph(study)
               this.addChart(chart)
             })
@@ -1003,9 +1012,9 @@ export default class ChartLayoutModel extends EventEmitter {
     const forceShowMA = this.readFromLS('chart.forceMA')
     const showReverseRelay = this.readFromLS('chart.showReverseRelay')
     this.saveToLS('chart.showWaveForm', visible)
-    this.mainChart.setPatternVisibility(true, visible)
     if (visible) {
       if (patterns.length) {
+        this.mainChart.setPatternVisibility(true, visible)
         this.emit('pattern_modify', visible)
       } else {
         this.addPatterns()
@@ -1014,6 +1023,8 @@ export default class ChartLayoutModel extends EventEmitter {
         this.hideMA()
       }
     } else {
+      this.mainChart.setPatternVisibility(true, visible)
+      this.emit('pattern_modify', visible)
       if (!showReverseRelay) {
         this.showMA()
       }
@@ -1025,9 +1036,9 @@ export default class ChartLayoutModel extends EventEmitter {
     const forceShowMA = this.readFromLS('chart.forceMA')
     const showWaveForm = this.readFromLS('chart.showWaveForm')
     this.saveToLS('chart.showReverseRelay', visible)
-    this.mainChart.setPatternVisibility(false, visible)
     if (visible) {
       if (patterns.length) {
+        this.mainChart.setPatternVisibility(false, visible)
         this.emit('pattern_modify')
       } else {
         this.addPatterns()
@@ -1036,6 +1047,8 @@ export default class ChartLayoutModel extends EventEmitter {
         this.hideMA()
       }
     } else {
+      this.mainChart.setPatternVisibility(false, visible)
+      this.emit('pattern_modify')
       if (!showWaveForm) {
         this.showMA()
       }

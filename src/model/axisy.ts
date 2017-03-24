@@ -10,8 +10,6 @@ export type YRange = {
   min: number
 }
 
-export const MARGIN_RATIO = .05
-
 export default class AxisYModel extends EventEmitter {
 
   public ctx: CanvasRenderingContext2D
@@ -29,7 +27,7 @@ export default class AxisYModel extends EventEmitter {
 
   constructor (datasource: Datasource, crosshair: CrosshairModel) {
     super()
-    this._margin = 0
+    this._margin = 10
     this._isValid = false
     this._datasource = datasource
     this._crosshair = crosshair
@@ -39,13 +37,20 @@ export default class AxisYModel extends EventEmitter {
 
   get margin (): number {
     const height = this.height
-    const margin = height * MARGIN_RATIO + this._margin
-    return margin
+    if (this._margin > height / 2) {
+      return height / 2 - 1
+    } else {
+      return this._margin
+    }
   }
 
   set margin (margin: number) {
     const height = this.height
-    this._margin = margin - height * MARGIN_RATIO
+    if (margin > height / 2) {
+      this._margin = height / 2 - 1
+    } else {
+      this._margin = margin
+    }
     this._isValid = false
     this._chart.chartLayout.emit('barmargin_change')
   }
@@ -98,6 +103,14 @@ export default class AxisYModel extends EventEmitter {
     const availHeight = height - margin * 2
     const diff1 = range.max - range.min
     return (height - margin - value) * diff1 / availHeight + range.min
+  }
+
+  get maxVal () {
+    return this.getValueByY(this.getYByValue(this.range.max) - this.margin)
+  }
+
+  get minVal () {
+    return this.getValueByY(this.getYByValue(this.range.min) + this.margin)
   }
 
   public draw (useCache = false) {

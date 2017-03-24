@@ -190,7 +190,7 @@ export default class MainBoard extends React.Component<Prop, State> {
                 </tr>
               </thead>
             </table>
-            <div className='body' ref='descList' >
+            <div className='body' ref='descList'>
               <table className='s-table stripe even top-header'>
                 <tbody>
                   {

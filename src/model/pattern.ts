@@ -10,7 +10,7 @@ type PointsData = {
 }
 export default class Pattern {
   public _isVisible: boolean
-  private _isValid = false
+  private _isValid = true
   private _type: PatternType
   private _renderer: BasePatternRenderer
 

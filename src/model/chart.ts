@@ -97,7 +97,7 @@ export default class ChartModel extends EventEmitter {
   }
 
   get visibleTools (): BaseToolRenderer[] {
-    return this._tools.filter(tool => tool.isNowVisible())
+    return this._tools.filter(tool => tool.isNowVisible() && !tool.isEditing)
   }
 
   get patterns (): Pattern[] {

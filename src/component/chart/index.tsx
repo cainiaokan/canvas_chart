@@ -91,7 +91,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     const chart = this.props.chart
     const width = ~~this.props.width - AXIS_Y_WIDTH
     const height = ~~this.props.height
@@ -118,7 +118,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
 
     chartLayout.removeListener('graph_hover', this.hitHandler)
     chartLayout.removeListener('cursor_change', this.defaultCursorChangeHandler)
@@ -208,7 +208,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private momentumMove (v: number) {
-    const axisX = this.context.chartLayout.axisx
+    const axisX = this._chartLayout.axisx
     this._momentumTimer = setTimeout(() => {
       if (Math.abs(v) > 10) {
         axisX.offset += v * 30 / 1000
@@ -223,7 +223,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private toolTipHandler () {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     const chart = this.props.chart
     const point = chart.crosshair.point
     if (chart.hover && chartLayout.isEditMode) {
@@ -240,13 +240,13 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private hitHandler (hover: boolean) {
-    if (this.context.chartLayout.hoverChart === this.props.chart) {
-      this.setState({ cursor: hover ? 'pointer' : this.context.chartLayout.defaultCursor })
+    if (this._chartLayout.hoverChart === this.props.chart) {
+      this.setState({ cursor: hover ? 'pointer' : this._chartLayout.defaultCursor })
     }
   }
 
   private defaultCursorChangeHandler (cursor: 'crosshair' | 'default') {
-    this.setState({ cursor: this.state.hover ? 'pointer' : this.context.chartLayout.defaultCursor })
+    this.setState({ cursor: this.state.hover ? 'pointer' : this._chartLayout.defaultCursor })
   }
 
   private mouseOver () {
@@ -259,7 +259,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private mouseDownHandler (ev: any) {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     const chart = this.props.chart
     const offset = chart.offset
     const curPoint = {
@@ -320,7 +320,7 @@ export default class Chart extends React.Component<Prop, State> {
   private touchStartHandler (ev: any) {
     const isSingleTouch = ev.touches.length === 1
     const isDoubleTouch = ev.touches.length === 2
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     const chart = this.props.chart
 
     // 触摸事件时阻止鼠标事件
@@ -417,7 +417,7 @@ export default class Chart extends React.Component<Prop, State> {
 
   private touchEndHandler (ev: any) {
     const isSingleTouch = ev.changedTouches.length === 1
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     const chart = this.props.chart
     const cursorPoint = chart.crosshair.point
 
@@ -484,7 +484,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private mouseMoveHandler (ev: any) {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     const chart = this.props.chart
     const offset = chart.offset
     const point = {
@@ -503,7 +503,7 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private touchMoveHandler (ev: any) {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     const chart = this.props.chart
     const offset = chart.offset
     const point = {
@@ -531,7 +531,7 @@ export default class Chart extends React.Component<Prop, State> {
 
       const isTouchEvent = !!ev.touches
       const chart = this.props.chart
-      const chartLayout = this.context.chartLayout
+      const chartLayout = this._chartLayout
       const axisX = chart.axisX
       const axisY = chart.axisY
       const offset = chart.offset

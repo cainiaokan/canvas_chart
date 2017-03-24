@@ -8,6 +8,7 @@ import {
   TrendLineToolRenderer,
   VertLineRenderer,
   HorzLineRenderer,
+  DateRangeRenderer,
 } from '../../graphic/tool'
 
 type State = {
@@ -24,6 +25,9 @@ const toolsList = [
     ['chart-tools-trend-angle', '角度趋势线'],
     ['chart-tools-vert-line', '垂直线'],
     ['chart-tools-horz-line', '水平线'],
+  ],
+  [
+    ['chart-tools-date-range', '日期范围'],
   ],
   [['chart-tools-eraser', '删除画线']],
 ]
@@ -51,7 +55,7 @@ export default class ToolBox extends React.Component<any, State> {
     this.showMoreTools = this.showMoreTools.bind(this)
     this.state = {
       selectedIndex: 0,
-      selectedIndex2: [0, 0, 0],
+      selectedIndex2: [0, 0, 0, 0],
       showMoreTools: false,
     }
   }
@@ -218,6 +222,8 @@ export default class ToolBox extends React.Component<any, State> {
         return new VertLineRenderer()
       case 'chart-tools-horz-line':
         return new HorzLineRenderer()
+      case 'chart-tools-date-range':
+        return new DateRangeRenderer(this._chartLayout.mainDatasource)
       default:
         throw 'Can\'t find any drawing tool match name ' + toolName
     }

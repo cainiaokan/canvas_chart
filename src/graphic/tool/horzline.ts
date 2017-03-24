@@ -8,9 +8,9 @@ export class HorzLineRenderer extends BaseToolRenderer {
    * 画图工具当前是否可见
    */
   public isNowVisible (): boolean {
-    const range = this._chart.axisY.range
+    const axisY = this._chart.axisY
     const vertex = this._vertexes[0]
-    return vertex.value > range.min && vertex.value < range.max
+    return vertex.value > axisY.minVal && vertex.value < axisY.maxVal
   }
 
   get vertexes (): Vertex[] {

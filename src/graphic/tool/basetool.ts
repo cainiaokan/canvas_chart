@@ -139,6 +139,7 @@ export abstract class BaseToolRenderer {
     const vertex = this._vertexes[index]
     vertex.time = time
     vertex.value = value
+    this._isValid = false
   }
 
   public hitTest (select: boolean): boolean {
@@ -147,7 +148,7 @@ export abstract class BaseToolRenderer {
     const chart = this._chart
     const point = chart.crosshair.point
     this._hitVertexIndex = -1
-    isHit = this._vertexes.some((vertex, idx) => {
+    isHit = this.vertexes.some((vertex, idx) => {
       if (this.hitTestVertex(vertex, point)) {
         hitVertexIndex = idx
         return true
@@ -197,7 +198,7 @@ export abstract class BaseToolRenderer {
 
   /**
    * 移动画图工具的定点。。。这个方法略复杂呢。。。😭移动经过左右端点的时候都需要做特殊处理
-   * 所谓端点，值得是datasource.first() 以及 datasource.last()所分别对应chart中的
+   * 所谓端点，指的是datasource.first() 以及 datasource.last()所分别对应chart中的
    * 左端点和右端点
    * @param {[type]} index       订单的索引号
    * @param {number} offsetIndex 时间轴偏移量，单位为resolution
@@ -313,7 +314,7 @@ export abstract class BaseToolRenderer {
     const axisX = chart.axisX
     const axisY = chart.axisY
     const x = axisX.getXByTime(vertex.time)
-    const y = axisY.getYByValue(vertex.value, axisY.range)
+    const y = axisY.getYByValue(vertex.value)
     if (
         Math.sqrt(
           Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2)

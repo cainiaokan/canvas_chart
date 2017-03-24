@@ -126,7 +126,7 @@ export function getNonrealtimeTools (): Promise<any> {
  * @return {Promise<any>}        异步响应
  */
 export function getPatterns (symbol: string): Promise<any> {
-  return fetch(`${API}/chart/common/shape?code=${symbol}&type=wave,mhead,whead,hsp,hsb,triangle`)
+  return fetch(`${API}/chart/common/shape?code=${symbol}&type=wave,mhead,whead,hsp,hsb,triangle,dtd`)
     .then(response => response.json())
 }
 
