@@ -1,6 +1,6 @@
 import * as React from 'react'
 import ChartLayoutModel from '../model/chartlayout'
-import AxisXModel, { MAX_BAR_WIDTH, MIN_BAR_WIDTH } from '../model/axisx'
+import AxisXModel from '../model/axisx'
 
 type Prop = {
   height: number
@@ -93,7 +93,7 @@ export default class AxisX extends React.Component<Prop, any> {
       const pageX = ev.changedTouches ? ev.changedTouches[0].pageX : ev.pageX
       const curBarWidth = axisX.barWidth
 
-      let scale = (width - pageX) / (width - this._dragPosX)
+      let scale = width <= this._dragPosX ? 1 : 1 + (this._dragPosX - pageX) / width
 
       axisX.barWidth = curBarWidth * scale
       scale = axisX.barWidth / curBarWidth

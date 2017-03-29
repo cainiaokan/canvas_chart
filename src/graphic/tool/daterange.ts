@@ -45,62 +45,63 @@ export class DateRangeRenderer extends BaseToolRenderer {
     ctx.lineWidth = 1
     ctx.beginPath()
 
-    let x1
-    let x2
+    let lTime
+    let rTime
+    let lx
+    let rx
 
     if (isFinished) {
-      x1 = ~~axisX.getXByTime(vertexes[0].time)
-      ctx.moveTo(x1, 0)
-      ctx.lineTo(x1, height)
-      x2 = ~~axisX.getXByTime(vertexes[1].time)
-      ctx.moveTo(x2, 0)
-      ctx.lineTo(x2, height)
+      lTime = vertexes[0].time <= vertexes[1].time ? vertexes[0].time : vertexes[1].time
+      rTime = lTime === vertexes[0].time ? vertexes[1].time : vertexes[0].time
+      lx = ~~axisX.getXByTime(lTime)
+      rx = ~~axisX.getXByTime(rTime)
+      ctx.moveTo(lx, 0)
+      ctx.lineTo(lx, height)
+      ctx.moveTo(rx, 0)
+      ctx.lineTo(rx, height)
     } else {
-      x1 = ~~axisX.getXByTime(vertexes[0].time)
-      ctx.moveTo(x1, 0)
-      ctx.lineTo(x1, height)
-      x2 = curPoint.x
-      ctx.moveTo(x2, 0)
-      ctx.lineTo(x2, height)
+      lx = ~~axisX.getXByTime(vertexes[0].time)
+      rx = lx <= curPoint.x ? curPoint.x : lx
+      lx = lx === rx ? curPoint.x : lx
+      ctx.moveTo(lx, 0)
+      ctx.lineTo(lx, height)
+      ctx.moveTo(rx, 0)
+      ctx.lineTo(rx, height)
     }
     ctx.stroke()
 
     ctx.beginPath()
     ctx.strokeStyle = '#a000a0'
     ctx.setLineDash([6, 6])
-    ctx.moveTo(x1, height / 2)
-    ctx.lineTo(x2, height / 2)
-    ctx.moveTo(x2 - 8, height / 2 - 8)
-    ctx.lineTo(x2, height / 2)
-    ctx.moveTo(x2 - 8, height / 2 + 8)
-    ctx.lineTo(x2, height / 2)
+    ctx.moveTo(lx, height / 2)
+    ctx.lineTo(rx, height / 2)
+    ctx.moveTo(rx - 8, height / 2 - 8)
+    ctx.lineTo(rx, height / 2)
+    ctx.moveTo(rx - 8, height / 2 + 8)
+    ctx.lineTo(rx, height / 2)
     ctx.stroke()
 
     ctx.globalAlpha = .3
     ctx.fillStyle = '#6b91c5'
-    x1 = ~~axisX.getXByTime(vertexes[0].time)
 
-    if (isFinished) {
-      x2 = ~~axisX.getXByTime(vertexes[1].time)
-    } else {
-      x2 = curPoint.x
-    }
-
-    ctx.rect(x1, 0, x2 - x1, height)
+    ctx.rect(lx, 0, rx - lx, height)
     ctx.fill()
   }
 
   public hitTestTool (): boolean {
-    const curPoint = this.getCursor()
-    const isFinished = this.isFinished()
+    const chart = this._chart
+    const height = chart.height
+    const axisX = chart.axisX
     let vertexes = this._vertexes
+    const { x, y } = this.getCursor()
+    const x1 = ~~axisX.getXByTime(vertexes[0].time)
+    const x2 = ~~axisX.getXByTime(vertexes[1].time)
+    const lx = x1 <= x2 ? x1 : x2
+    const rx = x1 <= x2 ? x2 : x1
 
-    if (isFinished) {
-      return vertexes.some(vertex => {
-        const axisX = this._chart.axisX
-        return Math.abs(curPoint.x - ~~axisX.getXByTime(vertex.time)) < HIT_TEST_TOLERANCE
-      })
-    }
+    return Math.abs(lx - x) < HIT_TEST_TOLERANCE ||
+           Math.abs(rx - x) < HIT_TEST_TOLERANCE ||
+           (x >= lx && y <= rx && Math.abs(y - height / 2) < HIT_TEST_TOLERANCE)
   }
 
   public isFinished (): boolean {

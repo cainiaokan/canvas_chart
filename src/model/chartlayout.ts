@@ -302,24 +302,39 @@ export default class ChartLayoutModel extends EventEmitter {
                 value: p.v,
               }))
               this.mainChart.addPattern(new Pattern(this.mainChart, shape.shape_type, { bwPoints, swPoints }))
-            } else {
+            } else if (shape.shape_type === 'triangle') {
+              let trendLines = []
               let points = null
-              let trendLines = null
               if (shape.shape_detail.dtd) {
-                trendLines = [shape.shape_detail.dtd.l1, shape.shape_detail.dtd.l2].filter(line => !!line).map(line => [
-                  { time: ~~(moment(line.p1.d).toDate().getTime() / 1000), value: line.p1.v },
-                  { time: ~~(moment(line.p2.d).toDate().getTime() / 1000), value: line.p2.v },
-                ])
-              } else {
-                points = shape.shape_detail.st.map(p => ({
-                  time: ~~(moment(p.d).toDate().getTime() / 1000),
-                  value: p.v,
-                }))
-                trendLines = [shape.shape_detail.l1, shape.shape_detail.l2].filter(line => !!line).map(line => [
-                  { time: ~~(moment(line.p1.d).toDate().getTime() / 1000), value: line.p1.v },
-                  { time: ~~(moment(line.p2.d).toDate().getTime() / 1000), value: line.p2.v },
-                ])
+                trendLines.push(shape.shape_detail.dtd.l1)
+                trendLines.push(shape.shape_detail.dtd.l2)
               }
+              if (shape.shape_detail.xtd) {
+                trendLines.push(shape.shape_detail.xtd.l1)
+                trendLines.push(shape.shape_detail.xtd.l2)
+              }
+              trendLines = trendLines.map(line => ([
+                {
+                  time: ~~(moment(line.p1.d).toDate().getTime() / 1000),
+                  value: line.p1.v,
+                },
+                {
+                  time: ~~(moment(line.p2.d).toDate().getTime() / 1000),
+                  value: line.p2.v,
+                },
+              ]))
+              this.mainChart.addPattern(new Pattern(this.mainChart, shape.shape_type, { points, trendLines }))
+            } else {
+              let trendLines = []
+              let points = null
+              points = shape.shape_detail.st.map(p => ({
+                time: ~~(moment(p.d).toDate().getTime() / 1000),
+                value: p.v,
+              }))
+              trendLines = [shape.shape_detail.l1, shape.shape_detail.l2].filter(line => !!line).map(line => [
+                { time: ~~(moment(line.p1.d).toDate().getTime() / 1000), value: line.p1.v },
+                { time: ~~(moment(line.p2.d).toDate().getTime() / 1000), value: line.p2.v },
+              ])
               this.mainChart.addPattern(new Pattern(this.mainChart, shape.shape_type, { points, trendLines }))
             }
           })
@@ -807,7 +822,7 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   public showMA () {
-    this.maProps.forEach((maProp, i) => this.modifyGraph(this._maStudies[i], { isVisible: maProp.isVisible }))
+    this._maStudies.forEach((maStudy, i) => this.modifyGraph(maStudy, { isVisible: this.maProps[i].isVisible }))
   }
 
   /**
