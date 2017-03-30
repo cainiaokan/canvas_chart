@@ -110,7 +110,7 @@ export class DateRangeRenderer extends BaseToolRenderer {
       return bar.close < bar.open ? memo + 1 : memo
     }, 0)
     const crossCount = bars.reduce((memo, bar) => {
-      return bar.open === bar.close && bar.high > bar.low ? memo + 1 : memo
+      return Math.abs((bar.open - bar.close) /  (bar.high - bar.low)) < 0.2 ? memo + 1 : memo
     }, 0)
     return this._statData = {
       startPrice: formatNumber(startPrice, 2),
