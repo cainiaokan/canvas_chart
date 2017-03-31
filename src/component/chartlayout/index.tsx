@@ -175,9 +175,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
       }, function () {
         chartLayout.addPatterns()
       })
+
       spinner.stop()
       this.initEvents()
-      chartLayout.pulseUpdate()
     })
   }
 

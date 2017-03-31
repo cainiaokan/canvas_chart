@@ -31,9 +31,6 @@ export type StockInfo = {
   selling: number[][]
   buying: number[][]
 
-  pressure: number
-  support: number
-
   ticks: { time: string, price: string, volume: string, type: '1' | '2' | '3' }[]
 }
 
@@ -317,7 +314,6 @@ export default class PollManager extends EventEmitter {
     getStockInfo(this._symbolInfo.symbol)
       .then(data => {
         const ds = data.data.stock_info
-        const dp = data.data.pressure
         const stockInfo: StockInfo = {
           open: ds.open,
           high: ds.high,
@@ -346,8 +342,6 @@ export default class PollManager extends EventEmitter {
             [ds.b4_p, ds.b4_v],
             [ds.b5_p, ds.b5_v],
           ] : null,
-          pressure: +dp.upper_price,
-          support: +dp.lower_price,
           ticks: data.data.ticks_list,
         }
 

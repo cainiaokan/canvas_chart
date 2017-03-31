@@ -345,13 +345,10 @@ export default class ChartLayoutModel extends EventEmitter {
     }
   }
 
-  /**
-   * 重置chart
-   */
-  public restartPulseUpdate () {
+  public stopPulseUpdate () {
     this._loading = false
+    this.emit('loading_end')
     clearTimeout(this._pulseUpdateTimer)
-    this.pulseUpdate()
   }
 
   /**
@@ -365,6 +362,7 @@ export default class ChartLayoutModel extends EventEmitter {
     }
 
     this._loading = true
+    this.emit('loading_start')
     const axisX = this.axisx
     const datasources = []
     const requiredNum = ~~(1.5 * axisX.width / axisX.barWidth)
@@ -402,15 +400,21 @@ export default class ChartLayoutModel extends EventEmitter {
           .then(() => {
             // 加载完成后立即重绘
             this.fullUpdate()
+            if (typeof this._pulseUpdateTimer !== 'number') {
+              this.pulseUpdate()
+            }
             this._loading = false
+            this.emit('loading_end')
             resolve()
           })
           .catch(ex => {
             this._loading = false
+            this.emit('loading_end')
           })
         )
         .catch(ex => {
           this._loading = false
+          this.emit('loading_end')
         })
     })
   }
@@ -420,9 +424,11 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public pulseUpdate () {
     const mainDatasource = this.mainDatasource
+    const delay = mainDatasource.pulseInterval < 10 ? 10 : mainDatasource.pulseInterval
+
     // 使用最后一个bar的时间或者当前时间的前一分钟
     const from = mainDatasource.loaded() ?
-      mainDatasource.last().time : mainDatasource.now() - 60
+      mainDatasource.last().time : mainDatasource.now() - 3600 * 24
     // 未来一天，因为用户的PC可能进入休眠状态，待恢复时一次性要把休眠错过的数据全部请求过来。
     // 不过极端情况下一天未必会足够
     const to = from + 24 * 3600
@@ -434,6 +440,7 @@ export default class ChartLayoutModel extends EventEmitter {
         datasources.push(graph.datasource)
       })
     })
+
     Promise.all(
       _.chain(datasources)
         .unique()
@@ -448,7 +455,6 @@ export default class ChartLayoutModel extends EventEmitter {
     .then(() => {
       // 加载完成后立即重绘
       this.fullUpdate()
-      const delay = mainDatasource.pulseInterval < 10 ? 10 : mainDatasource.pulseInterval
       if (mainDatasource.pulseInterval) {
         this._pulseUpdateTimer = setTimeout(this.pulseUpdate, delay * 1000)
       }
@@ -491,7 +497,8 @@ export default class ChartLayoutModel extends EventEmitter {
     } else {
       this.addPatterns()
     }
-    this.restartPulseUpdate()
+    this.stopPulseUpdate()
+    this.loadHistory()
     this._axisx.resetOffset()
     this.emit('resolution_change', resolution)
   }
@@ -519,7 +526,8 @@ export default class ChartLayoutModel extends EventEmitter {
         this.removeAllTools()
         this.removeAllPatterns()
         this.addPatterns()
-        this.restartPulseUpdate()
+        this.stopPulseUpdate()
+        this.loadHistory()
         this._axisx.resetOffset()
         if (_.findIndex(recentList, { symbol: symbolInfo.symbol}) === -1) {
           recentList.push(symbolInfo)
@@ -550,7 +558,8 @@ export default class ChartLayoutModel extends EventEmitter {
 
     this.clearCache()
     this.removeAllTools()
-    this.restartPulseUpdate()
+    this.stopPulseUpdate()
+    this.loadHistory()
     this._axisx.resetOffset()
     this.emit('right_change', right)
   }
