@@ -67,7 +67,7 @@ export default class ToolBox extends React.Component<any, State> {
   public componentDidMount () {
     const chartLayout = this._chartLayout
     chartLayout.addListener('drawingtool_begin', this.resetTool)
-    chartLayout.addListener('drawingtool_remove', this.resetTool)
+    // chartLayout.addListener('drawingtool_remove', this.resetTool)
     document.addEventListener('mousedown', this.hideMoreTools)
     document.addEventListener('touchstart', this.hideMoreTools)
   }
@@ -75,7 +75,7 @@ export default class ToolBox extends React.Component<any, State> {
   public componentWillUnmount () {
     const chartLayout = this._chartLayout
     chartLayout.removeListener('drawingtool_begin',  this.resetTool)
-    chartLayout.removeListener('drawingtool_remove', this.resetTool)
+    // chartLayout.removeListener('drawingtool_remove', this.resetTool)
     document.removeEventListener('mousedown', this.hideMoreTools)
     document.removeEventListener('touchstart', this.hideMoreTools)
   }

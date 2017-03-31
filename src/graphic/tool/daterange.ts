@@ -1,14 +1,17 @@
 import * as _ from 'underscore'
+import * as moment from 'moment'
 import { formatNumber } from '../../util'
 import { BaseToolRenderer, Vertex } from './basetool'
 import { StockDatasource } from '../../datasource'
 import { HIT_TEST_TOLERANCE } from '../../constant'
 
 type StatData = {
-  startPrice: string
-  endPrice: string
-  high: string
-  low: string
+  startTime: string
+  endTime: string
+  startPrice: number
+  endPrice: number
+  high: number
+  low: number
   changeRate: string
   amplitude: string
   volume: string
@@ -19,6 +22,7 @@ type StatData = {
 }
 
 const legendTableLayout = [
+  ['起始时间', 'startTime', '终止时间', 'endTime'],
   ['起始价', 'startPrice', '终止价', 'endPrice'],
   ['最高', 'high', '最低', 'low'],
   ['涨跌幅', 'changeRate', '振幅', 'amplitude'],
@@ -28,8 +32,10 @@ const legendTableLayout = [
 ]
 
 const colorSettings = {
+  startTime: '#000',
+  endTime: '#000',
   startPrice: '#000',
-  endPrice: '#000',
+  endPrice: null,
   high: '#d32f2f',
   low: '#00796b',
   changeRate: null,
@@ -63,6 +69,16 @@ export class DateRangeRenderer extends BaseToolRenderer {
            vertexes[1].time >= visibleBars[0].time
   }
 
+  set selected (selected: boolean) {
+    if (selected !== this._selected) {
+      this._selected = selected
+      this._isValid = false
+    }
+    if (!selected) {
+      this._chart.removeDrawingTool(this)
+    }
+  }
+
   get vertexes (): Vertex[] {
     const axisY = this._chart.axisY
     const range = axisY.range
@@ -93,6 +109,7 @@ export class DateRangeRenderer extends BaseToolRenderer {
       return this._statData = null
     }
 
+    const formatStr = datasource.resolution >= 'D' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'
     const startPrice = bars[0].open
     const endPrice = bars[bars.length - 1].close
     const high = Math.max.apply(Math,  _.pluck(bars, 'high'))
@@ -113,10 +130,12 @@ export class DateRangeRenderer extends BaseToolRenderer {
       return Math.abs((bar.open - bar.close) /  (bar.high - bar.low)) < 0.2 ? memo + 1 : memo
     }, 0)
     return this._statData = {
-      startPrice: formatNumber(startPrice, 2),
-      endPrice: formatNumber(endPrice, 2),
-      high: formatNumber(high, 2),
-      low: formatNumber(low, 2),
+      startTime: moment(bars[0].time * 1000).format(formatStr),
+      endTime: moment(bars[bars.length - 1].time * 1000).format(formatStr),
+      startPrice: startPrice,
+      endPrice: endPrice,
+      high: high,
+      low: low,
       changeRate: (endPrice >= startPrice ? '+' : '') + ((endPrice / startPrice - 1) * 100).toFixed(2) + '%',
       amplitude: ((high / low - 1) * 100).toFixed(2) + '%',
       volume, amount,
@@ -192,12 +211,13 @@ export class DateRangeRenderer extends BaseToolRenderer {
 
     const padding = 14
     const lineHeight = 20
-    const columeWidth = 80
+    const columeWidth = resolution >= 'D' ? 80 : 100
     const legendWidth = columeWidth * 4
     const legendHeight = lineHeight * legendTableLayout.length + padding * 2
     const legendX = lx + (rx - lx) / 2 - legendWidth / 2
     const legendY = height - legendHeight
     const statData = this.statData
+    const startPrice = statData.startPrice
 
     if (resolution > '1' && !!statData) {
 
@@ -233,10 +253,14 @@ export class DateRangeRenderer extends BaseToolRenderer {
           if (!!color) {
             ctx.fillStyle = color
           } else {
-            ctx.fillStyle = value.charAt(0) === '+' ? '#d32f2f' : '#00796b'
+            if (typeof value === 'number') {
+              ctx.fillStyle = value >= startPrice ? '#d32f2f' : '#00796b'
+            } else if (typeof value === 'string') {
+              ctx.fillStyle = value.charAt(0) !== '-' ? '#d32f2f' : '#00796b'
+            }
           }
           ctx.textAlign = 'right'
-          ctx.fillText(value, x, y)
+          ctx.fillText(typeof value === 'number' ? value.toFixed(2) : value, x, y)
         }
       }
     }
@@ -255,7 +279,7 @@ export class DateRangeRenderer extends BaseToolRenderer {
 
     return Math.abs(lx - x) < HIT_TEST_TOLERANCE ||
            Math.abs(rx - x) < HIT_TEST_TOLERANCE ||
-           (x >= lx && y <= rx && Math.abs(y - height / 2) < HIT_TEST_TOLERANCE)
+           (x >= lx && x <= rx && Math.abs(y - height / 2) < HIT_TEST_TOLERANCE)
   }
 
   public isFinished (): boolean {
