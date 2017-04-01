@@ -966,7 +966,7 @@ export default class ChartLayoutModel extends EventEmitter {
         case '1年':
           return openMoment.subtract(1, 'years').toDate().getTime()
         case '全部':
-          return 0
+          return moment('2000-01-01').toDate().getTime()
         default:
           throw 'unsupport range type'
       }

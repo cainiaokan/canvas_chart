@@ -37,8 +37,8 @@ export class CandleChartRenderer extends BaseChartRenderer {
       return false
     }
     const point = chart.crosshair.point
-    const candleWidth = ~~(axisX.barWidth * 0.6 + 0.5) % 2 === 0 ?
-      ~~(axisX.barWidth * 0.6 + 0.5) - 1 : ~~(axisX.barWidth * 0.6 + 0.5)
+    const candleWidth = ~~(axisX.barWidth * 0.8 + 0.5) % 2 === 0 ?
+      ~~(axisX.barWidth * 0.8 + 0.5) - 1 : ~~(axisX.barWidth * 0.8 + 0.5)
     const x0 = point.x
     const y0 = point.y
     const x1 = ~~curBar[PLOT_DATA.X] - ~~(candleWidth / 2) - HIT_TEST_TOLERANCE
@@ -87,8 +87,8 @@ export class CandleChartRenderer extends BaseChartRenderer {
     const chart = graph.chart
     const axisX = chart.axisX
     const axisY = chart.axisY
-    const candleWidth = ~~(axisX.barWidth * 0.6 + 0.5) % 2 === 0 ?
-      ~~(axisX.barWidth * 0.6 + 0.5) - 1 : ~~(axisX.barWidth * 0.6 + 0.5)
+    const candleWidth = ~~(axisX.barWidth * 0.8 + 0.5) % 2 === 0 ?
+      ~~(axisX.barWidth * 0.8 + 0.5) - 1 : ~~(axisX.barWidth * 0.8 + 0.5)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
     ctx.translate(0.5, 0.5)
     ctx.lineWidth = 1

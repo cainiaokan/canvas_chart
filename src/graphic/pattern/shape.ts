@@ -4,6 +4,8 @@ import { BasePatternRenderer, Point } from './basepattern'
 import ChartModel from '../../model/chart'
 
 const DEFAULT_COLOR = 'rgba( 60, 120, 216, 1)'
+const trendLineColorPresets = ['rgba(102, 255, 153, .5)', 'rgba( 60, 120, 216, 1)']
+const trendLineDashedPresets = [[0, 0], [8, 8]]
 
 export class ShapePatternRenderer extends BasePatternRenderer {
   private _trendLines: Point[][]
@@ -36,7 +38,7 @@ export class ShapePatternRenderer extends BasePatternRenderer {
 
     ctx.save()
     ctx.lineWidth = 3
-    ctx.setLineDash([6, 6])
+    ctx.setLineDash([8, 8])
     ctx.strokeStyle = DEFAULT_COLOR
 
     ctx.beginPath()
@@ -57,13 +59,14 @@ export class ShapePatternRenderer extends BasePatternRenderer {
 
     ctx.stroke()
 
-    ctx.lineWidth = 1
-    ctx.strokeStyle = '#666666'
+    ctx.lineWidth = 3
     len = trendLines.length
 
     for (let i = 0, distance, slope; i < len; i++) {
 
       ctx.beginPath()
+      ctx.strokeStyle = trendLineColorPresets[~~(i / 2)]
+      ctx.setLineDash(trendLineDashedPresets[~~(i / 2)])
       line = trendLines[i]
       distance = datasource.search(line[1].time) - datasource.search(line[0].time)
       slope = (line[1].value - line[0].value) / distance
