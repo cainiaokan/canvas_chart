@@ -49,6 +49,7 @@ type ChartType = 'snapshot' | 'realtime'
 
 type Prop  = {
   symbol: string
+  defaultSymbol: string
   resolution: ResolutionType
   height: number
   width: number
@@ -159,25 +160,30 @@ export default class ChartLayout extends React.Component<Prop, State> {
   public componentDidMount () {
     const chartLayout = this._chartLayout
     const spinner = new Spinner({}).spin(this.refs.root)
-
-    this.prepareMainChart()
+    const resolution = chartLayout.readFromLS('qchart.resolution') || this.props.resolution
+    const mainDatasource = new StockDatasource(
+      this.props.defaultSymbol,
+      resolution,
+      this.props.right
+    )
 
     // 将欢迎标记存入本地存储
     chartLayout.saveToLS('chart.welcome', true)
 
     Promise.all([
       chartLayout.getServerTime(),
-      chartLayout.mainDatasource.resolveSymbol(),
+      mainDatasource.resolveSymbol(this.props.symbol),
     ])
     .then(() => {
+      this.prepareMainChart(mainDatasource, resolution)
+      this.initEvents()
+      spinner.stop()
+
       this.setState({
         loaded: true,
       }, function () {
         chartLayout.addPatterns()
       })
-
-      spinner.stop()
-      this.initEvents()
     })
   }
 
@@ -191,14 +197,9 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayout.fullUpdate()
   }
 
-  public prepareMainChart () {
+  public prepareMainChart (mainDatasource: StockDatasource, resolution: ResolutionType) {
     const chartLayout = this._chartLayout
-    const resolution = chartLayout.readFromLS('qchart.resolution') || this.props.resolution
-    const mainDatasource = new StockDatasource(
-      this.props.symbol,
-      resolution,
-      this.props.right
-    )
+
     const crosshair = new CrosshairModel(chartLayout)
     const axisX = new AxisXModel(mainDatasource, crosshair)
     const axisY = new AxisYModel(mainDatasource, crosshair)

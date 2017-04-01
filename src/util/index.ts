@@ -2,6 +2,12 @@ export function cloneObj (source: Object) {
   return JSON.parse(JSON.stringify(source))
 }
 
+export function getParameterByName (name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)')
+                    .exec(window.location.search)
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '))
+}
+
 export function darkenRGB (rgbColor: string) {
   const matches = rgbColor.match(/\((.*?)\)/)
   if (!matches) {
@@ -88,77 +94,77 @@ type AnimationQueue = {
   enqueue: (action: Function) => AnimationQueue}
 
 export function animationQueue () {
-    const q: AnimationQueue = {
-      _itvl: 0,
-      _queue: [],
-      delay (millis: number) {
-        q._queue.push(['delay', millis])
-        q._go()
-        return q
-      },
-      enqueue (action: Function) {
-        q._queue.push(['action', action])
-        q._go()
-        return q
-      },
-      _go () {
-        clearTimeout(q._itvl)
-        q._itvl = setTimeout(function () {
-          const job = q._queue.shift()
-          if (!!job) {
-            if (job[0] === 'delay') {
-              setTimeout(() => q._go(), job[1])
-            } else if (job[0] === 'action') {
-              (job[1] as Function)()
-              setTimeout(() => q._go(), 0)
-            }
+  const q: AnimationQueue = {
+    _itvl: 0,
+    _queue: [],
+    delay (millis: number) {
+      q._queue.push(['delay', millis])
+      q._go()
+      return q
+    },
+    enqueue (action: Function) {
+      q._queue.push(['action', action])
+      q._go()
+      return q
+    },
+    _go () {
+      clearTimeout(q._itvl)
+      q._itvl = setTimeout(function () {
+        const job = q._queue.shift()
+        if (!!job) {
+          if (job[0] === 'delay') {
+            setTimeout(() => q._go(), job[1])
+          } else if (job[0] === 'action') {
+            (job[1] as Function)()
+            setTimeout(() => q._go(), 0)
           }
-        }, 0)
-      },
-    }
-
-    return q
-  }
-
-  /**
-   * 标准化 requestFullscreen 方法
-   * @param {DOM} elem 要全屏显示的元素(webkit下只要是DOM即可，Firefox下必须是文档中的DOM元素)
-   */
-  export function requestFullscreen(elem) {
-      if (elem.requestFullscreen) {
-          elem.requestFullscreen()
-      } else if (elem.webkitRequestFullScreen) {
-          // 对 Chrome 特殊处理，
-          // 参数 Element.ALLOW_KEYBOARD_INPUT 使全屏状态中可以键盘输入。
-          if ( window.navigator.userAgent.toUpperCase().indexOf( 'CHROME' ) >= 0 ) {
-              elem.webkitRequestFullScreen()
-          } else {// Safari 浏览器中，如果方法内有参数，则 Fullscreen 功能不可用。
-              elem.webkitRequestFullScreen()
-          }
-      } else if (elem.mozRequestFullScreen) {
-          elem.mozRequestFullScreen()
-      }
-  }
-
-  export function exitFullscreen () {
-    ['exitFullscreen', 'mozCancelFullScreen', 'mozExitFullscreen', 'webkitExitFullscreen', 'msExitFullscreen']
-      .some(function(funcName) {
-        if ('function' === typeof document[funcName]) {
-            return document[funcName](), true
         }
-    })
+      }, 0)
+    },
   }
 
-  export function getFullScreenElement () {
-    let fullscreenElement = null
-    let propNames = ['fullscreenElement', 'webkitFullscreenElement', 'mozFullscreenElement', 'msFullscreenElement']
+  return q
+}
 
-    propNames.some(propName => {
-      if (propName in document) {
-        fullscreenElement = document[propName]
-        return true
+/**
+ * 标准化 requestFullscreen 方法
+ * @param {DOM} elem 要全屏显示的元素(webkit下只要是DOM即可，Firefox下必须是文档中的DOM元素)
+ */
+export function requestFullscreen(elem) {
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen()
+    } else if (elem.webkitRequestFullScreen) {
+        // 对 Chrome 特殊处理，
+        // 参数 Element.ALLOW_KEYBOARD_INPUT 使全屏状态中可以键盘输入。
+        if ( window.navigator.userAgent.toUpperCase().indexOf( 'CHROME' ) >= 0 ) {
+            elem.webkitRequestFullScreen()
+        } else {// Safari 浏览器中，如果方法内有参数，则 Fullscreen 功能不可用。
+            elem.webkitRequestFullScreen()
+        }
+    } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen()
+    }
+}
+
+export function exitFullscreen () {
+  ['exitFullscreen', 'mozCancelFullScreen', 'mozExitFullscreen', 'webkitExitFullscreen', 'msExitFullscreen']
+    .some(function(funcName) {
+      if ('function' === typeof document[funcName]) {
+          return document[funcName](), true
       }
-    })
+  })
+}
 
-    return fullscreenElement
-  }
+export function getFullScreenElement () {
+  let fullscreenElement = null
+  let propNames = ['fullscreenElement', 'webkitFullscreenElement', 'mozFullscreenElement', 'msFullscreenElement']
+
+  propNames.some(propName => {
+    if (propName in document) {
+      fullscreenElement = document[propName]
+      return true
+    }
+  })
+
+  return fullscreenElement
+}

@@ -509,9 +509,8 @@ export default class ChartLayoutModel extends EventEmitter {
    */
   public setSymbol (symbol: string) {
     const mainDatasource = this._mainDatasource
-    mainDatasource.symbol = symbol
     mainDatasource
-      .resolveSymbol()
+      .resolveSymbol(symbol)
       .then(() => {
         const symbolInfo = mainDatasource.symbolInfo
         const recentList = this.readFromLS('chart.recentlist') || []
@@ -750,10 +749,10 @@ export default class ChartLayoutModel extends EventEmitter {
         this.emit('graph_add', study)
       } else {
         if (!!mainDatasource.first()) {
+          this._mainChart.addGraph(study)
           study.datasource
             .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time)
             .then(() => {
-              this._mainChart.addGraph(study)
               this.emit('graph_add', study)
             })
         }
@@ -842,7 +841,7 @@ export default class ChartLayoutModel extends EventEmitter {
     const mainDatasource = this.mainDatasource as StockDatasource
     const mainChart = this._mainChart
     const datasource = new StockDatasource(
-      symbol,
+      mainDatasource.defaultSymbol,
       mainDatasource.resolution,
       mainDatasource.right,
       mainDatasource.timeDiff
@@ -863,7 +862,7 @@ export default class ChartLayoutModel extends EventEmitter {
       }
     )
     datasource
-      .resolveSymbol()
+      .resolveSymbol(symbol)
       .then(() => {
         datasource
           .loadTimeRange(mainDatasource.first().time, mainDatasource.last().time + 24 * 3600)

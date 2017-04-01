@@ -44,6 +44,12 @@ export class StockDatasource extends Datasource {
   private _symbol: string
 
   /**
+   * 默认股票代码
+   * @type {string}
+   */
+  private _defaultSymbol: string
+
+  /**
    * 股票详细信息
    * @type {SymbolInfo}
    */
@@ -53,12 +59,13 @@ export class StockDatasource extends Datasource {
 
   /**
    * @constructor
-   * @param {string} symbol     股票代码
    * @param {string} resolution 解析度
+   * @param {RightType} right   复权设置
+   * @param {number} timeDiff   与服务器的时差
    */
-  constructor (symbol: string, resolution: ResolutionType, right: RightType, timeDiff: number = 0) {
+  constructor (defaultSymbol: string, resolution: ResolutionType, right: RightType, timeDiff: number = 0) {
     super(resolution, timeDiff)
-    this._symbol = symbol
+    this._defaultSymbol = defaultSymbol
     this._right = right
     this._symbolInfo = null
     this._plotList = new PlotList<IStockBar>()
@@ -78,6 +85,10 @@ export class StockDatasource extends Datasource {
 
   set symbol (symbol: string) {
     this._symbol = symbol
+  }
+
+  get defaultSymbol (): string {
+    return this._defaultSymbol
   }
 
   get symbolInfo (): SymbolInfo {
@@ -281,20 +292,21 @@ export class StockDatasource extends Datasource {
     )
   }
 
-  public resolveSymbol (): Promise<SymbolInfo> {
-    return new Promise((resolve, reject) => {
-      RPC.resolveSymbol(this._symbol)
-        .then(data => {
+  public resolveSymbol (symbol: string): Promise<any> {
+    return RPC.resolveSymbol(symbol)
+      .then(data => {
+        if (!data.description) {
+          return this.resolveSymbol(this._defaultSymbol)
+        } else {
           this._symbolInfo = {
             description: data.description,
             exchange: data['exchange-listed'],
             symbol: data.symbol,
             type: data.type,
           }
-          resolve()
-        })
-        .catch(reject)
-    })
+          this._symbol = data.symbol
+        }
+      })
   }
 
   public searchSymbols (keyword): Promise<SymbolInfo[]> {
