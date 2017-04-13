@@ -305,15 +305,15 @@ export default class ChartLayoutModel extends EventEmitter {
             } else if (shape.shape_type === 'triangle') {
               let trendLines = []
               let points = null
-              if (shape.shape_detail.dtd) {
-                trendLines.push(shape.shape_detail.dtd.l1)
-                trendLines.push(shape.shape_detail.dtd.l2)
-              }
               if (shape.shape_detail.xtd) {
                 trendLines.push(shape.shape_detail.xtd.l1)
                 trendLines.push(shape.shape_detail.xtd.l2)
               }
-              trendLines = trendLines.map(line => ([
+              if (shape.shape_detail.dtd) {
+                trendLines.push(shape.shape_detail.dtd.l1)
+                trendLines.push(shape.shape_detail.dtd.l2)
+              }
+              trendLines = trendLines.filter(line => !!line).map(line => ([
                 {
                   time: ~~(moment(line.p1.d).toDate().getTime() / 1000),
                   value: line.p1.v,

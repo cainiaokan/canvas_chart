@@ -116,7 +116,8 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showMA ? 'on' : ''}`}
               data-type='ma'
-              onClick={this.toggleHandler}>
+              onMouseDown={this.toggleHandler}
+              onTouchStart={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
             </div>
           </div>
@@ -134,7 +135,8 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showPressureSupport ? 'on' : ''}`}
               data-type='pressure-support'
-              onClick={this.toggleHandler}>
+              onMouseDown={this.toggleHandler}
+              onTouchStart={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
             </div>
           </div>
@@ -158,7 +160,8 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showGap ? 'on' : ''}`}
               data-type='gap'
-              onClick={this.toggleHandler}>
+              onMouseDown={this.toggleHandler}
+              onTouchStart={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
             </div>
           </div>
@@ -171,7 +174,8 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showWaveForm ? 'on' : ''}`}
               data-type='wave-form'
-              onClick={this.toggleHandler}>
+              onMouseDown={this.toggleHandler}
+              onTouchStart={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
             </div>
           </div>
@@ -185,7 +189,8 @@ export default class Analyze extends React.Component<Prop, State> {
             <div
               className={`toggle-btn ${showReverseRelay ? 'on' : ''}`}
               data-type='reverse-relay-form'
-              onClick={this.toggleHandler}>
+              onMouseDown={this.toggleHandler}
+              onTouchStart={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
             </div>
           </div>
