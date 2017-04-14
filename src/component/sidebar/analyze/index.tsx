@@ -113,13 +113,12 @@ export default class Analyze extends React.Component<Prop, State> {
             <div className='description'>
               分析时强制显示均线
             </div>
-            <div
+            <a href='javascript:;'
               className={`toggle-btn ${showMA ? 'on' : ''}`}
               data-type='ma'
-              onMouseDown={this.toggleHandler}
-              onTouchStart={this.toggleHandler}>
+              onClick={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
-            </div>
+            </a>
           </div>
           <h4>支撑与压力</h4>
           <div className='feature-group support-pressure clearfix'>
@@ -132,13 +131,12 @@ export default class Analyze extends React.Component<Prop, State> {
                 <label>支撑：</label><span>{pressureInfo && pressureInfo.upper_price ? (+pressureInfo.lower_price).toFixed(2) : '--'}</span>
               </div>
             </div>
-            <div
+            <a href='javascript:;'
               className={`toggle-btn ${showPressureSupport ? 'on' : ''}`}
               data-type='pressure-support'
-              onMouseDown={this.toggleHandler}
-              onTouchStart={this.toggleHandler}>
+              onClick={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
-            </div>
+            </a>
           </div>
           <h4>跳空与缺口</h4>
           <div className='feature-group gap clearfix'>
@@ -157,13 +155,12 @@ export default class Analyze extends React.Component<Prop, State> {
                 <p className='position'>当前价格位于缺口{gapInfo.up ? '上方' : '下方'}</p> : null
               }
             </div>
-            <div
+            <a href='javascript:;'
               className={`toggle-btn ${showGap ? 'on' : ''}`}
               data-type='gap'
-              onMouseDown={this.toggleHandler}
-              onTouchStart={this.toggleHandler}>
+              onClick={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
-            </div>
+            </a>
           </div>
           <h4>形态技术分析</h4>
           <div className='feature-group form-analyze clearfix'>
@@ -171,13 +168,12 @@ export default class Analyze extends React.Component<Prop, State> {
               <p className='form-title'>波浪形态</p>
               <p>根据艾略特波段理论自动构建的形态，方便确定当前的波浪</p>
             </div>
-            <div
+            <a href='javascript:;'
               className={`toggle-btn ${showWaveForm ? 'on' : ''}`}
               data-type='wave-form'
-              onMouseDown={this.toggleHandler}
-              onTouchStart={this.toggleHandler}>
+              onClick={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
-            </div>
+            </a>
           </div>
           <hr />
           <div className='feature-group form-analyze clearfix'>
@@ -186,13 +182,12 @@ export default class Analyze extends React.Component<Prop, State> {
               <p>自动构建常见的形态，如头肩顶，W底，上升三角形等</p>
               {/*<p className='position'>当前大概率处于：W底</p>*/}
             </div>
-            <div
+            <a href='javascript:;'
               className={`toggle-btn ${showReverseRelay ? 'on' : ''}`}
               data-type='reverse-relay-form'
-              onMouseDown={this.toggleHandler}
-              onTouchStart={this.toggleHandler}>
+              onClick={this.toggleHandler}>
               <div className='toggle-tips'>在左侧图中展示</div>
-            </div>
+            </a>
           </div>
         </div>
       </div>
