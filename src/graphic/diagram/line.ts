@@ -61,12 +61,14 @@ export class LineChartRenderer extends BaseChartRenderer {
       return null
     }
 
-    const range: YRange = {
+    let range: YRange = {
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
     }
 
-    return bars.reduce((prev, cur) => {
+    range = bars
+      .filter(bar => bar[PLOT_DATA.VALUE] > 0)
+      .reduce((prev, cur) => {
       if (cur[PLOT_DATA.VALUE] > prev.max) {
         prev.max = cur[PLOT_DATA.VALUE]
       }
@@ -75,6 +77,15 @@ export class LineChartRenderer extends BaseChartRenderer {
       }
       return prev
     }, range)
+
+    const ratio = (range.max - range.min) / range.max
+
+    if (ratio < 0.05) {
+      range.max += (0.05 - ratio) * range.max
+      range.min -= (0.05 - ratio) * range.max
+    }
+
+    return range
   }
 
   public draw (ctx: CanvasRenderingContext2D) {
@@ -94,15 +105,19 @@ export class LineChartRenderer extends BaseChartRenderer {
     ctx.lineWidth = this.style.lineWidth
     ctx.beginPath()
 
-    const len = bars.length
-    if (len) {
-      const bar = bars[0]
-      ctx.moveTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
-    }
-
-    for (let i = 1; i < len; i++) {
-      const bar = bars[i]
-      ctx.lineTo(bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY))
+    for (let i = 0, x, y, bar, hasMoveTo = false, len = bars.length; i < len; i++) {
+      bar = bars[i]
+      x = bar[PLOT_DATA.X]
+      y = ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
+      if (bar[PLOT_DATA.VALUE] === 0) {
+        continue
+      }
+      if (hasMoveTo) {
+        ctx.lineTo(x, y)
+      } else {
+        ctx.moveTo(x, y)
+        hasMoveTo = true
+      }
     }
 
     ctx.stroke()
