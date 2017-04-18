@@ -9,12 +9,14 @@ export default class AxisYRenderer {
 
   public draw () {
     const axis = this._axis
+    const chart = axis.chart
     const ctx = axis.ctx
     const width = axis.width
     const height = axis.height
     const axisY = axis
     const cursorPoint = axis.crosshair.point
     const hover = axis.crosshair.chart.hover
+    const margin = 8
 
     ctx.strokeStyle = '#999999'
     ctx.lineWidth = 1
@@ -40,8 +42,21 @@ export default class AxisYRenderer {
     ctx.closePath()
     ctx.stroke()
 
+    if (chart.datasource.resolution > '1') {
+      chart.graphs.forEach(graph =>
+        graph.plots.forEach(plot =>
+          plot.priceLabels.forEach(priceLabel => {
+            const y = ~~axis.getYByValue(priceLabel.val)
+            ctx.fillStyle = priceLabel.color
+            ctx.fillRect(0, y - 6 - margin / 2, width + margin, 12 + margin)
+            ctx.fillStyle = '#ffffff'
+            ctx.fillText(priceLabel.val.toFixed(2).toString(), 10, y + 4)
+          })
+        )
+      )
+    }
+
     if (cursorPoint && hover && axis.range) {
-      const margin = 8
       const y = cursorPoint.y
       ctx.fillStyle = '#333333'
       ctx.fillRect(0, y - 6 - margin / 2, width + margin, 12 + margin)

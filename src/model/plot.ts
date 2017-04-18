@@ -11,7 +11,14 @@ import {
 } from '../graphic/diagram'
 import GraphModel from '../model/graph'
 
+export type PriceLabel = {
+  val: number
+  color: string
+}
+
 export default class PlotModel {
+  public priceLabels: PriceLabel[] = []
+
   private _graph: GraphModel
   private _index: number
   private _shape: ShapeType

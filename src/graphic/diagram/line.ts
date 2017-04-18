@@ -31,16 +31,18 @@ export class LineChartRenderer extends BaseChartRenderer {
     const curBar = plot.getCurBar()
     const prevBar = plot.getPrevBar()
     const nextBar = plot.getNextBar()
-    if (!curBar) {
+
+    if (!curBar && curBar[PLOT_DATA.VALUE] === 0) {
       return false
     }
+
     const point = chart.crosshair.point
     const x0 = point.x
     const y0 = point.y
     const x1 = prevBar ? prevBar[PLOT_DATA.X] : 0
     const y1 = prevBar ? ~~axisY.getYByValue(prevBar[PLOT_DATA.VALUE], rangeY) : 0
     const x2 = curBar[PLOT_DATA.X]
-    const y2 = ~~axisY.getYByValue(curBar[2], rangeY)
+    const y2 = ~~axisY.getYByValue(curBar[PLOT_DATA.VALUE], rangeY)
     const x3 = nextBar ? nextBar[PLOT_DATA.X] : 0
     const y3 = nextBar ? ~~axisY.getYByValue(nextBar[PLOT_DATA.VALUE], rangeY) : 0
     let distance1 = Number.MAX_VALUE

@@ -26,7 +26,7 @@ export default class CrosshairRenderer {
     ctx.translate(0.5, 0.5)
 
     if (ctx.setLineDash) {
-      ctx.setLineDash([6, 6])
+      ctx.setLineDash([2, 4])
     }
     ctx.lineWidth = 1
 

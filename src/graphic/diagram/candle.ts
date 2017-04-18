@@ -90,6 +90,24 @@ export class CandleChartRenderer extends BaseChartRenderer {
     const candleWidth = ~~(axisX.barWidth * 0.8 + 0.5) % 2 === 0 ?
       ~~(axisX.barWidth * 0.8 + 0.5) - 1 : ~~(axisX.barWidth * 0.8 + 0.5)
     const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const high = bars.reduce((memo, cur) => {
+      return cur[PLOT_DATA.HIGH] > memo ? cur[PLOT_DATA.HIGH] : memo
+    }, -Number.MAX_VALUE)
+    const low = bars.reduce((memo, cur) => {
+      return cur[PLOT_DATA.LOW] < memo ? cur[PLOT_DATA.LOW] : memo
+    }, Number.MAX_VALUE)
+
+    plot.priceLabels = [{
+      val: high,
+      color: this.style.color,
+    }, {
+      val: low,
+      color: this.style.colorDown,
+    }]
+
+    let x
+    let y
+
     ctx.translate(0.5, 0.5)
     ctx.lineWidth = 1
 
@@ -104,7 +122,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
       ctx.stroke()
     }
 
-    for (let i = 0, bar, len = bars.length, x, y, isUp, color; i < len; i++) {
+    for (let i = 0, bar, len = bars.length, isUp, color; i < len; i++) {
       bar = bars[i]
       isUp = bar[PLOT_DATA.CLOSE] >= bar[PLOT_DATA.OPEN]
       color = isUp ? this.style.color : this.style.colorDown
@@ -122,10 +140,24 @@ export class CandleChartRenderer extends BaseChartRenderer {
       ctx.lineTo(x + candleWidth - 1, y)
       ctx.lineTo(x, y)
       ctx.closePath()
-      // 避免绘制的蜡烛方块出现模糊，因此对齐坐标系避免出现像素扩展的情况发生
+
       ctx.fill()
       ctx.stroke()
     }
+
+    ctx.strokeStyle = this.style.color
+    ctx.beginPath()
+    y = ~~axisY.getYByValue(high, rangeY)
+    ctx.moveTo(0, y)
+    ctx.lineTo(axisX.width, y)
+    ctx.stroke()
+
+    ctx.strokeStyle = this.style.colorDown
+    ctx.beginPath()
+    y = ~~axisY.getYByValue(low, rangeY)
+    ctx.moveTo(0, y)
+    ctx.lineTo(axisX.width, y)
+    ctx.stroke()
   }
 
   protected getSelectionYByBar (bar: any[]): number {
