@@ -32,7 +32,7 @@ export class LineChartRenderer extends BaseChartRenderer {
     const prevBar = plot.getPrevBar()
     const nextBar = plot.getNextBar()
 
-    if (!curBar && curBar[PLOT_DATA.VALUE] === 0) {
+    if (!curBar || (curBar && curBar[PLOT_DATA.VALUE] === 0)) {
       return false
     }
 

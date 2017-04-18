@@ -107,8 +107,8 @@ export default class Legend extends React.Component<Prop, State> {
             const curBar = graph.getCurBar()
             const prevBar = graph.getPrevBar()
             const datasource = graph.datasource as StockDatasource
-            const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
-            const prev = prevBar ? datasource.barAt(datasource.search(prevBar[0][1])) : null
+            const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : datasource.last()
+            const prev = curBar && prevBar ? datasource.barAt(datasource.search(prevBar[0][1])) : datasource.barAt(datasource.loaded() - 2)
             const comparable = !!prev && !!cur
             const colorUp = '#d32f2f'
             const colorDown = '#00796b'

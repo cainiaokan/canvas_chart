@@ -145,6 +145,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
       ctx.stroke()
     }
 
+    ctx.setLineDash([2, 4])
     ctx.strokeStyle = this.style.color
     ctx.beginPath()
     y = ~~axisY.getYByValue(high, rangeY)
