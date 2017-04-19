@@ -15,6 +15,7 @@ type State = {
   focus?: boolean
   loading?: boolean,
   results?: Array<SymbolInfo>
+  selectedIndex?: number
 }
 
 export default class SearchBox extends React.Component<Prop, State> {
@@ -59,6 +60,7 @@ export default class SearchBox extends React.Component<Prop, State> {
       focus: false,
       loading: false,
       results: null,
+      selectedIndex: 0,
     }
   }
 
@@ -68,35 +70,38 @@ export default class SearchBox extends React.Component<Prop, State> {
   }
 
   public render () {
-    const state = this.state
+    const { focus, loading, results, selectedIndex } = this.state
     return (
-      <div className={`chart-searchbox ${this.props.className} ${this.state.focus ? 'extended' : ''}`}>
-        <input className='chart-searchbox-input'
-               defaultValue={''}
-               type='text'
-               maxLength={100}
-               placeholder={this.props.placeholder}
-               ref='input'
-               onFocus={this.inputFocosHandler.bind(this)}
-               onBlur={this.inputBlurHandler.bind(this)}
-               onInput={this.keyDownHandler.bind(this)}/>
+      <div className={`chart-searchbox ${this.props.className} ${focus ? 'extended' : ''}`}>
+        <input
+          className='chart-searchbox-input'
+          defaultValue={''}
+          type='text'
+          maxLength={100}
+          placeholder={this.props.placeholder}
+          ref='input'
+          onKeyDown={this.keyDownHandler.bind(this)}
+          onFocus={this.inputFocosHandler.bind(this)}
+          onBlur={this.inputBlurHandler.bind(this)}
+          onInput={this.inputHandler.bind(this)}/>
         <ul className='chart-searchresults'
-          style={
-            {
-              display: state.focus && (state.loading || state.results) ? 'block' : 'none',
-            }
-          }>
+          onClick={this.selectSymbolHandler.bind(this)}
+          style={{ display: focus && (loading || results) ? 'block' : 'none' }}>
           {
-            state.loading ? <li className='loading'></li> : null
+            loading ? <li className='loading'></li> : null
           }
           {
-            !state.loading && state.results && !state.results.length ?
+            !loading && results && !results.length ?
               <li className='no-results'>查询结果为空</li> : null
           }
           {
-            !state.loading && state.results ?
-              state.results.map((symbol, index) =>
-              <li key={symbol.symbol} className='symbol-item' onClick={this.selectSymbolHandler.bind(this, index)}>
+            !loading && results ?
+              results.map((symbol, index) =>
+              <li
+                key={symbol.symbol}
+                data-index={index}
+                onMouseEnter={this.mouseEnterHandler.bind(this)}
+                className={`symbol-item ${selectedIndex === index ? 'selected' : ''}`}>
                 <span className='symbol-code'>{symbol.symbol}</span>
                 <span className='symbol-name'>{symbol.description}</span>
                 <span className='symbol-exchanger'>{symbol.type}-{symbol.exchange}</span>
@@ -108,7 +113,8 @@ export default class SearchBox extends React.Component<Prop, State> {
     )
   }
 
-  private selectSymbolHandler (index) {
+  private selectSymbolHandler () {
+    const index = this.state.selectedIndex
     const symbolInfo = this.state.results[index]
     this.props.onSelect(symbolInfo.symbol)
     if (this.props.autofill) {
@@ -126,16 +132,20 @@ export default class SearchBox extends React.Component<Prop, State> {
     this.setState({
       focus: true,
       results: null,
+      selectedIndex: 0,
     })
   }
 
   private inputBlurHandler () {
     setTimeout(() => {
-      this.setState({ focus: false })
+      this.setState({
+        focus: false,
+        selectedIndex: 0,
+      })
     }, 300)
   }
 
-  private keyDownHandler () {
+  private inputHandler () {
     const el = this.refs.input
     const keyword = el.value
     const selectionStart = el.selectionStart
@@ -144,7 +154,32 @@ export default class SearchBox extends React.Component<Prop, State> {
     if (keyword.length) {
       this.searchSymbols(keyword)
     } else {
-      this.setState({ results: null })
+      this.setState({
+        results: null,
+        selectedIndex: 0,
+      })
+    }
+  }
+
+  private mouseEnterHandler (ev) {
+    const index = +ev.currentTarget.dataset.index
+    this.setState({ selectedIndex: index })
+  }
+
+  private keyDownHandler (ev) {
+    const size = this.state.results ? this.state.results.length : 0
+    const index = this.state.selectedIndex
+    switch (ev.keyCode) {
+      case 38:
+        this.setState({ selectedIndex: index - 1 < 0 ? size - 1 : index - 1})
+        break
+      case 40:
+        this.setState({ selectedIndex: (index + 1) % size })
+        break
+      case 13:
+        this.selectSymbolHandler()
+        break
+      default:
     }
   }
 }
