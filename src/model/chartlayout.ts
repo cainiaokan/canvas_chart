@@ -349,6 +349,7 @@ export default class ChartLayoutModel extends EventEmitter {
     this._loading = false
     this.emit('loading_end')
     clearTimeout(this._pulseUpdateTimer)
+    this._pulseUpdateTimer = null
   }
 
   /**

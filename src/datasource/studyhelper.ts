@@ -54,13 +54,19 @@ export const LC = function (c: number): number {
  */
 function getLastOpenIndex (datasource: Datasource): number {
   const m = moment(datasource.now() * 1000)
-  m.hours(OPEN_HOUR)
-  m.minute(OPEN_MINUTE)
+  const open = m.hour(OPEN_HOUR).minute(OPEN_MINUTE)
+
+  if (m.isBefore(open)) {
+    m.subtract(1, 'days')
+  }
+
+  m.hour(OPEN_HOUR).minute(OPEN_MINUTE)
+
   while (OPEN_DAYS.indexOf(m.weekday()) === -1) {
     m.subtract(1, 'days')
   }
-  const openIndex = datasource.search(~~(m.toDate().getTime() / 1000))
-  return openIndex !== -1 ? openIndex : 0
+
+  return datasource.search(~~(m.toDate().getTime() / 1000))
 }
 
 /**
@@ -74,7 +80,7 @@ export function $MA (c: number): number {
   const openIndex = cacheObj[cacheKey] || getLastOpenIndex(datasource)
   cacheObj[cacheKey] = openIndex
 
-  if (c < openIndex) {
+  if (c < openIndex || openIndex === -1) {
     return null
   }
 
