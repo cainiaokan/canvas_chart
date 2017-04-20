@@ -9,7 +9,7 @@ module.exports = webpackMerge(commonConfig, {
   watch: true,
   output: {
     path: path.join(__dirname, '../dist'),
-    filename: '[name].js',
+    filename: '/static/js/[name].js',
     chunkFilename: '[name].js',
     sourceMapFilename: '[name].map',
     publicPath: 'http://chart.quchaogu.com'

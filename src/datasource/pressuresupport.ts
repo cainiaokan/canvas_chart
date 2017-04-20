@@ -129,6 +129,8 @@ export class PressureSupportDatasource extends Datasource {
             let stops = OPEN_TIME_RANGE.map(timeRange => timeRange[1])
             let starts = OPEN_TIME_RANGE.map(timeRange => timeRange[0])
             let step = null
+            let pressure
+            let support
             switch (this._resolution) {
               case '1':
                 step = 1
@@ -148,6 +150,7 @@ export class PressureSupportDatasource extends Datasource {
               default:
                 throw 'unsupported resolution'
             }
+
             data.data.forEach(item => {
               stops.forEach((stop, i) => {
                 const stopHour = stop[0]
@@ -156,8 +159,8 @@ export class PressureSupportDatasource extends Datasource {
                 const startMinute = starts[i][1]
                 const close = moment((+item.timestamp + stopHour * 3600 + stopMinute * 60) * 1000)
                 const current = moment((+item.timestamp + startHour * 3600 + startMinute * 60) * 1000)
-                const pressure = +item.upper_price
-                const support = +item.lower_price
+                pressure = +item.upper_price > 0 ? +item.upper_price : pressure
+                support = +item.lower_price > 0 ? +item.lower_price : support
                 while (!current.add(step, 'minute').isAfter(close)) {
                   bars.push({
                     time: current.toDate().getTime() / 1000,

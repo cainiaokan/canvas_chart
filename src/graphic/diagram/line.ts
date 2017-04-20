@@ -69,7 +69,6 @@ export class LineChartRenderer extends BaseChartRenderer {
     }
 
     range = bars
-      .filter(bar => bar[PLOT_DATA.VALUE] > 0)
       .reduce((prev, cur) => {
       if (cur[PLOT_DATA.VALUE] > prev.max) {
         prev.max = cur[PLOT_DATA.VALUE]
@@ -84,7 +83,7 @@ export class LineChartRenderer extends BaseChartRenderer {
 
     if (ratio < 0.01) {
       range.max += (0.01 - ratio) * range.max
-      range.min -= (0.01 - ratio) * range.min
+      range.min -= (0.01 - ratio) * range.max
     }
 
     return range

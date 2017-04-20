@@ -11,7 +11,7 @@ module.exports = webpackMerge(commonConfig, {
   devtool: 'source-map',
   output: {
     path: path.join(__dirname, '../dist'),
-    filename: '[name]-[chunkhash:8].js',
+    filename: '/static/js/[name]-[chunkhash:8].js',
     chunkFilename: '[name]-[chunkhash:8].js',
     sourceMapFilename: '[file].map',
     publicPath: 'http://chart.quchaogu.com'

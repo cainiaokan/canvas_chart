@@ -537,6 +537,7 @@ export default class ChartLayoutModel extends EventEmitter {
           }
           this.saveToLS('chart.recentlist', recentList)
         }
+        history.replaceState(null, document.title, `/?symbol=${symbol}`)
         this.emit('symbol_change', symbolInfo)
       })
   }

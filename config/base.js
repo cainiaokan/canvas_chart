@@ -10,7 +10,7 @@ module.exports = {
   context: path.resolve(__dirname, '..'),
   // chart引入的所有第三方模块清单，以后新增的第三方模块也要加入到这里来
   entry: {
-    'static/js/vendor': [
+    'vendor': [
       'react',
       'react-dom',
       'react-color',
@@ -25,7 +25,7 @@ module.exports = {
       './src/vendor/hidpi-canvas-polyfill.js',
     ],
     // chart功能的入口模块
-    'static/js/main': './src/index.tsx',
+    'main': './src/index.tsx',
   },
   module: {
     rules: [
@@ -38,11 +38,11 @@ module.exports = {
   plugins: [
     // 第三方模块
     new webpack.optimize.CommonsChunkPlugin({
-      names: ['static/js/vendor', 'manifest'],
+      names: ['vendor', 'manifest'],
       minChunks: Infinity
     }),
 
-    // new webpack.HashedModuleIdsPlugin(),
+    new webpack.HashedModuleIdsPlugin(),
 
     new WebpackChunkHash(),
 

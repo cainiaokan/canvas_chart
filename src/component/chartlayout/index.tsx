@@ -175,6 +175,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
       mainDatasource.resolveSymbol(this.props.symbol),
     ])
     .then(() => {
+      history.replaceState(null, document.title, `/?symbol=${mainDatasource.symbol}`)
       this.prepareMainChart(mainDatasource, resolution)
       this.initEvents()
       spinner.stop()
