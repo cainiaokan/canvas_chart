@@ -1,6 +1,6 @@
 import { Datasource, DataAdapter } from './'
 import moment = require('moment')
-import { OPEN_DAYS, OPEN_HOUR, OPEN_MINUTE } from '../constant'
+import { OPEN_HOUR, OPEN_MINUTE } from '../constant'
 
 type Context = {
   datasource: Datasource
@@ -53,19 +53,10 @@ export const LC = function (c: number): number {
  * @return {number}                数据Bar的索引
  */
 function getLastOpenIndex (datasource: Datasource): number {
-  const m = moment(datasource.now() * 1000)
-  const open = m.hour(OPEN_HOUR).minute(OPEN_MINUTE)
-
-  if (m.isBefore(open)) {
-    m.subtract(1, 'days')
-  }
-
-  m.hour(OPEN_HOUR).minute(OPEN_MINUTE)
-
-  while (OPEN_DAYS.indexOf(m.weekday()) === -1) {
-    m.subtract(1, 'days')
-  }
-
+  const m =
+    moment(datasource.last().time * 1000)
+      .hour(OPEN_HOUR)
+      .minute(OPEN_MINUTE)
   return datasource.search(~~(m.toDate().getTime() / 1000))
 }
 
