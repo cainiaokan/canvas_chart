@@ -74,24 +74,27 @@ export default class Compare extends React.Component<Prop, State> {
       <button className='btn' onClick={this.showDialogHandler}>对比</button>
       {
         this.state.showCompareDialog ?
-        <Dialog title='对比'
-                width={320}
-                className='chart-compare-dialog'
-                onClose={this.dialogCloseHandler}>
-          <SearchBox className='chart-compare-search'
-                     placeholder='输入检索股票'
-                     onSelect={this.selectSymbolHandler} />
+        <Dialog
+          title='对比'
+          width={320}
+          className='chart-compare-dialog'
+          onClose={this.dialogCloseHandler}>
+          <SearchBox
+            className='chart-compare-search'
+            placeholder='输入检索股票'
+            onSelect={this.selectSymbolHandler} />
           {
             indexes.map((indexGroup, i) =>
               <div key={i} className='index-shortcut'>
                 {
                   indexGroup.map(indexInfo =>
                     <div key={indexInfo[0]}>
-                      <input id={`index_${indexInfo[0]}`}
-                             type='checkbox'
-                             value={indexInfo[0]}
-                             defaultChecked={!!this._indexesCheckState[indexInfo[0]]}
-                             onChange={this.checkChangeHandler} />
+                      <input
+                        id={`index_${indexInfo[0]}`}
+                        type='checkbox'
+                        value={indexInfo[0]}
+                        defaultChecked={!!this._indexesCheckState[indexInfo[0]]}
+                        onChange={this.checkChangeHandler} />
                       <label htmlFor={`index_${indexInfo[0]}`}>{indexInfo[1]}</label>
                     </div>
                   )

@@ -79,11 +79,11 @@ export class LineChartRenderer extends BaseChartRenderer {
       return prev
     }, range)
 
-    const ratio = (range.max - range.min) / range.max
+    const diff = range.max - range.min
 
-    if (ratio < 0.02) {
-      range.max += (0.02 - ratio) * range.max
-      range.min -= (0.02 - ratio) * range.max
+    if (diff < 0.1) {
+      range.max +=  (0.1 - diff) / 2
+      range.min -= (0.1 - diff) / 2
     }
 
     return range
