@@ -456,6 +456,12 @@ export default class ChartLayoutModel extends EventEmitter {
     .then(() => {
       // 加载完成后立即重绘
       this.fullUpdate()
+      // 把最后两个bar的缓存失效
+      this._charts.forEach(chart =>
+        chart.graphs.forEach(graph =>
+          graph.invalidateLastBarCache()
+        )
+      )
       if (mainDatasource.pulseInterval) {
         this._pulseUpdateTimer = setTimeout(this.pulseUpdate, delay * 1000)
       }

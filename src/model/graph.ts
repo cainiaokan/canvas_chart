@@ -267,15 +267,22 @@ abstract class GraphModel {
       bar = bars[i]
       cache = this._cache[bar.time]
 
+      // bar的数量不足返回null
+      if (start - Math.max.apply(Math, this._input) < 0) {
+        continue
+      }
+
       // 纠结，😖这里没法直接永久缓存
-      // 1. 指标计算时，历史数据可能还没加载足够，这时候即使缓存了数据，也是不正确的
-      // 2. pulse update来新数据的时候，指标需要重新计算，因此必须使得lastBar的缓存失效
-      cache = this._calc(
-        this._adapter(bar),
-        start,
-        this._input
-      )
-      this._cache[bar.time] = cache
+      // pulse update来新数据的时候，指标需要重新计算，因此必须使得lastBar的缓存失效
+      cache = this._cache[bar.time]
+      if (!cache) {
+        cache = this._calc(
+          this._adapter(bar),
+          start,
+          this._input
+        )
+        this._cache[bar.time] = cache
+      }
 
       data.push(cache)
     }
@@ -320,6 +327,13 @@ abstract class GraphModel {
   public clearCache () {
     this._visibleBarCache = null
     this._cache = {}
+  }
+
+  public invalidateLastBarCache () {
+    const datasource = this._datasource
+    const loaded = datasource.loaded()
+    delete this._cache[datasource.barAt(loaded - 1).time]
+    delete this._cache[datasource.barAt(loaded - 2).time]
   }
 }
 

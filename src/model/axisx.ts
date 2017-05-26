@@ -12,7 +12,7 @@ export interface ITimeBar {
 
 export const INITIAL_OFFSET = 50
 export const MAX_BAR_WIDTH = 30
-export const MIN_BAR_WIDTH = 2
+export const MIN_BAR_WIDTH = 1
 
 export default class AxisXModel extends EventEmitter {
 

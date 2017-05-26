@@ -138,7 +138,7 @@ export function HHV (c: number, n: number, attr: Attr): number {
 }
 
 export function REF (c: number, n: number, attr: Attr): number {
-  if (c - 1 < 0) {
+  if (c - n < 0) {
     return null
   } else {
     return attr(c - n)

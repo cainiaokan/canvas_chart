@@ -188,9 +188,6 @@ export const studyConfig: StudyConfig = {
     datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       // 0: posX, 1: time, 2: value
-      if (index - input[0] < 0) {
-        return null
-      }
       const n = input[0]
       const ma = MA(index, n, C)
       const mb = STD(index, n, C)
@@ -378,10 +375,6 @@ export const studyConfig: StudyConfig = {
     noLegend: false,
     datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
-      if (index - Math.max.apply(Math, input) < 0) {
-        return null
-      }
-
       const [r1, r2, r3] = input
       const time = data[1]
       const POS = function (c: number): number {
@@ -431,9 +424,6 @@ export const studyConfig: StudyConfig = {
     datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
       const len = input[0]
-      if (index - len < 0) {
-        return null
-      }
       const time = data[1]
       const TYP = function (c: number): number {
         return (C(c) + H(c) + L(c)) / 3
@@ -473,10 +463,6 @@ export const studyConfig: StudyConfig = {
       const ma1: number = input[1]
       const ma2: number = input[2]
       const ma3: number = input[3]
-
-      if (index - n < 0) {
-        return null
-      }
 
       const time = data[1]
 
@@ -519,9 +505,9 @@ export const studyConfig: StudyConfig = {
 
       return [
         [0, time, CR(index)],
-        index - n - ma1 > 0 ? [0, time, REF(index, ma1 / 2.5 + 1, MA1)] : null,
-        index - n - ma2 > 0 ? [0, time, REF(index, ma2 / 2.5 + 1, MA2)] : null,
-        index - n - ma3 > 0 ? [0, time, REF(index, ma3 / 2.5 + 1, MA3)] : null,
+        index - n - ma1 + 1 - ma1 / 2.5 - 1 > 0 ? [0, time, REF(index, ma1 / 2.5 + 1, MA1)] : null,
+        index - n - ma2 + 1 - ma2 / 2.5 - 1 > 0 ? [0, time, REF(index, ma2 / 2.5 + 1, MA2)] : null,
+        index - n - ma3 + 1 - ma3 / 2.5 - 1 > 0 ? [0, time, REF(index, ma3 / 2.5 + 1, MA3)] : null,
       ]
     },
     plots: [
