@@ -326,7 +326,6 @@ abstract class GraphModel {
 
   public clearCache () {
     this._visibleBarCache = null
-    this._cache = {}
   }
 
   public invalidateLastBarCache () {
