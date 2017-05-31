@@ -42,22 +42,22 @@ module.exports = {
       minChunks: Infinity
     }),
 
-    new webpack.HashedModuleIdsPlugin(),
-
     new WebpackChunkHash(),
 
-    // new ChunkManifestPlugin({
-    //   filename: 'manifest.json',
-    //   manifestVariable: 'webpackManifest'
-    // }),
-
-    new InlineManifestWebpackPlugin({ name: 'webpackManifest' }),
+    new ChunkManifestPlugin({
+      filename: 'manifest.json',
+      manifestVariable: 'webpackManifest',
+      inlineManifest: true,
+    }),
 
     new HtmlWebpackPlugin({
       title: '微看盘-专业看盘工具',
       filename: 'index.html',
       template: './src/index.html'
-    })
+    }),
+
+    // momentjs推断locale指定中文，这样不必加载所有语言包，减小vendor文件尺寸
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
   ],
   resolve: {
     alias: {

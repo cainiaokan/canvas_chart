@@ -131,16 +131,10 @@ export default class Sidebar extends React.Component<Prop, State> {
   }
 
   public componentWillReceiveProps (nextProps: Prop) {
-    const chartLayout = this._chartLayout
     const newIndex = nextProps.activeIndex
     if (!nextProps.folded && this.props.activeIndex !== newIndex) {
       this._pollManager.tabIndex = newIndex
     }
-    // 如果侧边栏已经收起状态，则先展开侧边栏
-    if (nextProps.folded) {
-      chartLayout.saveToLS('qchart.sidebar.folded', false)
-    }
-    chartLayout.saveToLS('qchart.sidebar.activeIndex', newIndex)
   }
 
   public render () {
@@ -300,7 +294,8 @@ export default class Sidebar extends React.Component<Prop, State> {
 
     if (this.props.onChange) {
       this.props.onChange(false, newIndex)
-    }
+      this._chartLayout.saveToLS('qchart.sidebar.folded', false)
+      this._chartLayout.saveToLS('qchart.sidebar.activeIndex', newIndex)}
   }
 
   private symbolChangeHandler (symbolInfo) {

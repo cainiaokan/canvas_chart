@@ -340,6 +340,10 @@ export default class ChartModel extends EventEmitter {
     this.graphs.forEach(graph => graph.clearCache())
   }
 
+  public clearVisibleBarCache () {
+    this.graphs.forEach(graph => graph.clearVisibleBarCache())
+  }
+
   private drawBg (ctx: CanvasRenderingContext2D) {
     ctx.clearRect(0, 0, this.width, this.height)
   }

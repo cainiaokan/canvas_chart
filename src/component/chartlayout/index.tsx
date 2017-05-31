@@ -261,8 +261,19 @@ export default class ChartLayout extends React.Component<Prop, State> {
   public render () {
     const width = this.props.width
     const height = this.props.height
+    const { shownavbar,  showcontrolbar } = this.props
+    const {
+      loaded,
+      footerPanelFolded,
+      footerPanelActiveIndex,
+      showAbout,
+      showGoToDate,
+      contextMenuConfig,
+      sidebarFolded,
+      sidebarActiveIndex,
+    } = this.state
 
-    if (!this.state.loaded) {
+    if (!loaded) {
       return <div className='chart-layout'
                   ref='root'
                   style={ {height: height + 'px',width: width + 'px'} }>
@@ -284,24 +295,21 @@ export default class ChartLayout extends React.Component<Prop, State> {
     }
 
     if (showSideBar) {
-      availWidth -= !this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
+      availWidth -= !sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH
     }
-
-    const showNavBar = this.props.shownavbar
-    const showControlBar = this.props.showcontrolbar
 
     let availHeight = height - AXIS_X_HEIGHT - 12
 
-    if (showNavBar) {
+    if (shownavbar) {
       availHeight -= NAVBAR_HEIGHT
     }
 
-    if (showControlBar) {
+    if (showcontrolbar) {
       availHeight -= CONTROL_BAR_HEIGHT
     }
 
     if (showFooterPanel) {
-      availHeight -= this.state.footerPanelFolded ? FOOTER_PANEL_HEIGHT : FOOTER_PANEL_UNFOLD_HEIGHT
+      availHeight -= footerPanelFolded ? FOOTER_PANEL_HEIGHT : FOOTER_PANEL_UNFOLD_HEIGHT
     }
 
     if (chartLayoutModel.charts.length > 1) {
@@ -335,28 +343,28 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <ToolBox /> : null
         }
         {
-          this.state.showAbout ?
+          showAbout ?
           <About /> : null
         }
         {
-          this.state.showGoToDate ?
+          showGoToDate ?
           <GoToDateDialog /> : null
         }
         {
-          this.state.contextMenuConfig ?
-          <ContextMenu {...this.state.contextMenuConfig} /> : null
+          contextMenuConfig ?
+          <ContextMenu {...contextMenuConfig} /> : null
         }
         {
           showSideBar ?
           <Sidebar
-            folded={this.state.sidebarFolded}
-            activeIndex={this.state.sidebarActiveIndex}
+            folded={sidebarFolded}
+            activeIndex={sidebarActiveIndex}
             onChange={this.sidebarChangeHandler}
-            width={!this.state.sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
+            width={!sidebarFolded ? SIDEBAR_WIDTH : SIDEBAR_FOLD_WIDTH}
             height={this.props.height} /> : null
         }
         {
-          showNavBar ?
+          shownavbar ?
           <Navbar
             width={availWidth}
             onSymbolChange={this.onSymbolChange}
@@ -376,14 +384,14 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <AxisX height={AXIS_X_HEIGHT} width={availWidth - AXIS_Y_WIDTH} />
         </div>
         {
-          showControlBar ?
+          showcontrolbar ?
           <ControlBar width={availWidth + 2} /> : null
         }
         {
           showFooterPanel ?
           <FooterPanel
-            folded={this.state.footerPanelFolded}
-            activeIndex={this.state.footerPanelActiveIndex}
+            folded={footerPanelFolded}
+            activeIndex={footerPanelActiveIndex}
             onChange={this.footerPanelChangeHandler}
             width={availWidth + 2} /> : null
         }

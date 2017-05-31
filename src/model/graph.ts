@@ -271,9 +271,6 @@ abstract class GraphModel {
       if (start - Math.max.apply(Math, this._input) < 0) {
         continue
       }
-
-      // 纠结，😖这里没法直接永久缓存
-      // pulse update来新数据的时候，指标需要重新计算，因此必须使得lastBar的缓存失效
       cache = this._cache[bar.time]
       if (!cache) {
         cache = this._calc(
@@ -325,6 +322,11 @@ abstract class GraphModel {
   }
 
   public clearCache () {
+    this._visibleBarCache = null
+    this._cache = {}
+  }
+
+  public clearVisibleBarCache () {
     this._visibleBarCache = null
   }
 

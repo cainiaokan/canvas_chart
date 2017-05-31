@@ -285,8 +285,8 @@ export const studyConfig: StudyConfig = {
       {
         shape: 'histogram',
         style: {
-          color: 'rgb(255, 0, 110)',
-          colorDown: 'rgb(255, 0, 110)',
+          color: 'rgb(215, 84, 66)',
+          colorDown: 'rgb(107, 165, 131)',
           histogramBase: 0,
         },
       },

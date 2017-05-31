@@ -217,8 +217,7 @@ export default class ChartLayoutModel extends EventEmitter {
     this._lastAnimationFrame = requestAnimationFrame(() => {
       axisX.draw()
       this.charts.forEach(chart => {
-        // 全量刷新需要刷新chart中的缓存
-        chart.clearCache()
+        chart.clearVisibleBarCache()
         chart.calcRangeY()
         chart.draw()
         chart.axisY.draw()

@@ -223,10 +223,9 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private toolTipHandler () {
-    const chartLayout = this._chartLayout
     const chart = this.props.chart
     const point = chart.crosshair.point
-    if (chart.hover && chartLayout.isEditMode) {
+    if (chart.hover && this._chartLayout.isEditMode) {
       const width = ~~this.props.width - AXIS_Y_WIDTH
       const height = ~~this.props.height
       this.setState({

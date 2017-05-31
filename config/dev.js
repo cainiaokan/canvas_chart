@@ -60,6 +60,7 @@ module.exports = webpackMerge(commonConfig, {
     ]
   },
   plugins: [
+    new webpack.NamedModulesPlugin(),
     // 配置生产环境变量
     new webpack.DefinePlugin({
       'process.env': {
