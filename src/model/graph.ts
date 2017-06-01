@@ -192,6 +192,11 @@ abstract class GraphModel {
     return this._cache[timeBar.time]
   }
 
+  public getLastBar (): any[] {
+    const lastBar = this._datasource.last()
+    return lastBar ? this._cache[lastBar.time] || null : null
+  }
+
   public getRangeY (): YRange {
     return this._plots.reduce((range: YRange, plot: PlotModel) => {
       const r = plot.graphic.calcRangeY()

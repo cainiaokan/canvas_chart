@@ -38,14 +38,14 @@ module.exports = {
   plugins: [
     // 第三方模块
     new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor', 'manifest'],
+      names: ['vendor'],
       minChunks: Infinity
     }),
 
     new WebpackChunkHash(),
 
     new ChunkManifestPlugin({
-      filename: 'manifest.json',
+      filename: 'chunk_manifest.json',
       manifestVariable: 'webpackManifest',
       inlineManifest: true,
     }),

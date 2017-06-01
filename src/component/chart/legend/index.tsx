@@ -31,13 +31,15 @@ export default class Legend extends React.Component<Prop, State> {
     settingForm: HTMLFormElement
   }
 
+  private _chartLayout: ChartLayoutModel
   private _studyInSetting: StudyModel = null
 
-  constructor (proportion: number) {
+  constructor (props: Prop, context: { chartLayout: ChartLayoutModel }) {
     super()
     this.state = {
       showSettingDialog: false,
     }
+    this._chartLayout = context.chartLayout
     this.cursorMoveHandler = this.cursorMoveHandler.bind(this)
     this.studySettingsDialogOpenHandler = this.studySettingsDialogOpenHandler.bind(this)
     this.studySettingDialogCloseHanlder = this.studySettingDialogCloseHanlder.bind(this)
@@ -53,7 +55,7 @@ export default class Legend extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     chartLayout.addListener('cursor_move', this.cursorMoveHandler)
     chartLayout.addListener('graph_hover', this.updateView)
     chartLayout.addListener('graph_select', this.updateView)
@@ -65,7 +67,7 @@ export default class Legend extends React.Component<Prop, State> {
   }
 
   public componentWillUnmount () {
-    const chartLayout = this.context.chartLayout
+    const chartLayout = this._chartLayout
     chartLayout.removeListener('cursor_move', this.cursorMoveHandler)
     chartLayout.removeListener('graph_hover', this.updateView)
     chartLayout.removeListener('graph_select', this.updateView)
@@ -189,7 +191,7 @@ export default class Legend extends React.Component<Prop, State> {
             const datasource = graph.datasource as StockDatasource
             const color = graph.styles[0].color
             const curBar = mainGraph.getCurBar()
-            const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : null
+            const cur = curBar ? datasource.barAt(datasource.search(curBar[0][1])) : datasource.last()
             return <div key={graph.id} className='chart-legend-line'
               style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
               <div className='chart-legend-item'>
@@ -214,8 +216,8 @@ export default class Legend extends React.Component<Prop, State> {
           <div className='chart-legend-line'>
             {
               maStudies.map(ma => {
-                const bars = ma.getCurBar()
-                const bar = bars ? bars[0] : null
+                const curBar = ma.getCurBar() || ma.getLastBar()
+                const bar = curBar ? curBar[0] : null
                 const styles = ma.styles
                 return <div key={ma.id} className='chart-legend-item'
                   style={ {
@@ -231,7 +233,7 @@ export default class Legend extends React.Component<Prop, State> {
         {
           nonMAStudies.map(study => {
             if (!study.noLegend) {
-              const curBar = study.getCurBar()
+              const curBar = study.getCurBar() || study.getLastBar()
               return <div key={study.id} className='chart-legend-line'
                 style={ {fontWeight: study.hover || study.selected ? 600 : 'normal'} }>
                 <div className='chart-legend-item'>
@@ -306,18 +308,18 @@ export default class Legend extends React.Component<Prop, State> {
         settingForm[i].tagName.toUpperCase() === 'INPUT' ?
           +settingForm[i].value : Boolean(settingForm[i].value)
     )
-    this.context.chartLayout.modifyGraph(this._studyInSetting, { input })
+    this._chartLayout.modifyGraph(this._studyInSetting, { input })
     this.studySettingDialogCloseHanlder()
   }
 
   private removeStudyHandler (ev) {
     const studyId = +ev.currentTarget.dataset.id
-    this.context.chartLayout.removeStudy(this.props.chart, studyId)
+    this._chartLayout.removeStudy(this.props.chart, studyId)
   }
 
   private removeCompareHandler (ev) {
     const graphId = +ev.currentTarget.dataset.id
-    this.context.chartLayout.removeComparison(graphId)
+    this._chartLayout.removeComparison(graphId)
   }
 
   /**
@@ -325,9 +327,7 @@ export default class Legend extends React.Component<Prop, State> {
    * @param  {[type]} point 指针位置
    */
   private cursorMoveHandler (point) {
-    if (point) {
-      this.forceUpdate()
-    }
+    this.forceUpdate()
   }
 
   private updateView () {
