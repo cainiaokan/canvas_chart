@@ -45,7 +45,6 @@ import StockModel from '../../model/stock'
 import ChartLayoutModel from '../../model/chartlayout'
 
 type AxisType = 'left' | 'right' | 'both'
-type ChartType = 'snapshot' | 'realtime'
 
 type Prop  = {
   symbol?: string
@@ -55,8 +54,6 @@ type Prop  = {
   width: number
   axis?: AxisType
   shape?: ShapeType
-  study?: StudyType
-  type?: ChartType
   scrollable?: boolean
   scalable?: boolean
   shownavbar?: boolean
@@ -64,7 +61,10 @@ type Prop  = {
   showsidebar?: boolean
   showcontrolbar?: boolean
   showfooterpanel?: boolean
-  right?: RightType
+  enableContextMenu?: boolean
+  update?: boolean // 更新数据
+  right?: RightType // 复权设置
+  basetime?: number // 最右侧数据bar对应的基准时间
 }
 
 type State = {
@@ -91,12 +91,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
     showfooterpanel: React.PropTypes.bool,
     showsidebar: React.PropTypes.bool,
     shownavbar: React.PropTypes.bool,
-    study: React.PropTypes.oneOf(['MA', 'MACD', 'BOLL', 'KDJ', 'VOLUME']),
-    to: React.PropTypes.number,
-    type: React.PropTypes.oneOf(['snapshot', 'realtime']),
+    enableContextMenu: React.PropTypes.bool,
+    update: React.PropTypes.bool,
+    basetime: React.PropTypes.number,
     width: React.PropTypes.number.isRequired,
     right: React.PropTypes.oneOf([0, 1, 2]),
-    defaultSymbol: React.PropTypes.string,
+    defaultSymbol: React.PropTypes.oneOf(['sh000001']),
   }
 
   public static defaultProps = {
@@ -111,7 +111,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     shownavbar: true,
     showsidebar: true,
     showfooterpanel: true,
-    type: 'realtime',
+    enableContextMenu: true,
+    update: true,
     right: 1,
   }
 
@@ -130,8 +131,18 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayout = this.context.chartLayout
 
     const chartLayout = this._chartLayout
+    let { basetime, update } = this.props
 
     chartLayout.component = this
+
+    if (basetime) {
+      update = false
+    }
+
+    if (update) {
+      chartLayout.update = update
+    }
+
     this.state = {
       sidebarFolded: chartLayout.readFromLS('qchart.sidebar.folded'),
       sidebarActiveIndex: chartLayout.readFromLS('qchart.sidebar.activeIndex') || 0,
@@ -161,6 +172,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public componentDidMount () {
     const chartLayout = this._chartLayout
+    const { basetime } = this.props
     const spinner = new Spinner({}).spin(this.refs.root)
     const resolution = chartLayout.readFromLS('qchart.resolution') || this.props.resolution
     const mainDatasource = new StockDatasource(
@@ -168,6 +180,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
       resolution,
       this.props.right
     )
+
+    if (basetime) {
+      mainDatasource.basetime = basetime
+    }
 
     // 将欢迎标记存入本地存储
     chartLayout.saveToLS('chart.welcome', true)

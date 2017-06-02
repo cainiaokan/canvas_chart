@@ -18,6 +18,7 @@ export type DataAdapter = {
  * 数据源
  */
 export abstract class Datasource extends EventEmitter {
+  public basetime: number = 0
   /**
    * 解析度
    * @type {ResolutionType}

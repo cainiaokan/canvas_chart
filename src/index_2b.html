@@ -11,7 +11,16 @@
   <div id="chart_container" class="chart-container">
   </div>
   <script type="text/javascript">
-    
+    window.chartConfig = {
+      symbol: 'sh000001',
+      buy_sell_list: [
+        {
+          type: 's' | 'b',
+          price: number,
+          timestamp: 1343434334,
+        }
+      ]
+    }
   </script>
   <%=htmlWebpackPlugin.files.webpackManifest%>
 </body>

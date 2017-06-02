@@ -215,7 +215,8 @@ export class StockDatasource extends Datasource {
 
     const toTime = lastRequestFromTime ?
                      lastRequestFromTime : this._plotList.first() ?
-                       this._plotList.first().time : this.now() + 24 * 3600
+                       this._plotList.first().time : this.basetime ?
+                         this.basetime : this.now() + 24 * 3600
 
     let fromTime = 0
     let maxTimeSpan = 0

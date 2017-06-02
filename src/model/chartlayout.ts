@@ -64,6 +64,7 @@ export const DEFAULT_MA_PROPS: MA_PROP[] = [{
 export default class ChartLayoutModel extends EventEmitter {
   public selectedDrawingTool: BaseToolRenderer
   public willEraseDrawingTool: boolean = false
+  public update: boolean = true
 
   private _component
   private _maStudies: StudyModel[]
@@ -400,7 +401,7 @@ export default class ChartLayoutModel extends EventEmitter {
           .then(() => {
             // 加载完成后立即重绘
             this.fullUpdate()
-            if (typeof this._pulseUpdateTimer !== 'number') {
+            if (this.update && typeof this._pulseUpdateTimer !== 'number') {
               this.pulseUpdate()
             }
             this._loading = false
