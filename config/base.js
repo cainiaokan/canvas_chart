@@ -56,6 +56,12 @@ module.exports = {
       template: './src/index.html'
     }),
 
+    new HtmlWebpackPlugin({
+      title: '微看盘-专业看盘工具',
+      filename: 'index_2b.html',
+      template: './src/index_2b.html'
+    }),
+
     // momentjs推断locale指定中文，这样不必加载所有语言包，减小vendor文件尺寸
     new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
   ],

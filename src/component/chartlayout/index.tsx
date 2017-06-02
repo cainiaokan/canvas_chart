@@ -48,9 +48,9 @@ type AxisType = 'left' | 'right' | 'both'
 type ChartType = 'snapshot' | 'realtime'
 
 type Prop  = {
-  symbol: string
-  defaultSymbol: string
-  resolution: ResolutionType
+  symbol?: string
+  defaultSymbol?: string
+  resolution?: ResolutionType
   height: number
   width: number
   axis?: AxisType
@@ -96,10 +96,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
     type: React.PropTypes.oneOf(['snapshot', 'realtime']),
     width: React.PropTypes.number.isRequired,
     right: React.PropTypes.oneOf([0, 1, 2]),
+    defaultSymbol: React.PropTypes.string,
   }
 
   public static defaultProps = {
     axis: 'right',
+    defaultSymbol: 'sh000001',
     resolution: '1',
     scalable: true,
     scrollable: true,
@@ -172,7 +174,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
     Promise.all([
       chartLayout.getServerTime(),
-      mainDatasource.resolveSymbol(this.props.symbol),
+      mainDatasource.resolveSymbol(this.props.symbol || this.props.defaultSymbol),
     ])
     .then(() => {
       history.replaceState(null, document.title, `/?symbol=${mainDatasource.symbol}`)

@@ -34,7 +34,7 @@
     "@types/react-color": "^2.3.0",
     "@types/react-dom": "^0.14.18",
     "@types/spin": "^2.3.30",
-    "@types/underscore": "^1.7.33",
+    "@types/underscore": "^1.8.0",
     "chunk-manifest-webpack-plugin": "^1.1.0",
     "css-loader": "^0.23.1",
     "csso-loader": "^0.2.0",
@@ -60,5 +60,6 @@
     "deploy": "scp -r dist/* himalayas@chart.quchaogu.com:/data/server/web/chart_web/webroot",
     "stat": "find src -name \"*.ts\" -o -name \"*.tsx\" -o -name \"*.less\" -o -name \"*.css\" | xargs wc -l",
     "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  },
+  "false": {}
 }

@@ -85,12 +85,6 @@ module.exports = webpackMerge(commonConfig, {
 
     new webpack.HashedModuleIdsPlugin(),
 
-    // new ChunkManifestPlugin({
-    //   filename: 'manifest.json',
-    //   manifestVariable: 'webpackManifest',
-    //   inlineManifest: true,
-    // }),
-
     // 配置公共css chunk，使得common.css成为独立的文件，不会被编译到bundle中去
     new ExtractTextPlugin('static/style/bundle-[contenthash:8].css')
   ]
