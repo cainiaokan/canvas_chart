@@ -6,7 +6,7 @@ enum PLOT_DATA {
   X = 0,
   TIME,
   TYPE,
-  VAL,
+  PRICE,
 }
 
 export class ArrowRenderer extends BaseChartRenderer {
@@ -36,15 +36,15 @@ export class ArrowRenderer extends BaseChartRenderer {
     for (let i = 0; i < len; i++) {
       const bar = bars[i]
       switch (bar[PLOT_DATA.TYPE]) {
-        case 0:
-          ctx.font = '48px Verdana, Arial, sans-serif'
+        case 'b':
+          ctx.font = '24px Verdana, Arial, sans-serif'
           ctx.fillStyle = '#FF3333'
-          ctx.fillText('↑', bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VAL]) - 16)
+          ctx.fillText('↑', bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.PRICE]))
           break
-        case 1:
-          ctx.font = '48px Verdana, Arial, sans-serif'
+        case 's':
+          ctx.font = '24px Verdana, Arial, sans-serif'
           ctx.fillStyle = '#99FF33'
-          ctx.fillText('↓', bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.VAL]) + 40)
+          ctx.fillText('↓', bar[PLOT_DATA.X], ~~axisY.getYByValue(bar[PLOT_DATA.PRICE]))
           break
         // case 2:
         //   ctx.fillStyle = 'blue'

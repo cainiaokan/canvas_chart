@@ -1,6 +1,5 @@
 import './index.less'
 
-import Spinner = require('spin')
 import * as React from 'react'
 import * as _ from 'underscore'
 
@@ -14,11 +13,8 @@ import Navbar from '../navbar'
 import Sidebar from '../sidebar'
 import ControlBar from '../controlbar'
 import FooterPanel from '../footerpanel'
-import ChartModel from '../../model/chart'
 import StudyModel from '../../model/study'
-import CrosshairModel from '../../model/crosshair'
 import { ChartStyle } from '../../graphic/diagram'
-import { StockDatasource } from '../../datasource'
 import {
   ShapeType,
   ResolutionType,
@@ -39,16 +35,12 @@ import {
   exitFullscreen,
   getFullScreenElement,
 } from '../../util'
-import AxisXModel from '../../model/axisx'
-import AxisYModel from '../../model/axisy'
-import StockModel from '../../model/stock'
 import ChartLayoutModel from '../../model/chartlayout'
 
 type AxisType = 'left' | 'right' | 'both'
 
 type Prop  = {
   symbol?: string
-  defaultSymbol?: string
   resolution?: ResolutionType
   height: number
   width: number
@@ -61,14 +53,13 @@ type Prop  = {
   showsidebar?: boolean
   showcontrolbar?: boolean
   showfooterpanel?: boolean
-  enableContextMenu?: boolean
-  update?: boolean // 更新数据
+  enablecontextmenu?: boolean
+  enablepulseupdate?: boolean // 更新数据
   right?: RightType // 复权设置
-  basetime?: number // 最右侧数据bar对应的基准时间
+  closetime?: number // 最右侧数据bar对应的基准时间
 }
 
 type State = {
-  loaded?: boolean
   showAbout?: boolean
   showGoToDate?: boolean
   contextMenuConfig?: ContextMenuConfig
@@ -91,17 +82,15 @@ export default class ChartLayout extends React.Component<Prop, State> {
     showfooterpanel: React.PropTypes.bool,
     showsidebar: React.PropTypes.bool,
     shownavbar: React.PropTypes.bool,
-    enableContextMenu: React.PropTypes.bool,
-    update: React.PropTypes.bool,
-    basetime: React.PropTypes.number,
+    enablecontextmenu: React.PropTypes.bool,
+    enablepulseupdate: React.PropTypes.bool,
+    closetime: React.PropTypes.number,
     width: React.PropTypes.number.isRequired,
     right: React.PropTypes.oneOf([0, 1, 2]),
-    defaultSymbol: React.PropTypes.oneOf(['sh000001']),
   }
 
   public static defaultProps = {
     axis: 'right',
-    defaultSymbol: 'sh000001',
     resolution: '1',
     scalable: true,
     scrollable: true,
@@ -111,8 +100,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
     shownavbar: true,
     showsidebar: true,
     showfooterpanel: true,
-    enableContextMenu: true,
-    update: true,
+    enablecontextmenu: true,
+    enablepulseupdate: true,
     right: 1,
   }
 
@@ -131,24 +120,22 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayout = this.context.chartLayout
 
     const chartLayout = this._chartLayout
-    let { basetime, update } = this.props
+    let { closetime, enablepulseupdate } = this.props
 
     chartLayout.component = this
 
-    if (basetime) {
-      update = false
+    // 使用使用了closetime，那么就不应该把数据bar的更新功能禁用，否则一旦加载新的数据，就会超过closetime，从而产生冲突
+    if (closetime) {
+      enablepulseupdate = false
     }
 
-    if (update) {
-      chartLayout.update = update
-    }
+    chartLayout.update = enablepulseupdate
 
     this.state = {
       sidebarFolded: chartLayout.readFromLS('qchart.sidebar.folded'),
       sidebarActiveIndex: chartLayout.readFromLS('qchart.sidebar.activeIndex') || 0,
       footerPanelFolded: true,
       footerPanelActiveIndex: 0,
-      loaded: false,
       showAbout: !this._chartLayout.readFromLS('chart.welcome'),
       showGoToDate: false,
     }
@@ -171,39 +158,10 @@ export default class ChartLayout extends React.Component<Prop, State> {
   }
 
   public componentDidMount () {
-    const chartLayout = this._chartLayout
-    const { basetime } = this.props
-    const spinner = new Spinner({}).spin(this.refs.root)
-    const resolution = chartLayout.readFromLS('qchart.resolution') || this.props.resolution
-    const mainDatasource = new StockDatasource(
-      this.props.defaultSymbol,
-      resolution,
-      this.props.right
-    )
-
-    if (basetime) {
-      mainDatasource.basetime = basetime
-    }
-
     // 将欢迎标记存入本地存储
-    chartLayout.saveToLS('chart.welcome', true)
-
-    Promise.all([
-      chartLayout.getServerTime(),
-      mainDatasource.resolveSymbol(this.props.symbol || this.props.defaultSymbol),
-    ])
-    .then(() => {
-      history.replaceState(null, document.title, `/?symbol=${mainDatasource.symbol}`)
-      this.prepareMainChart(mainDatasource, resolution)
-      this.initEvents()
-      spinner.stop()
-
-      this.setState({
-        loaded: true,
-      }, function () {
-        chartLayout.addPatterns()
-      })
-    })
+    this._chartLayout.saveToLS('chart.welcome', true)
+    this.initEvents()
+    this.forceUpdate()
   }
 
   public componentWillUnmount () {
@@ -214,42 +172,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   public componentDidUpdate () {
     this._chartLayout.fullUpdate()
-  }
-
-  public prepareMainChart (mainDatasource: StockDatasource, resolution: ResolutionType) {
-    const chartLayout = this._chartLayout
-
-    const crosshair = new CrosshairModel(chartLayout)
-    const axisX = new AxisXModel(mainDatasource, crosshair)
-    const axisY = new AxisYModel(mainDatasource, crosshair)
-    const chart = new ChartModel(
-      chartLayout,
-      mainDatasource,
-      axisX, axisY,
-      crosshair,
-      true,
-      true
-    )
-
-    axisY.chart = chart
-    crosshair.chart = chart
-
-    chartLayout.axisx = axisX
-    chartLayout.mainDatasource = mainDatasource
-
-    chart.addGraph(
-      new StockModel(
-        mainDatasource,
-        chart,
-        true,
-        true,
-        false,
-        resolution === '1' && this.props.shape === 'candle' ? 'line' : this.props.shape,
-        { lineWidth: 2 }
-      ))
-
-    chartLayout.addChart(chart)
-    chartLayout.resetStudies()
   }
 
   public initEvents () {
@@ -279,9 +201,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
   public render () {
     const width = this.props.width
     const height = this.props.height
-    const { shownavbar,  showcontrolbar } = this.props
+    const { shownavbar,  showcontrolbar, enablecontextmenu } = this.props
     const {
-      loaded,
       footerPanelFolded,
       footerPanelActiveIndex,
       showAbout,
@@ -290,13 +211,6 @@ export default class ChartLayout extends React.Component<Prop, State> {
       sidebarFolded,
       sidebarActiveIndex,
     } = this.state
-
-    if (!loaded) {
-      return <div className='chart-layout'
-                  ref='root'
-                  style={ {height: height + 'px',width: width + 'px'} }>
-              </div>
-    }
 
     const chartLayoutModel = this._chartLayout
     // 根据屏幕尺寸重置选项
@@ -369,7 +283,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <GoToDateDialog /> : null
         }
         {
-          contextMenuConfig ?
+          contextMenuConfig && enablecontextmenu ?
           <ContextMenu {...contextMenuConfig} /> : null
         }
         {

@@ -14,7 +14,6 @@ import { BaseToolRenderer } from '../graphic/tool'
 import {
   StockDatasource,
   studyConfig,
-  getServerTime,
   getPatterns,
   SymbolInfo,
 } from '../datasource'
@@ -268,23 +267,6 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   /**
-   * 获取服务器时间
-   */
-  public getServerTime (): Promise<any> {
-    return getServerTime()
-      .then(timeStr => {
-        const timeDiff = ~~(Date.now() / 1000) - (+timeStr)
-        const datasources = []
-        this.charts.forEach(chart => {
-          chart.graphs.forEach(graph => {
-            datasources.push(graph.datasource)
-          })
-        })
-        datasources.forEach(dt => dt.timeDiff = timeDiff)
-      })
-  }
-
-  /**
    * 获取形态技术分析数据
    */
   public addPatterns (): Promise<any> {
@@ -508,6 +490,7 @@ export default class ChartLayoutModel extends EventEmitter {
     this.loadHistory()
     this._axisx.resetOffset()
     this.emit('resolution_change', resolution)
+    history.replaceState(null, document.title, `/?symbol=${mainDatasource.symbol}&resolution=${resolution}`)
   }
 
   /**
@@ -543,8 +526,8 @@ export default class ChartLayoutModel extends EventEmitter {
           }
           this.saveToLS('chart.recentlist', recentList)
         }
-        history.replaceState(null, document.title, `/?symbol=${symbol}`)
         this.emit('symbol_change', symbolInfo)
+        history.replaceState(null, document.title, `/?symbol=${symbol}&resolution=${mainDatasource.resolution}`)
       })
   }
 

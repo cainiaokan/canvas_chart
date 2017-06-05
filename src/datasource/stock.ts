@@ -58,17 +58,29 @@ export class StockDatasource extends Datasource {
   private _right: RightType
 
   /**
+   * 股票基准时间，比如查看2016-9-1日往前的所有区间，则设置closeTime为1472693400
+   * 若不设置则不使用基准时间，而是当前的最新时间
+   * @type {number}
+   */
+  private _closeTime: number
+
+  /**
    * @constructor
    * @param {string} resolution 解析度
    * @param {RightType} right   复权设置
    * @param {number} timeDiff   与服务器的时差
    */
-  constructor (defaultSymbol: string, resolution: ResolutionType, right: RightType, timeDiff: number = 0) {
+  constructor (defaultSymbol: string, resolution: ResolutionType, right: RightType, closeTime: number, timeDiff: number = 0) {
     super(resolution, timeDiff)
     this._defaultSymbol = defaultSymbol
     this._right = right
     this._symbolInfo = null
     this._plotList = new PlotList<IStockBar>()
+    this._closeTime = closeTime
+  }
+
+  get closeTime(): number {
+    return this._closeTime
   }
 
   get right (): RightType {
@@ -215,8 +227,8 @@ export class StockDatasource extends Datasource {
 
     const toTime = lastRequestFromTime ?
                      lastRequestFromTime : this._plotList.first() ?
-                       this._plotList.first().time : this.basetime ?
-                         this.basetime : this.now() + 24 * 3600
+                       this._plotList.first().time : this.closeTime ?
+                         this.closeTime : this.now() + 24 * 3600
 
     let fromTime = 0
     let maxTimeSpan = 0

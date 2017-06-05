@@ -15,6 +15,31 @@
 <body>
   <div id="chart_container" class="chart-container">
   </div>
+  <script type="text/javascript">
+    window.chartConfig = {
+      symbol: 'sh000001',
+      resolution: 'D',
+      shownavbar: false,
+      showtoolbox: false,
+      showsidebar: false,
+      showcontrolbar: false,
+      showfooterpanel: false,
+      enablecontextmenu: false,
+      enablepulseupdate: false, // 更新数据
+      closetime: 1492963200,
+      buy_sell_list: [
+        {
+          type: 's',
+          price: 3282.92,
+          time: 1480348800,
+        },{
+          type: 'b',
+          price: 2998.17,
+          time: 1474905600,
+        }
+      ]
+    }
+  </script>
   <%=htmlWebpackPlugin.files.webpackManifest%>
   <script>
     /*百度统计 --begin--*/

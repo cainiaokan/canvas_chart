@@ -8,6 +8,7 @@ import {
   CandleChartRenderer,
   HistogramChartRenderer,
   BandRenderer,
+  ArrowRenderer,
 } from '../graphic/diagram'
 import GraphModel from '../model/graph'
 
@@ -68,6 +69,9 @@ export default class PlotModel {
         break
       case 'band':
         this._graphic = new BandRenderer(this, style)
+        break
+      case 'arrow':
+        this._graphic = new ArrowRenderer(this)
         break
       default:
         throw 'unsupported chart shape'
