@@ -13,6 +13,8 @@ import AxisY from './../axisY'
 
 type Prop = {
   chart: ChartModel
+  scrollable: boolean
+  scalable: boolean
   width: number
   height: number
 }
@@ -87,6 +89,8 @@ export default class Chart extends React.Component<Prop, State> {
     return nextProp.chart !== curProp.chart ||
            nextProp.width !== curProp.width ||
            nextProp.height !== curProp.height ||
+           nextProp.scalable !== curProp.scalable ||
+           nextProp.scrollable !== curProp.scrollable ||
            !_.isEqual(this.state, nextState)
   }
 
@@ -156,10 +160,8 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   public render () {
-    const chart = this.props.chart
-    const width = this.props.width
+    const { chart, width, height, scalable } = this.props
     const chartWidth = this.props.width - AXIS_Y_WIDTH
-    const height = this.props.height
 
     return <div className={`chart-line ${chart.isMain ? 'main' : ''}`} style={{ width }}>
       <div className='chart-plot'
@@ -203,7 +205,7 @@ export default class Chart extends React.Component<Prop, State> {
           chart.isMain ? <Indicator chart={chart} /> : null
         }
       </div>
-      <AxisY axis={chart.axisY} height={height} width={AXIS_Y_WIDTH} />
+      <AxisY axis={chart.axisY} scalable={scalable} height={height} width={AXIS_Y_WIDTH} />
     </div>
   }
 
@@ -464,7 +466,8 @@ export default class Chart extends React.Component<Prop, State> {
   private touchEndPageHandler (ev: any) {
     const chart = this.props.chart
 
-    if (this._dragOffsetStart &&
+    if (this.props.scrollable &&
+        this._dragOffsetStart &&
        (ev.timeStamp - this._lastMoveTime < 60 && Math.abs(this._v) > 100)) {
       this.momentumMove(this._v)
     }
@@ -558,7 +561,7 @@ export default class Chart extends React.Component<Prop, State> {
         this._dragPosX = point.x
         this._dragPosY = point.y
       // 拖动背景
-      } else if (this._dragOffsetStart) {
+      } else if (this._dragOffsetStart && this.props.scrollable) {
         if (chartLayout.isEditMode) {
           const cursorPoint = chart.crosshair.point
           chartLayout.setCursorPoint({
@@ -584,6 +587,9 @@ export default class Chart extends React.Component<Prop, State> {
   }
 
   private gestureMoveHandler (ev) {
+    if (!this.props.scalable) {
+      return
+    }
     if (this._pinchHorzStart || this._pinchVertStart) {
       const chart = this.props.chart
       const axisX = chart.axisX

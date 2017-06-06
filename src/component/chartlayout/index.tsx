@@ -120,16 +120,12 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayout = this.context.chartLayout
 
     const chartLayout = this._chartLayout
-    let { closetime, enablepulseupdate } = this.props
+    const { closetime, enablepulseupdate, scrollable } = this.props
 
     chartLayout.component = this
 
     // 使用使用了closetime，那么就不应该把数据bar的更新功能禁用，否则一旦加载新的数据，就会超过closetime，从而产生冲突
-    if (closetime) {
-      enablepulseupdate = false
-    }
-
-    chartLayout.update = enablepulseupdate
+    chartLayout.update = closetime ? false : enablepulseupdate
 
     this.state = {
       sidebarFolded: chartLayout.readFromLS('qchart.sidebar.folded'),
@@ -150,7 +146,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this.onFullScreen = this.onFullScreen.bind(this)
     this.sidebarChangeHandler = this.sidebarChangeHandler.bind(this)
     this.footerPanelChangeHandler = this.footerPanelChangeHandler.bind(this)
-    this.wheelHandler = this.wheelHandler.bind(this)
+    this.wheelHandler = scrollable ? this.wheelHandler.bind(this) : null
   }
 
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
@@ -201,7 +197,13 @@ export default class ChartLayout extends React.Component<Prop, State> {
   public render () {
     const width = this.props.width
     const height = this.props.height
-    const { shownavbar,  showcontrolbar, enablecontextmenu } = this.props
+    const {
+      shownavbar,
+      showcontrolbar,
+      enablecontextmenu,
+      scrollable,
+      scalable,
+    } = this.props
     const {
       footerPanelFolded,
       footerPanelActiveIndex,
@@ -259,6 +261,8 @@ export default class ChartLayout extends React.Component<Prop, State> {
         <Chart
           key={chart.id}
           chart={chart}
+          scrollable={scrollable}
+          scalable={scalable}
           height={chart.isMain ? mainChartHeight : addtionalChartHeight}
           width={availWidth} />
       )
@@ -313,7 +317,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
           style={ {width: availWidth + 2 + 'px'} }
           onWheel={this.wheelHandler}>
           {chartLines}
-          <AxisX height={AXIS_X_HEIGHT} width={availWidth - AXIS_Y_WIDTH} />
+          <AxisX scalable={scalable} height={AXIS_X_HEIGHT} width={availWidth - AXIS_Y_WIDTH} />
         </div>
         {
           showcontrolbar ?

@@ -3,6 +3,7 @@ import AxisYModel from '../model/axisy'
 
 type Prop = {
   axis: AxisYModel
+  scalable: boolean
   width: number
   height: number
 }
@@ -57,7 +58,8 @@ export default class AxisY extends React.Component<Prop, any> {
   public shouldComponentUpdate (nextProps: Prop) {
     const curProps = this.props
     return curProps.width !== nextProps.width ||
-           curProps.height !== nextProps.height
+           curProps.height !== nextProps.height ||
+           curProps.scalable !== nextProps.scalable
   }
 
   public render () {
@@ -90,7 +92,7 @@ export default class AxisY extends React.Component<Prop, any> {
   }
 
   private mouseMoveHandler (ev) {
-    if (this._dragMarginStart) {
+    if (this._dragMarginStart && this.props.scalable) {
       const pageY = ev.changedTouches ? ev.changedTouches[0].pageY : ev.pageY
       const offset = pageY - this._dragPosY
       const axisY = this.props.axis

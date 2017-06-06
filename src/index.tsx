@@ -22,6 +22,14 @@ const paramConfig = getUrlParams()
 const container = document.getElementById('chart_container')
 const chartLayout = new ChartLayoutModel()
 
+Object.keys(paramConfig).forEach(key => {
+  try {
+    paramConfig[key] = JSON.parse(paramConfig[key])
+  } catch (ex) {
+    // do nothing
+  }
+})
+
 _.defaults(chartConfig, paramConfig, {
   symbol: 'sh000001',
   resolution: chartLayout.readFromLS('qchart.resolution') || '1',
@@ -86,7 +94,7 @@ Promise.all([
     )
   )
 
-  // 2b平台显示买卖点
+  // tob平台显示买卖点
   if (chartConfig.buy_sell_list) {
     let data = chartConfig.buy_sell_list
     delete chartConfig.buy_sell_list

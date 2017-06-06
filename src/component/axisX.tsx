@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import * as React from 'react'
 import ChartLayoutModel from '../model/chartlayout'
 import AxisXModel from '../model/axisx'
@@ -5,6 +6,7 @@ import AxisXModel from '../model/axisx'
 type Prop = {
   height: number
   width: number
+  scalable: boolean
 }
 
 export default class AxisX extends React.Component<Prop, any> {
@@ -61,9 +63,7 @@ export default class AxisX extends React.Component<Prop, any> {
   }
 
   public shouldComponentUpdate (nextProps: Prop) {
-    const curProps = this.props
-    return curProps.width !== nextProps.width ||
-           curProps.height !== nextProps.height
+    return !_.isEqual(this.props, nextProps)
   }
 
   public render () {
@@ -87,7 +87,7 @@ export default class AxisX extends React.Component<Prop, any> {
   }
 
   private moveHandler (ev) {
-    if (this._dragBarWidthStart) {
+    if (this._dragBarWidthStart && this.props.scalable) {
       const axisX = this._axisX
       const width = axisX.width
       const pageX = ev.changedTouches ? ev.changedTouches[0].pageX : ev.pageX
