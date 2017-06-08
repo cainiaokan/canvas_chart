@@ -146,7 +146,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this.onFullScreen = this.onFullScreen.bind(this)
     this.sidebarChangeHandler = this.sidebarChangeHandler.bind(this)
     this.footerPanelChangeHandler = this.footerPanelChangeHandler.bind(this)
-    this.wheelHandler = scrollable ? this.wheelHandler.bind(this) : null
+    this.wheelHandler = this.wheelHandler.bind(this)
   }
 
   public shouldComponentUpdate (nextProp: Prop, nextState: State) {
@@ -389,7 +389,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
 
   private wheelHandler (ev) {
     ev.preventDefault()
-    if (this._chartLayout.mainDatasource.loaded() !== 0) {
+    if (this.props.scrollable && this._chartLayout.mainDatasource.loaded() !== 0) {
       const axisX = this._chartLayout.axisx
       axisX.offset -= ev.deltaX
     }

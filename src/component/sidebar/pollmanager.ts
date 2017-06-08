@@ -243,13 +243,9 @@ export default class PollManager extends EventEmitter {
         }
         break
       case 1:
-        if (!this._timers.indexesInfo) {
-          this.pollIndexesInfo()
-        }
-        if (!this._timers.realtimeTools) {
-          this.pollRealtimeTools()
-        }
-        if (!this._timers.nonrealtimeTools && !this._data.nonRealtimeTools) {
+        this.pollIndexesInfo()
+        this.pollRealtimeTools()
+        if (!this._data.nonRealtimeTools) {
           this.getNonRealtimeTools()
         }
         break
@@ -264,9 +260,7 @@ export default class PollManager extends EventEmitter {
         }
         break
       case 4:
-        if (!this._timers.analysis) {
-          this.getAnalysisData()
-        }
+        this.getAnalysisData()
         break
       default:
     }
@@ -374,7 +368,7 @@ export default class PollManager extends EventEmitter {
         }
 
         this._data.capitalFlowInfo = chartData
-        this._timers.capitalFlowInfo = setTimeout(this.pollCapitalFlow, 3 * 60 * 1000)
+        this._timers.capitalFlowInfo = this._tabIndex === 0 ? setTimeout(this.pollCapitalFlow, 3 * 60 * 1000) : -1
         this.emit('data', this._data)
       })
       .catch(() => {
@@ -393,7 +387,7 @@ export default class PollManager extends EventEmitter {
         const indexesInfo = data.data.list
 
         this._data.indexesInfo = indexesInfo
-        this._timers.indexesInfo = reflushinter ? setTimeout(this.pollIndexesInfo, reflushinter) : -1
+        this._timers.indexesInfo = this._tabIndex === 1 && reflushinter ? setTimeout(this.pollIndexesInfo, reflushinter) : -1
         this.emit('data', this._data)
       })
       .catch(() => {
@@ -421,7 +415,7 @@ export default class PollManager extends EventEmitter {
         }
 
         this._data.realtimeTools = realtimeTools
-        this._timers.realtimeTools = data.flush_time ? setTimeout(this.pollRealtimeTools, data.flush_time * 1000) : -1
+        this._timers.realtimeTools = this._tabIndex === 1 && data.flush_time ? setTimeout(this.pollRealtimeTools, data.flush_time * 1000) : -1
         this.emit('data', this._data)
       })
       .catch(() => {
@@ -500,6 +494,6 @@ export default class PollManager extends EventEmitter {
         }
         this.emit('data', this._data)
       })
-      .catch(() => this._timers.analysis = setTimeout(this.getAnalysisData, RETRY_DELAY))
+      .catch(() => this._timers.analysis = this._tabIndex === 4 && setTimeout(this.getAnalysisData, RETRY_DELAY))
   }
 }

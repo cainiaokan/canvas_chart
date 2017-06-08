@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "sourceMap": false,
     "module": "commonjs",
+    "target": "es5",
+    "sourceMap": true,
     "jsx": "react",
     "experimentalDecorators": true
   },

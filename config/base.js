@@ -22,6 +22,7 @@ module.exports = {
       'isomorphic-fetch',
       'iscroll',
       'spin',
+      'randomcolor',
       './src/vendor/hidpi-canvas-polyfill.js',
     ],
     // chart功能的入口模块

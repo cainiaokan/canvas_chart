@@ -17,6 +17,11 @@ import DealPointModel from './model/dealpoint'
 import CrosshairModel from './model/crosshair'
 import { StockDatasource, StaticDatasource, IDBar, getServerTime } from './datasource'
 
+interface IWindow {
+  chartConfig: any
+  onresize: () => void
+}
+declare var window: IWindow
 const chartConfig = window.chartConfig || {}
 const paramConfig = getUrlParams()
 const container = document.getElementById('chart_container')
