@@ -250,7 +250,7 @@ export default class ChartLayoutModel extends EventEmitter {
           }
 
           // 绘制y坐标轴，顺序不能错，必须放到chart.draw的后面
-          chart.axisY.draw(chart.axisY.isValid ? true : false)
+          chart.axisY.draw(chart.axisY.isValid)
           // 绘制创建中的工具图形
           if (chart.creatingDrawingTool) {
             chart.creatingDrawingTool.draw()

@@ -13,11 +13,26 @@
   <script type="text/javascript">
     window.chartConfig = {
       symbol: 'sh000001',
+      resolution: 'D',
+      shownavbar: false,
+      showtoolbox: false,
+      showsidebar: false,
+      showcontrolbar: false,
+      showfooterpanel: false,
+      enablecontextmenu: false,
+      enablepulseupdate: false, // 更新数据
+      closetime: 1492963200, // 设置时间轴的时间上限，例如设置1492963200表示数据最多显示到2017年4月24日，不能再往后
+      scrollable: false,
+      scalable: false,
       buy_sell_list: [
         {
-          type: 's' | 'b',
-          price: number,
-          timestamp: 1343434334,
+          type: 's',
+          price: 3282.92,
+          time: 1480348800,
+        },{
+          type: 'b',
+          price: 2998.17,
+          time: 1474905600,
         }
       ]
     }

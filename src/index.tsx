@@ -44,7 +44,7 @@ _.defaults(chartConfig, paramConfig, {
 })
 
 const mainDatasource = new StockDatasource(
-  chartConfig.symbol, chartConfig.resolution,
+  'sh000001', chartConfig.resolution,
   chartConfig.right,
   chartConfig.closetime,
 )
