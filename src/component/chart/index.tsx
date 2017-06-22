@@ -370,7 +370,8 @@ export default class Chart extends React.Component<Prop, State> {
           return
         } else {
           this._longTapCounter = setTimeout(() => {
-            this.contextMenuHanlder()
+            this._dragOffsetStart = false
+            chartLayout.setCursorPoint(curPoint)
           }, 500)
         }
       } else {
@@ -426,26 +427,29 @@ export default class Chart extends React.Component<Prop, State> {
 
     // 取消长按事件
     clearTimeout(this._longTapCounter)
+    chartLayout.setCursorPoint(cursorPoint)
 
-    if (chartLayout.isEditMode && isSingleTouch && !this._cancelClick) {
-      if (chartLayout.selectedDrawingTool) {
-        // 创建画图工具
-        chart.drawingToolBegin()
-        chart.drawingToolSetVertex({
-          x: cursorPoint.x,
-          y: cursorPoint.y,
-        })
-        if (chart.creatingDrawingTool.isFinished()) {
-          chart.drawingToolEnd()
-        }
-      } else if (chart.creatingDrawingTool) {
-         // 继续创建画图工具
-        chart.drawingToolSetVertex({
-          x: cursorPoint.x,
-          y: cursorPoint.y,
-        })
-        if (chart.creatingDrawingTool.isFinished()) {
-          chart.drawingToolEnd()
+    if (chartLayout.isEditMode) {
+      if (isSingleTouch && !this._cancelClick) {
+        if (chartLayout.selectedDrawingTool) {
+          // 创建画图工具
+          chart.drawingToolBegin()
+          chart.drawingToolSetVertex({
+            x: cursorPoint.x,
+            y: cursorPoint.y,
+          })
+          if (chart.creatingDrawingTool.isFinished()) {
+            chart.drawingToolEnd()
+          }
+        } else if (chart.creatingDrawingTool) {
+           // 继续创建画图工具
+          chart.drawingToolSetVertex({
+            x: cursorPoint.x,
+            y: cursorPoint.y,
+          })
+          if (chart.creatingDrawingTool.isFinished()) {
+            chart.drawingToolEnd()
+          }
         }
       }
     }
@@ -515,12 +519,11 @@ export default class Chart extends React.Component<Prop, State> {
 
     // 取消长按事件
     clearTimeout(this._longTapCounter)
+    this._cancelClick = true
 
     if (this._pinchHorzStart || this._pinchVertStart) {
       return
     }
-
-    this._cancelClick = true
 
     if (!chartLayout.isEditMode) {
       chartLayout.setCursorPoint(point)
@@ -618,10 +621,8 @@ export default class Chart extends React.Component<Prop, State> {
     }
   }
 
-  private contextMenuHanlder (ev?) {
-    if (ev) {
-      ev.preventDefault()
-    }
+  private contextMenuHanlder (ev) {
+    ev.preventDefault()
     const chartLayout = this._chartLayout
     const offset = this.props.chart.offset
     const x = ev ? parseInt(ev.pageX) : this._dragPosX + offset.left

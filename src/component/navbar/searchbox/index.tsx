@@ -114,6 +114,9 @@ export default class SearchBox extends React.Component<Prop, State> {
   }
 
   private selectSymbolHandler () {
+    if (!this.state.results) {
+      return
+    }
     const index = this.state.selectedIndex
     const symbolInfo = this.state.results[index]
     this.props.onSelect(symbolInfo.symbol)

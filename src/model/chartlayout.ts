@@ -559,10 +559,6 @@ export default class ChartLayoutModel extends EventEmitter {
    * @param {Point} point
    */
   public setCursorPoint (point: Point) {
-    const oldPoint = this.mainChart.crosshair.point
-    if (oldPoint && point && oldPoint.x === point.x && oldPoint.y === point.y) {
-      return
-    }
     this.charts.forEach(ch => ch.crosshair.point = point)
     this.emit('cursor_move', point)
   }

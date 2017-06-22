@@ -84,6 +84,7 @@ export default class AxisYModel extends EventEmitter {
   }
 
   public getYByValue (value: number, range: YRange = this.range): number {
+    // TODO 这里range有时候为空，会报错
     const margin = this.margin
     const availHeight = this.height - margin * 2
     const diff1 = range.max - range.min

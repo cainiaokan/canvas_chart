@@ -72,12 +72,11 @@ export default class ContextMenu extends React.Component<Prop, any> {
   }
 
   private onSelectMenu (ev) {
-    if (ev.touches) {
-      ev.preventDefault()
-    }
     const actionType = ev.target.dataset.type
-    this.props.actions(actionType)
     this.closeHandler()
+    setTimeout(() => {
+      this.props.actions(actionType)
+    }, 100)
   }
 
   private closeHandler () {

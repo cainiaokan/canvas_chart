@@ -120,7 +120,7 @@ export default class Legend extends React.Component<Prop, State> {
               style={ {fontWeight: graph.hover || graph.selected ? 600 : 'normal'} }>
               <div className='chart-legend-item'>
                 <span className='symbol-name'>{!datasource.symbolInfo ? '加载中' : datasource.symbolInfo.description}</span>
-                <span className='symbol-code'>{datasource.symbolInfo.symbol}.{datasource.symbolInfo.exchange}</span>
+                {/*<span className='symbol-code'>{datasource.symbolInfo.symbol}.{datasource.symbolInfo.exchange}</span>*/}
               </div>
               {
                 resolution === '1' ?

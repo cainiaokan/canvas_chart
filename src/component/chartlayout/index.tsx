@@ -120,7 +120,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     this._chartLayout = this.context.chartLayout
 
     const chartLayout = this._chartLayout
-    const { closetime, enablepulseupdate, scrollable } = this.props
+    const { closetime, enablepulseupdate } = this.props
 
     chartLayout.component = this
 
@@ -279,7 +279,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
           <ToolBox /> : null
         }
         {
-          showAbout ?
+          showAbout && height >= 450 ?
           <About /> : null
         }
         {

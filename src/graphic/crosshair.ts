@@ -10,11 +10,12 @@ export default class CrosshairRenderer {
   public draw () {
     const model = this._model
     const chart = model.chart
+    const chartLayout = chart.chartLayout
     const ctx = chart.topCtx
     const point = model.point
     const height = chart.height
     const width = chart.width
-    const isEditMode = chart.chartLayout.isEditMode
+    const isEditMode = chartLayout.isEditMode
 
     if (!point) {
       return

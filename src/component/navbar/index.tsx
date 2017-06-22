@@ -64,9 +64,10 @@ export default class Navbar extends React.Component<Prop, any> {
   public render () {
     const chartLayout = this._chartLayout
     const resolution = chartLayout.mainDatasource.resolution
+    const { width } = this.props
 
     return (
-      <div className='chart-navbar' style={ {width: this.props.width + 'px'} }>
+      <div className='chart-navbar' style={ {width: width + 'px'} }>
         <SearchBox
           className='chart-navbar-search'
           autofill={true}
@@ -83,17 +84,19 @@ export default class Navbar extends React.Component<Prop, any> {
           onRemoveComparison={this.props.onRemoveComparison} />
 
         <StudySelector onAddStudy={this.props.onAddStudy} />
-
         {
           resolution > '1' ? <MASetting onStudyModified={this.props.onStudyModified} /> : null
         }
-
         {
           chartLayout.mainDatasource.symbolInfo.type === 'stock' ?
           <RightOption onRightChange={this.props.onRightChange} /> : null
         }
-        <button className='about btn' onClick={this.onShowAbout}>关于</button>
-        <button className='newest btn' onClick={this.onShowNewest}>最新功能</button>
+        {
+          width >= 768 ? <button className='about btn' onClick={this.onShowAbout}>关于</button> : null
+        }
+        {
+          width >= 768 ? <button className='newest btn' onClick={this.onShowNewest}>最新功能</button> : null
+        }
       </div>
     )
   }
