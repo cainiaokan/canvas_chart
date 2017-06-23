@@ -71,10 +71,6 @@ export function $MA (c: number): number {
   const openIndex = cacheObj[cacheKey] || getLastOpenIndex(datasource)
   cacheObj[cacheKey] = openIndex
 
-  if (c < openIndex || openIndex === -1) {
-    return null
-  }
-
   let amount = 0
   let volume = 0
 
@@ -100,10 +96,6 @@ export function MA (c: number, n: number, attr: Attr): number {
   const end = c + 1
   let ma = 0
 
-  if (start < 0) {
-    return null
-  }
-
   for (let i = start; i < end; i++) {
     ma += attr(i)
   }
@@ -112,7 +104,7 @@ export function MA (c: number, n: number, attr: Attr): number {
 }
 
 export function LLV (c: number, n: number, attr: Attr): number {
-  const start = c - n + 1 < 0 ? 0 : c - n + 1
+  const start = c - n + 1
   const end = c + 1
   let min = Number.MAX_VALUE
   for (let i = start, val; i < end; i++) {
@@ -125,7 +117,7 @@ export function LLV (c: number, n: number, attr: Attr): number {
 }
 
 export function HHV (c: number, n: number, attr: Attr): number {
-  const start = c - n + 1 < 0 ? 0 : c - n + 1
+  const start = c - n + 1
   const end = c + 1
   let max = -Number.MAX_VALUE
   for (let i = start, val; i < end; i++) {
@@ -138,15 +130,11 @@ export function HHV (c: number, n: number, attr: Attr): number {
 }
 
 export function REF (c: number, n: number, attr: Attr): number {
-  if (c - n < 0) {
-    return null
-  } else {
-    return attr(c - n)
-  }
+  return attr(c - n)
 }
 
 export function SUM (c: number, n: number, attr): number {
-  const start = c - n + 1 < 0 ? 0 : c - n + 1
+  const start = c - n + 1
   const end = c + 1
   let sum = 0
   for (let i = start; i < end; i++) {
@@ -158,10 +146,6 @@ export function SUM (c: number, n: number, attr): number {
 export function STD (c: number, n: number, attr: Attr): number {
   const start = c - n + 1
   const end = c + 1
-
-  if (start < 0) {
-    return null
-  }
 
   let ma = 0
 
@@ -183,10 +167,6 @@ export function STD (c: number, n: number, attr: Attr): number {
 export function AVEDEV (c: number, n: number, attr: Attr): number {
   const start = c - n + 1
   const end = c + 1
-
-  if (start < 0) {
-    return null
-  }
 
   let ma = 0
 
@@ -221,14 +201,13 @@ export function EMA (c: number, n: number, attr: Attr): number {
   }
 
   // 回溯5倍的n，过小的倍数会导致计算精确度不够
-  const start = c - n * 5 < 0 ? 0 : c - n * 5
+  const start = c - n * 5
   const end = c + 1
   let ema = 0
   for (let i = start + 1; i < end; i++) {
     ema = 2 / (n + 1) * (attr(i) - ema) + ema
   }
-  cacheObj[cacheKey] = ema
-  return ema
+  return cacheObj[cacheKey] = ema
 }
 
 export function SMA (c: number, n: number, w: number, attr: Attr): number {
@@ -247,12 +226,11 @@ export function SMA (c: number, n: number, w: number, attr: Attr): number {
   }
 
   // 回溯8倍的n，过小的倍数会导致计算精确度不够
-  const start = c - n * 8 < 0 ? 0 : c - n * 8
+  const start = c - n * 8
   const end = c + 1
   let sma = 50
   for (let i = start + 1; i < end; i++) {
     sma = (w * attr(i) + (n - w) * sma) / n
   }
-  cacheObj[cacheKey] = sma
-  return sma
+  return cacheObj[cacheKey] = sma
 }

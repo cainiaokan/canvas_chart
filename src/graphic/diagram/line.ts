@@ -111,6 +111,7 @@ export class LineChartRenderer extends BaseChartRenderer {
       x = bar[PLOT_DATA.X]
       y = ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
       if (bar[PLOT_DATA.VALUE] === 0) {
+        hasMoveTo = false
         continue
       }
       if (hasMoveTo) {

@@ -264,25 +264,23 @@ abstract class GraphModel {
     setContext(datasource, this._adapter)
 
     for (
-      let i = 0,
-          len = bars.length,
-          bar,
-          start = datasource.search(bars[0].time),
-          cache; i < len; i++, start++) {
+      let len = bars.length,
+          i = 0, start = datasource.search(bars[0].time),
+          bar, cache; i < len; i++, start++) {
       bar = bars[i]
       cache = this._cache[bar.time]
 
-      // bar的数量不足返回null
-      if (start - Math.max.apply(Math, this._input) < 0) {
-        continue
-      }
       cache = this._cache[bar.time]
       if (!cache) {
-        cache = this._calc(
-          this._adapter(bar),
-          start,
-          this._input
-        )
+        try {
+          cache = this._calc(
+            this._adapter(bar),
+            start,
+            this._input
+          )
+        } catch (e) {
+          continue
+        }
         this._cache[bar.time] = cache
       }
 

@@ -88,13 +88,13 @@ export const studyConfig: StudyConfig = {
     },
     output: (data: any[], index: number, input: any[]): any[][] => {
       const ma = $MA(index)
-      return ma !== null ? [
+      return [
         [
           0,
           data[1],
           ma,
         ],
-      ] : null
+      ]
     },
     supportResolutions: ['1'],
     priority: 999,
@@ -127,13 +127,13 @@ export const studyConfig: StudyConfig = {
     output: (data: any[], index: number, input: any[]): any[][] => {
       const n = input[0]
       const ma = MA(index, n, C)
-      return ma !== null ? [
+      return [
         [
           0,
           data[1],
           ma,
         ],
-      ] : null
+      ]
     },
     plots: [
       {
@@ -317,10 +317,7 @@ export const studyConfig: StudyConfig = {
     noLegend: false,
     datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
-      const signal = input[0]
-      const m1 = input[1]
-      const m2 = input[2]
-
+      const [signal, m1, m2] = input
       const RSV = function (c: number): number {
         return (C(c) - LLV(c, signal, L)) /
           (HHV(c, signal, H) - LLV(c, signal, L)) * 100
@@ -459,11 +456,7 @@ export const studyConfig: StudyConfig = {
     noLegend: false,
     datasourceType: 'local',
     output: (data: any[], index: number, input: any[]): any[][] => {
-      const n: number = input[0]
-      const ma1: number = input[1]
-      const ma2: number = input[2]
-      const ma3: number = input[3]
-
+      const [n, ma1, ma2, ma3] = input
       const time = data[1]
 
       const MID = function (c: number): number {
@@ -505,9 +498,9 @@ export const studyConfig: StudyConfig = {
 
       return [
         [0, time, CR(index)],
-        index - n - ma1 + 1 - ma1 / 2.5 - 1 > 0 ? [0, time, REF(index, ma1 / 2.5 + 1, MA1)] : null,
-        index - n - ma2 + 1 - ma2 / 2.5 - 1 > 0 ? [0, time, REF(index, ma2 / 2.5 + 1, MA2)] : null,
-        index - n - ma3 + 1 - ma3 / 2.5 - 1 > 0 ? [0, time, REF(index, ma3 / 2.5 + 1, MA3)] : null,
+        [0, time, REF(index, ma1 / 2.5 + 1, MA1)],
+        [0, time, REF(index, ma2 / 2.5 + 1, MA2)],
+        [0, time, REF(index, ma3 / 2.5 + 1, MA3)],
       ]
     },
     plots: [
