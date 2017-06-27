@@ -198,25 +198,19 @@ abstract class GraphModel {
   }
 
   public getRangeY (): YRange {
-    return this._plots.reduce((range: YRange, plot: PlotModel) => {
-      const r = plot.graphic.calcRangeY()
-      if (!r) {
+    return this._plots.slice(1).reduce((range: YRange, plot: PlotModel) => {
+      const subRange = plot.graphic.calcRangeY()
+      if (!subRange) {
         return range
       }
-      if (!range) {
-        return {
-          max: r.max,
-          min: r.min,
-        }
+      if (subRange.max > range.max) {
+        range.max = subRange.max
       }
-      if (r.max > range.max) {
-        range.max = r.max
-      }
-      if (r.min < range.min) {
-        range.min = r.min
+      if (subRange.min < range.min) {
+        range.min = subRange.min
       }
       return range
-    }, null)
+    }, this._plots[0].graphic.calcRangeY())
   }
 
   public hitTest (select = false): boolean {

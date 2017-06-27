@@ -45,6 +45,9 @@ module.exports = {
 
     new WebpackChunkHash(),
 
+    // enable scope hoisting
+    new webpack.optimize.ModuleConcatenationPlugin(),
+
     new ChunkManifestPlugin({
       filename: 'chunk_manifest.json',
       manifestVariable: 'webpackManifest',

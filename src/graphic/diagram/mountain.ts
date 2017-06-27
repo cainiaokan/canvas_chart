@@ -28,7 +28,8 @@ export class MountainChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const curBar = plot.getCurBar()
     const prevBar = plot.getPrevBar()
     const nextBar = plot.getNextBar()
@@ -63,6 +64,7 @@ export class MountainChartRenderer extends BaseChartRenderer {
     }
 
     const range: YRange = {
+      base: bars[0][PLOT_DATA.VALUE],
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
     }
@@ -91,7 +93,8 @@ export class MountainChartRenderer extends BaseChartRenderer {
     const chart = graph.chart
     const axisY = chart.axisY
     const height = chart.height
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const histogramBase = this.style.histogramBase
     const baseHeight = typeof histogramBase === 'number' ? axisY.getYByValue(histogramBase, rangeY) : -1
 
@@ -131,7 +134,8 @@ export class MountainChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     return ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
   }
 }

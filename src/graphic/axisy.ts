@@ -9,6 +9,8 @@ export default class AxisYRenderer {
 
   public draw () {
     const axis = this._axis
+    const range = axis.range
+    const isPercentage = axis.type === 'percentage'
     const chart = axis.chart
     const ctx = axis.ctx
     const width = axis.width
@@ -36,7 +38,7 @@ export default class AxisYRenderer {
       const tickmark = tickmarks[i]
       ctx.moveTo(0, ~~tickmark.y)
       ctx.lineTo(5, ~~tickmark.y)
-      ctx.fillText(tickmark.value.toFixed(2).toString(), 10, tickmark.y + 4)
+      ctx.fillText(tickmark.value.toFixed(2) + (isPercentage ? '%' : ''), 10, tickmark.y + 4)
     }
 
     ctx.closePath()
@@ -50,7 +52,7 @@ export default class AxisYRenderer {
             ctx.fillStyle = priceLabel.color
             ctx.fillRect(0, y - 6 - margin / 2, width + margin, 12 + margin)
             ctx.fillStyle = '#ffffff'
-            ctx.fillText(priceLabel.val.toFixed(2).toString(), 10, y + 4)
+            ctx.fillText((isPercentage ? (priceLabel.val - range.base) / range.base * 100 : priceLabel.val).toFixed(2) + (isPercentage ? '%' : ''), 10, y + 4)
           })
         )
       )
@@ -58,10 +60,11 @@ export default class AxisYRenderer {
 
     if (cursorPoint && hover && axis.range) {
       const y = cursorPoint.y
+      const value = axis.getValueByY(y)
       ctx.fillStyle = '#333333'
       ctx.fillRect(0, y - 6 - margin / 2, width + margin, 12 + margin)
       ctx.fillStyle = '#999999'
-      ctx.fillText(axis.getValueByY(y).toFixed(2).toString(), 10, ~~(y + 4))
+      ctx.fillText((isPercentage ? (value - range.base) / range.base * 100 : value).toFixed(2) + (isPercentage ? '%' : ''), 10, ~~(y + 4))
     }
   }
 }

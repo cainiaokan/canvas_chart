@@ -30,7 +30,8 @@ export class ColumnChartRenderer extends BaseChartRenderer {
     const chart = graph.chart
     const axisX = chart.axisX
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const curBar = plot.getCurBar()
     if (!curBar) {
       return false
@@ -88,6 +89,7 @@ export class ColumnChartRenderer extends BaseChartRenderer {
     }
 
     const range: YRange = {
+      base: bars[0][PLOT_DATA.VOLUME],
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
     }
@@ -117,7 +119,8 @@ export class ColumnChartRenderer extends BaseChartRenderer {
     const axisY = chart.axisY
     const height = chart.height
     const barWidth = ~~chart.axisX.barWidth
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const style = this.style
     const margin = axisY.margin
     const scale = style.scale || 1
@@ -197,7 +200,8 @@ export class ColumnChartRenderer extends BaseChartRenderer {
     const chart = graph.chart
     const axisY = chart.axisY
     const height = chart.height
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const margin = axisY.margin
     const style = this.style
     const scale = style.scale || 1

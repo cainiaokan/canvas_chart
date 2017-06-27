@@ -239,37 +239,53 @@ export default class ChartModel extends EventEmitter {
   }
 
   public calcRangeY () {
-    const rangeY = this._graphs
-      .reduce((range: YRange, graph: GraphModel) => {
-        // 如果chart是价格相关的，但是某个子图是价格无关的，则忽略它
+    const axisType = this._axisY.type
+    const rangeY =
+      this._graphs.reduce((range: YRange, graph: GraphModel) => {
+        // 如果chart是价格相关的，但是某个子图是价格无关的并且当前不是百分比刻度，则忽略它
         if (this.isPrice && !graph.isPrice) {
           return range
         }
-        const r = graph.getRangeY()
-        if (!r) {
+        const subRange = graph.getRangeY()
+        if (!subRange) {
           return range
         }
-        if (!range) {
-          return {
-            max: r.max,
-            min: r.min,
+        if (axisType === 'percentage') {
+          range.maxPercentage = (range.max - range.base) / Math.abs(range.base)
+          range.minPercentage = (range.min - range.base) / Math.abs(range.base)
+          subRange.maxPercentage = (subRange.max - subRange.base) / Math.abs(subRange.base)
+          subRange.minPercentage = (subRange.min - subRange.base) / Math.abs(subRange.base)
+          if (subRange.maxPercentage > range.maxPercentage) {
+            range.maxPercentage = subRange.maxPercentage
+            range.max = range.base > 0 ? (1 + subRange.maxPercentage) * range.base : (1 - subRange.maxPercentage) * range.base
+          }
+          if (subRange.minPercentage < range.minPercentage) {
+            range.minPercentage = subRange.minPercentage
+            range.min = range.base > 0 ? (1 + subRange.minPercentage) * range.base : ( 1 - subRange.minPercentage) * range.base
+          }
+        } else {
+          if (subRange.max > range.max) {
+            range.max = subRange.max
+          }
+          if (subRange.min < range.min) {
+            range.min = subRange.min
           }
         }
-        if (r.max > range.max) {
-          range.max = r.max
-        }
-        if (r.min < range.min) {
-          range.min = r.min
-        }
         return range
-      }, null)
+      }, this._graphs[0].getRangeY())
 
-    // 修整rangeY，如果max等于min在将rangeY上下各增加0.01个单位
-    if (rangeY && rangeY.max === rangeY.min) {
-      rangeY.max += 0.01
-      rangeY.min -= 0.01
+    if (axisType === 'percentage') {
+      if (rangeY && rangeY.maxPercentage === rangeY.minPercentage) {
+        rangeY.maxPercentage += 0.01
+        rangeY.minPercentage -= 0.01
+      }
+    } else {
+      // 修整rangeY，如果max等于min在将rangeY上下各增加0.01个单位
+      if (rangeY && rangeY.max === rangeY.min) {
+        rangeY.max += 0.01
+        rangeY.min -= 0.01
+      }
     }
-
     this._axisY.range = rangeY
   }
 

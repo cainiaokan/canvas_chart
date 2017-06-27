@@ -27,7 +27,8 @@ export class LineChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const curBar = plot.getCurBar()
     const prevBar = plot.getPrevBar()
     const nextBar = plot.getNextBar()
@@ -64,6 +65,7 @@ export class LineChartRenderer extends BaseChartRenderer {
     }
 
     let range: YRange = {
+      base: bars[0][PLOT_DATA.VALUE],
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
     }
@@ -100,26 +102,18 @@ export class LineChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
 
     ctx.strokeStyle = this.style.color
     ctx.lineWidth = this.style.lineWidth
     ctx.beginPath()
 
-    for (let i = 0, x, y, bar, hasMoveTo = false, len = bars.length; i < len; i++) {
+    for (let i = 0, x, y, bar, len = bars.length; i < len; i++) {
       bar = bars[i]
       x = bar[PLOT_DATA.X]
       y = ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
-      if (bar[PLOT_DATA.VALUE] === 0) {
-        hasMoveTo = false
-        continue
-      }
-      if (hasMoveTo) {
-        ctx.lineTo(x, y)
-      } else {
-        ctx.moveTo(x, y)
-        hasMoveTo = true
-      }
+      ctx.lineTo(x, y)
     }
 
     ctx.stroke()
@@ -130,7 +124,8 @@ export class LineChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     return ~~axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
   }
 }

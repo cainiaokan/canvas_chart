@@ -238,19 +238,21 @@ export default class ChartLayoutModel extends EventEmitter {
         // 绘制x坐标轴
         this.axisx.draw(this.axisx.isValid ? true : false)
         this.charts.forEach(chart => {
-          if (!chart.axisY.range) {
-            chart.calcRangeY()
-          }
-
           // 清空上层画布
           chart.clearTopCanvas()
 
-          if (!chart.isValid) {
+          // 绘制y坐标轴，顺序不能错，必须放到chart.draw的后面
+          if (!chart.axisY.isValid) {
+            chart.calcRangeY()
+            chart.axisY.draw(false)
+          } else {
+            chart.axisY.draw(true)
+          }
+
+          if (!chart.isValid || !chart.axisY.isValid) {
             chart.draw()
           }
 
-          // 绘制y坐标轴，顺序不能错，必须放到chart.draw的后面
-          chart.axisY.draw(chart.axisY.isValid)
           // 绘制创建中的工具图形
           if (chart.creatingDrawingTool) {
             chart.creatingDrawingTool.draw()
@@ -833,10 +835,11 @@ export default class ChartLayoutModel extends EventEmitter {
       mainDatasource.right,
       mainDatasource.timeDiff
     )
+    mainChart.axisY.type = 'percentage'
     const stockModel = new StockModel(
       datasource,
       mainChart,
-      false,
+      true,
       false,
       true,
       'line',
@@ -863,9 +866,13 @@ export default class ChartLayoutModel extends EventEmitter {
   }
 
   public removeComparison (graphId: number) {
-    this._mainChart.graphs.some(graph => {
+    const mainChart = this._mainChart
+    mainChart.graphs.some(graph => {
       if (graph.isComparison && graph.id === graphId) {
-        this._mainChart.removeGraph(graph)
+        mainChart.removeGraph(graph)
+        if (!mainChart.graphs.some(g => g.isComparison)) {
+          mainChart.axisY.type = 'normal'
+        }
         this.emit('graph_remove', graph)
         return true
       } else {

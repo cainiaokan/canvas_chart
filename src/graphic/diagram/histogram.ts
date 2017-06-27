@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import { BaseChartRenderer, ChartStyle } from './basechart'
 import PlotModel from '../../model/plot'
 import { YRange } from '../../model/axisy'
@@ -22,7 +23,8 @@ export class HistogramChartRenderer extends BaseChartRenderer {
     const chart = graph.chart
     const axisX = chart.axisX
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const curBar = plot.getCurBar()
     if (!curBar) {
       return false
@@ -49,6 +51,7 @@ export class HistogramChartRenderer extends BaseChartRenderer {
     }
 
     const range: YRange = {
+      base: bars[0][PLOT_DATA.VALUE],
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
     }
@@ -82,7 +85,8 @@ export class HistogramChartRenderer extends BaseChartRenderer {
       ~~(axisX.barWidth / 2 + 0.5) - 1 : ~~(axisX.barWidth / 2 + 0.5)
     const style = this.style
     const histogramBase = style.histogramBase
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const base = ~~axisY.getYByValue(histogramBase, rangeY)
 
     for (let i = 0, len = bars.length, data, x, y; i < len; i++) {
@@ -99,8 +103,8 @@ export class HistogramChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
-
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     return axisY.getYByValue(bar[PLOT_DATA.VALUE], rangeY)
   }
 }

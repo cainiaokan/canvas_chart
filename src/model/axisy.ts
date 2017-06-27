@@ -4,10 +4,14 @@ import CrosshairModel from '../model/crosshair'
 import { Datasource } from '../datasource'
 import AxisYRenderer from '../graphic/axisy'
 import YTickMark from './ytickmark'
+import { AxisType } from '../constant'
 
 export type YRange = {
+  base?: number
   max: number
   min: number
+  maxPercentage?: number
+  minPercentage?: number
 }
 
 export default class AxisYModel extends EventEmitter {
@@ -24,11 +28,13 @@ export default class AxisYModel extends EventEmitter {
   private _graphic: AxisYRenderer
   private _tickmark: YTickMark
   private _isValid: boolean
+  private _type: AxisType
 
-  constructor (datasource: Datasource, crosshair: CrosshairModel) {
+  constructor (datasource: Datasource, crosshair: CrosshairModel, type: AxisType = 'normal') {
     super()
     this._margin = 10
     this._isValid = false
+    this._type = type
     this._datasource = datasource
     this._crosshair = crosshair
     this._graphic = new AxisYRenderer(this)
@@ -53,6 +59,15 @@ export default class AxisYModel extends EventEmitter {
     }
     this._isValid = false
     this._chart.chartLayout.emit('barmargin_change')
+  }
+
+  get type (): AxisType {
+    return this._type
+  }
+
+  set type (type: AxisType) {
+    this._type = type
+    this._isValid = false
   }
 
   get isValid (): boolean {
@@ -84,26 +99,48 @@ export default class AxisYModel extends EventEmitter {
   }
 
   public getYByValue (value: number, range: YRange = this.range): number {
-    // TODO 这里range有时候为空，会报错
+    const isPercentage = this._type === 'percentage'
     const margin = this.margin
     const availHeight = this.height - margin * 2
-    const diff1 = range.max - range.min
-    const diff2 = range.max - value
-    if (range.max === 0 && range.min === 0) {
-      return availHeight + margin
-    } else if (range.max === range.min) {
-      return margin
+    let diff1
+    let diff2
+    if (isPercentage && 'maxPercentage' in range) {
+      value = (value - range.base) / range.base
+      diff1 = range.maxPercentage - range.minPercentage
+      diff2 = range.maxPercentage - value
+      if (range.maxPercentage === 0 && range.minPercentage === 0) {
+        return availHeight + margin
+      } else if (range.maxPercentage === range.minPercentage) {
+        return margin
+      } else {
+        return (diff2 / diff1) * availHeight + margin
+      }
     } else {
-      return (diff2 / diff1) * availHeight + margin
+      diff1 = range.max - range.min
+      diff2 = range.max - value
+      if (range.max === 0 && range.min === 0) {
+        return availHeight + margin
+      } else if (range.max === range.min) {
+        return margin
+      } else {
+        return (diff2 / diff1) * availHeight + margin
+      }
     }
   }
 
-  public getValueByY (value: number, range: YRange = this.range): number {
+  public getValueByY (y: number, range: YRange = this.range): number {
+    const type = this._type
     const margin = this.margin
     const height = this.height
     const availHeight = height - margin * 2
-    const diff1 = range.max - range.min
-    return (height - margin - value) * diff1 / availHeight + range.min
+    let diff1
+    if (type === 'percentage') {
+      diff1 = range.maxPercentage - range.minPercentage
+      return (height - margin - y) * diff1 / availHeight * range.base + range.min
+    } else {
+      diff1 = range.max - range.min
+      return (height - margin - y) * diff1 / availHeight + range.min
+    }
   }
 
   get maxVal () {

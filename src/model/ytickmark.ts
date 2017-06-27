@@ -23,19 +23,17 @@ export default class YTickMark {
   }
 
   public getTickMarksByTimeBars (): TickMark[] {
-
-    if (this._tickmarks) {
-      return this._tickmarks
-    }
-    const tickmarks: TickMark[] = []
+    const tickmarks: TickMark[] = this._tickmarks || []
     const axisY = this._axisY
+    const isPercentage = axisY.type === 'percentage'
 
-    if (!axisY.range) {
+    if (tickmarks.length || !axisY.range) {
       return tickmarks
     }
 
-    let min = axisY.range.min
-    let max = axisY.range.max
+    const base = axisY.range.base
+    let min = isPercentage ? axisY.range.minPercentage * 100 : axisY.range.min
+    let max = isPercentage ? axisY.range.maxPercentage * 100 : axisY.range.max
 
     if (!_.isFinite(min) || !_.isFinite(max)) {
       return tickmarks
@@ -49,22 +47,22 @@ export default class YTickMark {
     const diff1 = max - min
     const diff2 = diff1 * height / (height - 2 * axisY.margin)
     const margin = (diff2 - diff1) / 2
+    const span = this.normalizeTickSpan(diff2 / (height / TICK_SPAN))
+
     min -= margin
     max += margin
-    const span = this.normalizeTickSpan(diff2 / (height / TICK_SPAN))
 
     min -= (min % span)
 
     while (min <= max) {
       tickmarks.push({
         value: min,
-        y: axisY.getYByValue(min),
+        y: axisY.getYByValue(isPercentage ? (min / 100 + 1) * base : min),
       })
       min += span
     }
 
-    this._tickmarks = tickmarks
-    return tickmarks
+    return this._tickmarks = tickmarks
   }
 
   /**
@@ -75,7 +73,7 @@ export default class YTickMark {
     let array = span + ''
     let carry = 0
     let arr = []
-    span = +array
+
     for (let i = 0, len = array.length, cur; i < len; i++) {
       cur = array[i]
       if (cur === '.') {
@@ -93,7 +91,7 @@ export default class YTickMark {
             break
           }
         } else {
-          if (i - 1 >= 0) {
+          if (i > 0) {
             if (arr[i - 1] === '.') {
               arr[i - 2] += 1
             } else {

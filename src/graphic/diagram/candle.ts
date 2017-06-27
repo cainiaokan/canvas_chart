@@ -31,7 +31,8 @@ export class CandleChartRenderer extends BaseChartRenderer {
     const chart = graph.chart
     const axisX = chart.axisX
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const curBar = plot.getCurBar()
     if (!curBar) {
       return false
@@ -60,6 +61,7 @@ export class CandleChartRenderer extends BaseChartRenderer {
     }
 
     const range: YRange = {
+      base: bars[0][PLOT_DATA.OPEN],
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
     }
@@ -89,7 +91,8 @@ export class CandleChartRenderer extends BaseChartRenderer {
     const axisY = chart.axisY
     const candleWidth = ~~(axisX.barWidth * 0.8 + 0.5) % 2 === 0 ?
       ~~(axisX.barWidth * 0.8 + 0.5) - 1 : ~~(axisX.barWidth * 0.8 + 0.5)
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const high = bars.reduce((memo, cur) => {
       return cur[PLOT_DATA.HIGH] > memo ? cur[PLOT_DATA.HIGH] : memo
     }, -Number.MAX_VALUE)
@@ -166,7 +169,8 @@ export class CandleChartRenderer extends BaseChartRenderer {
     const graph = plot.graph
     const chart = graph.chart
     const axisY = chart.axisY
-    const rangeY = graph.isPrice ? axisY.range : graph.getRangeY()
+    const rangeY = graph.isPrice ?
+      graph.isComparison ? _.defaults(graph.getRangeY(), axisY.range) : axisY.range : graph.getRangeY()
     const close = bar[PLOT_DATA.CLOSE]
     const open = bar[PLOT_DATA.OPEN]
     return ~~axisY.getYByValue(Math.abs(close - (close - open) / 2), rangeY)
