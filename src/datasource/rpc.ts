@@ -15,7 +15,7 @@ const QU_CHAO_GU = 'http://www.quchaogu.com'
  * @param  {number}  to         结束时间戳（精确到秒）
  * @return {Promise<any>}   
  */
-export function getStockBars (symbol: string, resolution: string, right: number,
+export function getStockBars (symbol: string, resolution: string, right: string,
                               from: number, to: number): Promise<any> {
   return fetch(`${QU_CHAO_GU}/chart/history?symbol=${symbol}&resolution=${resolution}`
                + `&fq=${right}&from=${from}&to=${to}`)

@@ -86,7 +86,7 @@ export default class ChartLayout extends React.Component<Prop, State> {
     enablepulseupdate: React.PropTypes.bool,
     closetime: React.PropTypes.number,
     width: React.PropTypes.number.isRequired,
-    right: React.PropTypes.oneOf([0, 1, 2]),
+    right: React.PropTypes.oneOf(['0', '1', '2']),
   }
 
   public static defaultProps = {

@@ -11,7 +11,7 @@ type Prop = {
 }
 
 const rightLabels = ['不复权', '前复权']
-const rightValues = [0, 1]
+const rightValues = ['0', '1']
 
 export default class RightOption extends React.Component<Prop, any> {
   public static contextTypes = {
@@ -63,7 +63,7 @@ export default class RightOption extends React.Component<Prop, any> {
   }
 
   private rightSelectHandler (ev) {
-    const right = +ev.target.value as RightType
+    const right = ev.target.value
     const chartLayout = this._chartLayout
     if (chartLayout.mainDatasource.right !== right) {
       this.props.onRightChange(right)

@@ -256,7 +256,6 @@ export default class Chart extends React.Component<Prop, State> {
 
   private mouseOut () {
     this.props.chart.hover = false
-    this._chartLayout.setCursorPoint(null)
   }
 
   private mouseDownHandler (ev: any) {

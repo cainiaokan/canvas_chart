@@ -255,15 +255,15 @@ export class StockDatasource extends Datasource {
         maxTimeSpan = 180 * 24 * 3600
         break
       case 'D':
-        fromTime = toTime - 2 * requiredNum * 24 * 3600
+        fromTime = toTime - 3 * requiredNum * 24 * 3600
         maxTimeSpan = 360 * 24 * 3600
         break
       case 'W':
-        fromTime = toTime - 1.5 * requiredNum * 7 * 24 * 3600
+        fromTime = toTime - 2 * requiredNum * 7 * 24 * 3600
         maxTimeSpan = 360 * 24 * 3600
         break
       case 'M':
-        fromTime = toTime - 1.2 * requiredNum * 30 * 24 * 3600
+        fromTime = toTime - 2 * requiredNum * 30 * 24 * 3600
         maxTimeSpan = 360 * 24 * 3600
         break
       default:

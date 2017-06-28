@@ -27,19 +27,11 @@ const paramConfig = getUrlParams()
 const container = document.getElementById('chart_container')
 const chartLayout = new ChartLayoutModel()
 
-Object.keys(paramConfig).forEach(key => {
-  try {
-    paramConfig[key] = JSON.parse(paramConfig[key])
-  } catch (ex) {
-    // do nothing
-  }
-})
-
 _.defaults(chartConfig, paramConfig, {
   symbol: 'sh000001',
   resolution: chartLayout.readFromLS('qchart.resolution') || '1',
   shape: 'candle',
-  right: 1,
+  right: '1',
   closetime: null,
 })
 
