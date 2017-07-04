@@ -11,7 +11,7 @@ type Prop = {
 export default class StockDetail extends React.Component<Prop, any> {
 
   public refs: {
-    container: HTMLLIElement
+    container: HTMLDivElement
   }
 
   private _tickListScroll

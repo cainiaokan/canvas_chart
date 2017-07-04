@@ -77,7 +77,7 @@ export default class Chart extends React.Component<Prop, State> {
     this.contextMenuHanlder = this.contextMenuHanlder.bind(this)
 
     this.mouseOver = this.mouseOver.bind(this)
-    this.mouseOut = this.mouseOut.bind(this)
+    this.mouseLeave = this.mouseLeave.bind(this)
 
     this.toolTipHandler = this.toolTipHandler.bind(this)
     this.hitHandler = this.hitHandler.bind(this)
@@ -188,7 +188,7 @@ export default class Chart extends React.Component<Prop, State> {
           onTouchMove={this.touchMoveHandler}
           onTouchEnd={this.touchEndHandler}
           onMouseOver={this.mouseOver}
-          onMouseOut={this.mouseOut}>
+          onMouseLeave={this.mouseLeave}>
         </canvas>
         {
           this.state.showEditModeToolTip ?
@@ -254,8 +254,9 @@ export default class Chart extends React.Component<Prop, State> {
     this.props.chart.hover = true
   }
 
-  private mouseOut () {
+  private mouseLeave () {
     this.props.chart.hover = false
+    this._chartLayout.setCursorPoint(null)
   }
 
   private mouseDownHandler (ev: any) {

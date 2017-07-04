@@ -23,7 +23,7 @@ type State = {
 
 export default class CapitalFlow extends React.Component<Prop, State> {
   public refs: {
-    container: HTMLLIElement
+    container: HTMLDivElement
   }
 
   private _capitalFlowScroll

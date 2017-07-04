@@ -263,8 +263,6 @@ abstract class GraphModel {
           bar, cache; i < len; i++, start++) {
       bar = bars[i]
       cache = this._cache[bar.time]
-
-      cache = this._cache[bar.time]
       if (!cache) {
         try {
           cache = this._calc(

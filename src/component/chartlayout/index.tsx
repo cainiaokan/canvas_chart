@@ -30,6 +30,7 @@ import {
   SIDEBAR_FOLD_WIDTH,
   TOOLBOX_WIDTH,
 } from '../../constant'
+
 import {
   requestFullscreen,
   exitFullscreen,

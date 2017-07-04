@@ -69,6 +69,11 @@ export function $MA (c: number): number {
   const { datasource, adapter, cacheObj } = context
   const cacheKey = `$ma_openIndex`
   const openIndex = cacheObj[cacheKey] || getLastOpenIndex(datasource)
+
+  if (openIndex === -1 || openIndex >= c) {
+    throw 'no data'
+  }
+
   cacheObj[cacheKey] = openIndex
 
   let amount = 0

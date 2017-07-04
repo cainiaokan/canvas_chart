@@ -225,6 +225,9 @@ export class StockDatasource extends Datasource {
       return Promise.resolve()
     }
 
+    // 额外再加载100个数据bar，考虑到各个指标可能需要更久的历史数据
+    requiredNum += 100
+
     const toTime = lastRequestFromTime ?
                      lastRequestFromTime : this._plotList.first() ?
                        this._plotList.first().time : this.closeTime ?

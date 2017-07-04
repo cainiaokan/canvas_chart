@@ -27,6 +27,14 @@ const paramConfig = getUrlParams()
 const container = document.getElementById('chart_container')
 const chartLayout = new ChartLayoutModel()
 
+// transform 'true' | 'false' to boolean type.
+Object.keys(paramConfig).forEach(key => {
+  const val = paramConfig[key]
+  if (val === 'true' || val === 'false') {
+    paramConfig[key] = JSON.parse(val)
+  }
+})
+
 _.defaults(chartConfig, paramConfig, {
   symbol: 'sh000001',
   resolution: chartLayout.readFromLS('qchart.resolution') || '1',

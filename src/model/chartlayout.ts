@@ -245,12 +245,12 @@ export default class ChartLayoutModel extends EventEmitter {
           if (!chart.axisY.isValid) {
             chart.calcRangeY()
             chart.axisY.draw(false)
+            chart.draw()
           } else {
             chart.axisY.draw(true)
-          }
-
-          if (!chart.isValid || !chart.axisY.isValid) {
-            chart.draw()
+            if (!chart.isValid) {
+              chart.draw()
+            }
           }
 
           // 绘制创建中的工具图形

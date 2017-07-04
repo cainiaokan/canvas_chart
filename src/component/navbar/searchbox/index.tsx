@@ -32,7 +32,6 @@ export default class SearchBox extends React.Component<Prop, State> {
   public context: { chartLayout: ChartLayoutModel }
 
   public refs: {
-      [key: string]: (Element)
       input: HTMLInputElement
   }
 
