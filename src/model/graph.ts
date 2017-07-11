@@ -27,7 +27,7 @@ abstract class GraphModel {
   private _hover: boolean = false
   private _selected: boolean = false
   private _visibleBarCache: any[][]
-  private _cache: { [propName: number]: any[] }
+  private _cache: { [propName: number]: any }
 
   constructor (
     datasource: Datasource,
@@ -263,7 +263,7 @@ abstract class GraphModel {
           bar, cache; i < len; i++, start++) {
       bar = bars[i]
       cache = this._cache[bar.time]
-      if (!cache) {
+      if (!cache || !cache.valid) {
         try {
           cache = this._calc(
             this._adapter(bar),
@@ -273,6 +273,7 @@ abstract class GraphModel {
         } catch (e) {
           continue
         }
+        cache.valid = true
         this._cache[bar.time] = cache
       }
 
@@ -328,8 +329,10 @@ abstract class GraphModel {
   public invalidateLastBarCache () {
     const datasource = this._datasource
     const loaded = datasource.loaded()
-    delete this._cache[datasource.barAt(loaded - 1).time]
-    delete this._cache[datasource.barAt(loaded - 2).time]
+    const lastBar = this._cache[datasource.barAt(loaded - 1).time]
+    const beforeLastBar = this._cache[datasource.barAt(loaded - 2).time]
+    lastBar.valid = false
+    beforeLastBar.valid = false
   }
 }
 
