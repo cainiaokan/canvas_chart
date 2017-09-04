@@ -72,7 +72,7 @@ export default class GoToDateDialog extends React.Component<any, any> {
         isValidDate={this.checkDateHandler}
         dateFormat={true}
         timeFormat={dontShowTime ? null : true}
-        timeConstraints={ { hours: { min: OPEN_HOUR, max: CLOSE_HOUR }, minutes: { step: 5 } } }
+        timeConstraints={ { hours: { min: OPEN_HOUR, max: CLOSE_HOUR, step: 1 }, minutes: { min: 0, max: 59, step: 5 } } }
         closeOnSelect={false}
         disableOnClickOutside={true}
         locale={'zh-cn'}

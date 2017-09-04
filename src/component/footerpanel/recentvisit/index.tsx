@@ -119,8 +119,8 @@ export default class RecentList extends React.Component<Prop, State> {
           <table className='header s-table top-header'>
             <thead>
               <tr>
-                <th width='18%'>股票</th>
-                <th width='14%' data-key='price' onClick={this.sortHandler}>
+                <th style={ {width: '18%'} }>股票</th>
+                <th style={ {width: '14%'} } data-key='price' onClick={this.sortHandler}>
                   最新价
                   {
                     this.state.sortKey === 'price' ?
@@ -128,7 +128,7 @@ export default class RecentList extends React.Component<Prop, State> {
                       : ''
                   }
                 </th>
-                <th width='14%' data-key='zdf' onClick={this.sortHandler}>
+                <th style={ {width: '14%'} } data-key='zdf' onClick={this.sortHandler}>
                   涨跌幅
                   {
                     this.state.sortKey === 'zdf' ?
@@ -136,7 +136,7 @@ export default class RecentList extends React.Component<Prop, State> {
                       : ''
                   }
                 </th>
-                <th width='16%' data-key='sz' onClick={this.sortHandler}>
+                <th style={ {width: '16%'} } data-key='sz' onClick={this.sortHandler}>
                   总市值
                   {
                     this.state.sortKey === 'sz' ?
@@ -144,7 +144,7 @@ export default class RecentList extends React.Component<Prop, State> {
                       : ''
                   }
                 </th>
-                <th width='20%' data-key='lt_sz' onClick={this.sortHandler}>
+                <th style={ {width: '20%'} } data-key='lt_sz' onClick={this.sortHandler}>
                   实际流通市值
                   {
                     this.state.sortKey === 'lt_sz' ?
@@ -152,7 +152,7 @@ export default class RecentList extends React.Component<Prop, State> {
                       : ''
                   }
                 </th>
-                <th width='18%' data-key='hy' onClick={this.sortHandler}>
+                <th style={ {width: '18%'} } data-key='hy' onClick={this.sortHandler}>
                   所属行业
                   {
                     this.state.sortKey === 'hy' ?
@@ -171,12 +171,12 @@ export default class RecentList extends React.Component<Prop, State> {
                     <tr key={i}
                         data-symbol={stock.code}
                         onClick={this.setSymbolHandler}>
-                      <td width='18%'>{stock.name}</td>
-                      <td width='14%'>{(+stock.price).toFixed(2)}</td>
-                      <td width='14%'>{(stock.zdf * 100).toFixed(2)}%</td>
-                      <td width='16%'>{stock.sz !== '--' ? formatNumber(+stock.sz, 2) : '--'}</td>
-                      <td width='20%'>{stock.lt_sz !== '--' ? formatNumber(+stock.lt_sz, 2) : '--'}</td>
-                      <td width='18%'>{stock.hy}</td>
+                      <td style={ {width: '18%'} }>{stock.name}</td>
+                      <td style={ {width: '14%'} }>{(+stock.price).toFixed(2)}</td>
+                      <td style={ {width: '14%'} }>{(stock.zdf * 100).toFixed(2)}%</td>
+                      <td style={ {width: '16%'} }>{stock.sz !== '--' ? formatNumber(+stock.sz, 2) : '--'}</td>
+                      <td style={ {width: '20%'} }>{stock.lt_sz !== '--' ? formatNumber(+stock.lt_sz, 2) : '--'}</td>
+                      <td style={ {width: '18%'} }>{stock.hy}</td>
                     </tr>
                   )
                 }

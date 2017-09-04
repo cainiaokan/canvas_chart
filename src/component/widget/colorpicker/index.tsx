@@ -72,7 +72,7 @@ export default class ColorPicker extends React.Component<Prop, State> {
     this.setState({ showColorPicker: true })
   }
 
-  private colorChangeHandler (colorResult: ReactColor.ColorResult) {
+  private colorChangeHandler (colorResult: any) {
     const rgb = colorResult.rgb
     const color = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')'
     this.props.onChangeComplete(color)

@@ -50,11 +50,11 @@ export default class StockDetail extends React.Component<Prop, any> {
             {
               stockInfo.ticks.map((tick, i) =>
                 <tr key={i}>
-                  <td width='34%'>
+                  <td style={ {width: '34%'} }>
                     {tick.time.substring(0, 2)}:{tick.time.substring(2, 4)}:{tick.time.substring(4, 6)}
                   </td>
-                  <td width='33%'>{tick.price}</td>
-                  <td width='33%'
+                  <td style={ {width: '33%'} }>{tick.price}</td>
+                  <td style={ {width: '33%'} }
                     className={tick.type === '1' ? 'positive' :
                       tick.type === '2' ? 'negative' : ''}>
                     {+tick.volume / 100}

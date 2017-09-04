@@ -47,8 +47,8 @@ export default class Financing extends React.Component<Prop, any> {
         <table className='indexes-display s-table stripe even left-header'>
           <tbody>
             <tr>
-              <th width='133'>每股收益</th>
-              <td width='134'>{financingInfo.earning_per_Share}元</td>
+              <th style={ {width: '133px'} }>每股收益</th>
+              <td style={ {width: '134px'} }>{financingInfo.earning_per_Share}元</td>
             </tr>
             <tr>
               <th>净利润</th>

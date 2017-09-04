@@ -150,13 +150,13 @@ export default class PlateList extends React.Component<Prop, State> {
     // for (let i = 0, len = startIndex; i < len; i++) {
     //   topPaddingRows.push(
     //     <tr key={i}>
-    //       <td width='18%'>--</td>
-    //       <td width='16%'>--</td>
-    //       <td width='18%'>--</td>
-    //       <td width='18%'>--</td>
-    //       <td width='12%'>--</td>
-    //       <td width='12%'>--</td>
-    //       <td width='6%'></td>
+    //       <td style={ {width: '18%'} }>--</td>
+    //       <td style={ {width: '16%'}>--</td>
+    //       <td style={ {width: '18%'} }>--</td>
+    //       <td style={ {width: '18%'} }>--</td>
+    //       <td style={ {width: '12%'} }>--</td>
+    //       <td style={ {width: '12%'} }>--</td>
+    //       <td style={ {width: '6%'} }></td>
     //     </tr>
     //   )
     // }
@@ -164,13 +164,13 @@ export default class PlateList extends React.Component<Prop, State> {
     // for (let i = startIndex + LOAD_SIZE, len = total; i < len; i++) {
     //   bottomPaddingRows.push(
     //     <tr key={i}>
-    //       <td width='18%'>--</td>
-    //       <td width='16%'>--</td>
-    //       <td width='18%'>--</td>
-    //       <td width='18%'>--</td>
-    //       <td width='12%'>--</td>
-    //       <td width='12%'>--</td>
-    //       <td width='6%'></td>
+    //       <td style={ {width: '18%'} }>--</td>
+    //       <td style={ {width: '16%'}>--</td>
+    //       <td style={ {width: '18%'} }>--</td>
+    //       <td style={ {width: '18%'} }>--</td>
+    //       <td style={ {width: '12%'} }>--</td>
+    //       <td style={ {width: '12%'} }>--</td>
+    //       <td style={ {width: '6%'} }></td>
     //     </tr>
     //   )
     // }
@@ -182,8 +182,8 @@ export default class PlateList extends React.Component<Prop, State> {
             <table className='header s-table top-header'>
               <thead>
                 <tr>
-                  <th width='18%'>板块名称</th>
-                  <th width='16%' data-key='zdf' onClick={this.sortHandler}>
+                  <th style={ {width: '18%'} }>板块名称</th>
+                  <th style={ {width: '16%'} } data-key='zdf' onClick={this.sortHandler}>
                     涨跌幅
                     {
                       this.state.sortKey === 'zdf' ?
@@ -191,7 +191,7 @@ export default class PlateList extends React.Component<Prop, State> {
                         : ''
                     }
                   </th>
-                  <th width='18%' data-key='big_rate' onClick={this.sortHandler}>
+                  <th style={ {width: '18%'} } data-key='big_rate' onClick={this.sortHandler}>
                     大单净比
                     {
                       this.state.sortKey === 'big_rate' ?
@@ -199,7 +199,7 @@ export default class PlateList extends React.Component<Prop, State> {
                         : ''
                     }
                   </th>
-                  <th width='18%' data-key='big_amount' onClick={this.sortHandler}>
+                  <th style={ {width: '18%'} } data-key='big_amount' onClick={this.sortHandler}>
                     主力资金
                     {
                       this.state.sortKey === 'big_amount' ?
@@ -207,9 +207,9 @@ export default class PlateList extends React.Component<Prop, State> {
                         : ''
                     }
                   </th>
-                  <th width='12%'>上涨数</th>
-                  <th width='12%'>下跌数</th>
-                  <th width='6%'></th>
+                  <th style={ {width: '12%'} }>上涨数</th>
+                  <th style={ {width: '12%'} }>下跌数</th>
+                  <th style={ {width: '6%'} }></th>
                 </tr>
               </thead>
             </table>
@@ -224,13 +224,13 @@ export default class PlateList extends React.Component<Prop, State> {
                           className={plate.bk_id === this.state.activePlateId ? 'selected' : ''}
                           data-id={plate.bk_id}
                           onClick={this.selectHandler}>
-                        <td width='18%'>{plate.name}</td>
-                        <td width='16%'>{(plate.zdf * 100).toFixed(2)}%</td>
-                        <td width='18%'>{(plate.big_rate * 100).toFixed(2)}%</td>
-                        <td width='18%'>{formatNumber(+plate.big_amount, 2)}</td>
-                        <td width='12%'>{plate.z_num}</td>
-                        <td width='12%'>{plate.d_num}</td>
-                        <td width='6%'></td>
+                        <td style={ {width: '18%'} }>{plate.name}</td>
+                        <td style={ {width: '16%'} }>{(plate.zdf * 100).toFixed(2)}%</td>
+                        <td style={ {width: '18%'} }>{(plate.big_rate * 100).toFixed(2)}%</td>
+                        <td style={ {width: '18%'} }>{formatNumber(+plate.big_amount, 2)}</td>
+                        <td style={ {width: '12%'} }>{plate.z_num}</td>
+                        <td style={ {width: '12%'} }>{plate.d_num}</td>
+                        <td style={ {width: '6%'} }></td>
                       </tr>
                     )
                   }
@@ -245,9 +245,9 @@ export default class PlateList extends React.Component<Prop, State> {
             <table className='header s-table top-header'>
               <thead>
                 <tr>
-                  <th width='40%'>股票名称</th>
-                  <th width='30%'>最新价</th>
-                  <th width='30%'>涨跌幅</th>
+                  <th style={ {width: '40%'} }>股票名称</th>
+                  <th style={ {width: '30%'} }>最新价</th>
+                  <th style={ {width: '30%'} }>涨跌幅</th>
                 </tr>
               </thead>
             </table>
@@ -259,9 +259,9 @@ export default class PlateList extends React.Component<Prop, State> {
                       <tr key={i}
                           data-symbol={stock.c}
                           onClick={this.setSymbolHandler}>
-                        <td width='40%'>{stock.n}</td>
-                        <td width='30%'>{(+stock.price).toFixed(2)}</td>
-                        <td width='30%'>{(stock.p_change * 100).toFixed(2)}%</td>
+                        <td style={ {width: '40%'} }>{stock.n}</td>
+                        <td style={ {width: '30%'} }>{(+stock.price).toFixed(2)}</td>
+                        <td style={ {width: '30%'} }>{(stock.p_change * 100).toFixed(2)}%</td>
                       </tr>
                     )
                   }

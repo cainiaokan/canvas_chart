@@ -57,11 +57,11 @@ export default class BidList extends React.Component<Prop, any> {
                 {
                   stockInfo.selling.map((item, i) =>
                     <tr key={i}>
-                      <td width='33.33%'>{5 - i}</td>
-                      <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
+                      <td style={ {width: '33.33%'} }>{5 - i}</td>
+                      <td style={ {width: '33.33%'} } className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
                         {item[0]}
                       </td>
-                      <td width='33.33%'>{item[1] / 100}</td>
+                      <td style={ {width: '33.33%'} }>{item[1] / 100}</td>
                     </tr>
                   )
                 }
@@ -73,11 +73,11 @@ export default class BidList extends React.Component<Prop, any> {
                 {
                   stockInfo.buying.map((item, i) =>
                     <tr key={i}>
-                      <td width='33.33%'>{i + 1}</td>
-                      <td width='33.33%' className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
+                      <td style={ {width: '33.33%'} }>{i + 1}</td>
+                      <td style={ {width: '33.33%'} } className={item[0] > stockInfo.preClose ? 'positive' : 'negtive'}>
                         {item[0]}
                       </td>
-                      <td width='33.33%'>{item[1] / 100}</td>
+                      <td style={ {width: '33.33%'} }>{item[1] / 100}</td>
                     </tr>
                   )
                 }

@@ -49,8 +49,8 @@ export default class NonRealtime extends React.Component<Prop, any> {
           <table className='s-table stripe even left-header'>
             <tbody>
               <tr>
-                <th width='130'>上证压力支撑</th>
-                <td width='137'>
+                <th style={ {width: '130px'} }>上证压力支撑</th>
+                <td style={ {width: '137px'} }>
                   <span className='positive'>{nonRealtimeTools.pressure}</span>/
                   <span className='negtive'>{nonRealtimeTools.support}</span></td>
               </tr>

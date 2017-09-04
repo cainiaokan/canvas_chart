@@ -64,7 +64,7 @@ export default class MASettings extends React.Component<Prop, State> {
             {
               maProps.map((prop, i) =>
                 <tr key={i}>
-                  <td width='60'>
+                  <td style={ {width: '60px'} }>
                     <input
                       id={`chart-settings-ma${i}`}
                       type='checkbox'
@@ -73,13 +73,13 @@ export default class MASettings extends React.Component<Prop, State> {
                       onChange={this.checkStateChangeHandler} />
                     <label htmlFor={`chart-settings-ma${i}`}>均线{i + 1}</label>
                   </td>
-                  <td width='130'>
+                  <td style={ {width: '130px'} }>
                     <input type='text'
                       data-index={i}
                       defaultValue={prop.length + ''}
                       onChange={this.inputChangeHandler} />
                   </td>
-                  <td width='30'>
+                  <td style={ {width: '30px'} }>
                     <ColorPicker defaultColor={prop.color} onChangeComplete={this.colorChangeHandler(i)} />
                   </td>
                 </tr>

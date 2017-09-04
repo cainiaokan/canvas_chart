@@ -49,10 +49,10 @@ export default class StockDetail extends React.Component<Prop, any> {
         <table>
           <tbody>
             <tr>
-              <th width='42'>昨收</th>
-              <td width='76'>{stockInfo.preClose}</td>
-              <th width='46'>成交量</th>
-              <td width='74'>{formatNumber(stockInfo.volume * 1e4, 2)}手</td>
+              <th style={ {width: '42px'} }>昨收</th>
+              <td style={ {width: '76px'} }>{stockInfo.preClose}</td>
+              <th style={ {width: '46px'} }>成交量</th>
+              <td style={ {width: '74px'} }>{formatNumber(stockInfo.volume * 1e4, 2)}手</td>
             </tr>
             <tr>
               <th>今开</th>

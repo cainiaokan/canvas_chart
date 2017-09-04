@@ -123,11 +123,11 @@ export default class Indexes extends React.Component<Prop, State> {
                     <tr key={index.code}
                         data-symbol={index.code}
                         onClick={this.selectIndex}>
-                      <th width='70'>{index.name}</th>
-                      <td width='70' className={`${classList[index.code]} ${mutations[index.code] || ''}`}>
+                      <th style={ {width: '70px'} }>{index.name}</th>
+                      <td style={ {width: '70px'} } className={`${classList[index.code]} ${mutations[index.code] || ''}`}>
                         <span>{index.price}</span>
                       </td>
-                      <td width='127' className={classList[index.code]}>
+                      <td style={ {width: '127px'} } className={classList[index.code]}>
                         {(index.price_change > 0 ? '+' : '') + (+index.price_change).toFixed(2)}
                         ({(index.p_change > 0 ? '+' : '') + (index.p_change * 100).toFixed(2)}%)
                       </td>
@@ -145,8 +145,8 @@ export default class Indexes extends React.Component<Prop, State> {
             <table className='s-table stripe even left-header'>
               <tbody>
                 <tr>
-                  <th width='157'>沪股通资金流入</th>
-                  <td width='110' className={classList.hugutong}>
+                  <th style={ {width: '157px'} }>沪股通资金流入</th>
+                  <td style={ {width: '110px'} } className={classList.hugutong}>
                     {realtimeTools.hugutong[0]}
                   </td>
                 </tr>
@@ -178,8 +178,8 @@ export default class Indexes extends React.Component<Prop, State> {
             <table className='s-table stripe even left-header nonrealtime-tabe'>
               <tbody>
                 <tr>
-                  <th width='130'>上证压力支撑</th>
-                  <td width='137'>
+                  <th style={ {width: '130px'} }>上证压力支撑</th>
+                  <td style={ {width: '137px'} }>
                     <span className='positive'>{nonRealtimeTools.pressure}</span>/
                     <span className='negtive'>{nonRealtimeTools.support}</span></td>
                 </tr>
