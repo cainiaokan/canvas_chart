@@ -331,8 +331,10 @@ abstract class GraphModel {
     const loaded = datasource.loaded()
     const lastBar = this._cache[datasource.barAt(loaded - 1).time]
     const beforeLastBar = this._cache[datasource.barAt(loaded - 2).time]
-    lastBar.valid = false
-    beforeLastBar.valid = false
+    if (lastBar && beforeLastBar) {
+      lastBar.valid = false
+      beforeLastBar.valid = false
+    }
   }
 }
 

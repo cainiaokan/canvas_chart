@@ -60,7 +60,7 @@ export default class StockDetail extends React.Component<Prop, any> {
                 {stockInfo.open}
               </td>
               <th>成交额</th>
-              <td>{formatNumber(stockInfo.amount * 1e8, 2)}</td>
+              <td>{formatNumber(stockInfo.amount, 2)}</td>
             </tr>
             <tr>
               <th>最高</th>

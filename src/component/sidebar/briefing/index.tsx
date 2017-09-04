@@ -39,8 +39,8 @@ export default class Briefing extends React.Component<Prop, any> {
             }
           </span>
           &nbsp;&nbsp;{changePrice > 0 ? '+' + changePrice.toFixed(2) : changePrice.toFixed(2)}
-          &nbsp;&nbsp;({changeRate > 0 ? '+' + (changeRate * 100).toFixed(2) + '%'
-            : (changeRate * 100).toFixed(2) + '%'})
+          &nbsp;&nbsp;({changeRate > 0 ? '+' + (changeRate).toFixed(2) + '%'
+            : (changeRate).toFixed(2) + '%'})
         </div> : <div className='stock-data'>
           <span className='price'>停牌</span>
         </div>

@@ -39,7 +39,7 @@ module.exports = {
   plugins: [
     // 第三方模块
     new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor'],
+      names: ['vendor', 'manifest'],
       minChunks: Infinity
     }),
 
@@ -48,10 +48,8 @@ module.exports = {
     // enable scope hoisting
     new webpack.optimize.ModuleConcatenationPlugin(),
 
-    new ChunkManifestPlugin({
-      filename: 'chunk_manifest.json',
-      manifestVariable: 'webpackManifest',
-      inlineManifest: true,
+    new InlineManifestWebpackPlugin({
+      name: 'webpackManifest'
     }),
 
     new HtmlWebpackPlugin({
