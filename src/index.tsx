@@ -3,7 +3,7 @@ import './style/common.css'
 
 import * as React from 'react'
 import * as _ from 'underscore'
-import Spinner = require('spin.js')
+import Spinner = require('spin')
 import { render } from 'react-dom'
 import Provider from './provider'
 import { getUrlParams } from './util'

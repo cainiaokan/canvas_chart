@@ -17,7 +17,7 @@ const QU_CHAO_GU = 'http://www.quchaogu.com'
  */
 export function getStockBars (symbol: string, resolution: string, right: string,
                               from: number, to: number): Promise<any> {
-  return fetch(`${QU_CHAO_GU}/chart/history?symbol=${symbol}&resolution=${resolution}`
+  return fetch(`${QU_CHAO_GU}/chart/common/history?code=${symbol}&resolution=${resolution}`
                + `&fq=${right}&from=${from}&to=${to}`)
     .then(response => response.json())
 }
@@ -38,7 +38,7 @@ export function getServerTime (): Promise<any> {
 }
 
 export function getStockInfo (symbol: string): Promise<any> {
-  return fetch(`${QU_CHAO_GU}/chart/stock/info?code=${symbol.toLowerCase()}&ticks_time=0`)
+  return fetch(`${QU_CHAO_GU}/chart/stock/info?code=${symbol}&ticks_time=0`)
     .then(response => response.json())
 }
 
