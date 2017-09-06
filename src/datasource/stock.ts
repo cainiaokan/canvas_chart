@@ -179,6 +179,9 @@ export class StockDatasource extends Datasource {
         .then(data => {
           let stockBars: IStockBar[] = []
           data.t.forEach((time, index) => {
+            if (+data.o[index] === 0) {
+              return
+            }
             const barData: IStockBar = {
               amount: data.a[index],
               close: data.c[index],
