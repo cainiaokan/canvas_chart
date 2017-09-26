@@ -1,4 +1,5 @@
 import { ChartStyle } from '../graphic/diagram'
+import { YRange } from '../model/axisy'
 import { ShapeType, ResolutionType } from '../constant'
 import { IStockBar, DataAdapter, IPSBar } from '../datasource'
 import {
@@ -39,6 +40,7 @@ type StudyConfig = {
     isPrice: boolean
     isRemovable: boolean
     datasourceType: 'remote' | 'local'
+    range?: YRange
     noLegend: boolean
     output: DataConverter
     plots: Array<{
@@ -157,6 +159,10 @@ export const studyConfig: StudyConfig = {
     isRemovable: false,
     noLegend: true,
     datasourceType: 'local',
+    range: {
+      min: 0,
+      max: 0,
+    },
     output: (data: any[]): any[][] => {
       return [
         data,

@@ -11,6 +11,7 @@ import {
   ArrowRenderer,
 } from '../graphic/diagram'
 import GraphModel from '../model/graph'
+import { YRange } from '../model/axisy'
 
 export type PriceLabel = {
   val: number
@@ -24,6 +25,7 @@ export default class PlotModel {
   private _index: number
   private _shape: ShapeType
   private _originalShape: ShapeType
+  private _initialRange: YRange
   private _graphic: BaseChartRenderer
   private _style: ChartStyle
 
@@ -31,11 +33,13 @@ export default class PlotModel {
     graph: GraphModel,
     index: number,
     shape: ShapeType,
-    style: ChartStyle) {
+    style: ChartStyle,
+    range?: YRange) {
     this._graph = graph
     this._index = index
     this._style = style
     this._originalShape = shape
+    this._initialRange = range
     this.shape = shape
   }
 
@@ -88,6 +92,10 @@ export default class PlotModel {
 
   get graph (): GraphModel {
     return this._graph
+  }
+
+  get defaultRange(): YRange {
+    return this._initialRange
   }
 
   public draw (ctx: CanvasRenderingContext2D) {

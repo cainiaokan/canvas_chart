@@ -46,7 +46,8 @@ export default class StudyModel extends Graph {
           this,
           index,
           plotConfig.shape,
-          _.extend({}, plotConfig.style, styles ? styles[index] : {})
+          _.extend({}, plotConfig.style, styles ? styles[index] : {}),
+          config.range,
         )
       )
     })

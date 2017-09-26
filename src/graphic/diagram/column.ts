@@ -88,11 +88,11 @@ export class ColumnChartRenderer extends BaseChartRenderer {
       return null
     }
 
-    const range: YRange = {
+    const range: YRange = _.extend({
       base: bars[0][PLOT_DATA.VOLUME],
       max: -Number.MAX_VALUE,
       min: Number.MAX_VALUE,
-    }
+    }, this._plotModel.defaultRange || {})
 
     return bars.reduce((prev, cur) => {
       const data = cur

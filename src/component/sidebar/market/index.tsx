@@ -67,7 +67,7 @@ export default class Indexes extends React.Component<Prop, State> {
 
   public componentWillReceiveProps (nextProps: Prop) {
     if (!_.isEqual(nextProps.indexesInfo, this.props.indexesInfo)) {
-      this.state.highlightFinished = false
+      this.setState({ highlightFinished: false })
       this._highLightTimeout = setTimeout(() => this.setState({ highlightFinished: true}), 500)
     }
   }
